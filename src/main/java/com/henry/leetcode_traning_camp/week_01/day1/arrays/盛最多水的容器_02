@@ -1,0 +1,39 @@
+#11 分析：容器如何才能盛放更多的水呢？
+切面面积最大。切面面积如何才能最大呢？
+S = length * height;
+获取到length；  手段：两个指针；
+获取到height；  手段：两个指针指向的元素值得较小者（因为容量是由短板决定的）
+
+---
+代码：
+public int maxArea(int[] height) {
+        // 准备指针 & 面积结果
+        ...
+
+        // 准备一个循环，更新指针，更新res的最大值
+        while (i < j) { // 循环条件待考察: 如果i= j,说明这时候两个隔板已经相遇了。不需要考察这种情况
+            // 计算当前面积并更新res
+            res = Math.max(res, (j - i) * Math.min(height[i], height[j]));
+
+            // 更新指针，以计算下一个可能的面积     原则：短板必须移动
+            ...
+        }
+
+        return res;
+    }
+
+--
+代码运行时间优化：
+手段：既然就已经知道了那个板子更矮一点，那么就不需要再使用Math.min()比较一次了————这是不需要的时间消耗
+class Solution {
+    public int maxArea(int[] height) {
+        int i = 0, j = height.length - 1, res = 0;
+        while(i < j){
+            // 能使用三目运算符的时候一定不要错过    (boolean) ? optionA : optionB;
+            res = height[i] < height[j] ?
+                Math.max(res, (j - i) * height[i++]):
+                Math.max(res, (j - i) * height[j--]);
+        }
+        return res;
+    }
+}

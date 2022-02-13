@@ -1,0 +1,43 @@
+# 78 求一个数组中的元素所有可能的子集
+
+// 说明：解集不能包含重复的子集。
+//
+// 示例:
+//
+// 输入: nums = [1,2,3]
+//输出:
+//[
+//  [3],
+//  [1],
+//  [2],
+//  [1,2,3],
+//  [1,3],
+//  [2,3],
+//  [1,2],
+//  []
+//]
+
+---
+题设与要求：
+题设：给定一个不包含重复元素的数组；
+要求：构造出该数组所有的子集；
+
+分析难点：如何能够不重不漏地构造出数组的子集呢？
+解决手段：把构造子集的过程使用一个递归树来进行描述，每次构造完成后，回溯选择，回到选择前的状态然后重新选择。
+
+代码：
+public List<List<Integer>> subsets(int[] nums) {
+    List<List<Integer>> res = new ArrayList<>();
+    backtrack(0, nums, res, new ArrayList<Integer>());
+    return res;
+
+}
+
+private void backtrack(int i, int[] nums, List<List<Integer>> res, ArrayList<Integer> tmp) {
+    res.add(new ArrayList<>(tmp));
+    for (int j = i; j < nums.length; j++) {
+        tmp.add(nums[j]);
+        backtrack(j + 1, nums, res, tmp);
+        tmp.remove(tmp.size() - 1);
+    }
+}

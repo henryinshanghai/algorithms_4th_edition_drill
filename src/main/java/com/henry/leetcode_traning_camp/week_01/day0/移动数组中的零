@@ -1,0 +1,52 @@
+# 283
+手段1：找到非零元素，然后向前覆盖数组元素；
+注：这需要一个指针来指向当前需要覆盖的位置；
+数组可用的操作无非几个：
+    1 遍历所有元素；   这需要指针
+    2 比较元素； 这也需要指针
+    3 交换两个位置上的元素    这也需要指针
+
+代码：
+    public void moveZeroes(int[] nums) {
+        // 准备一个指针j  作用：指向非零元素要绑定到的位置
+        int j = 0;
+        for (int i = 0; i < nums.length; i++) {
+            if(nums[i] != 0){
+                nums[j++] = nums[i]; // 把元素覆盖到指定的位置
+            }
+        } // 循环结束后，指针j指向最后一个非零元素的下一个位置
+
+        // 把从j指针到数组末尾的所有位置都绑定0
+        for (int i = j; i < nums.length; i++) {
+            nums[j++] = 0;
+        }
+    }
+
+---
+手段2：遍历数组元素，把遇到的非零元素交换到anchor指针指向的元素进行交换；
+作用：把所有的非零元素一步步地按照顺序移动到数组的头部位置；
+参考：
+
+算法步骤：
+explorer : 找到非零元素；
+anchor : 留在后面； 只有在explorer找到非零元素，并与anchor指向的元素交换后，anchor元素才会向前移动
+
+public void moveZeroes(int[] nums) {
+        // 手段：把所有的“非零元素”按照相对顺序向前移动
+
+        // 准备两个指针
+        // anchor指针 作用：指向待交换的元素（可能是0，也可能不是0）。
+        // 交换操作后，anchor指针向后移动一个位置   作用：保证交换后的元素能够保持其相对顺序
+        int anchor = 0;
+
+        // 由于explorer指针总是会前进，所以很适合使用for-loop
+        for (int explorer = 0; explorer < nums.length; explorer++) { // explorer指针  作用：找到非零元素
+          if (nums[explorer] != 0) {
+                int temp = nums[explorer];
+                nums[explorer] = nums[anchor];
+                nums[anchor] = temp;
+
+                anchor++;
+            }
+        }
+    }

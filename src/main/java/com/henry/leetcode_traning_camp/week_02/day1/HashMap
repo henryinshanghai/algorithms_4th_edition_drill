@@ -1,0 +1,432 @@
+HashMap；
+是：一个java中的数据类型；
+作用：存储一堆的键值对；
+特征：
+    1 能够根据给定的key，对自己存储的key-value集合以O(1)的时间完成查找操作；
+    2 others
+原理：见源码分析；
+
+---
+底层数据结构：
+    /**
+         * The table, initialized on first use, and resized as
+         * necessary. When allocated, length is always a power of two.
+         * (We also tolerate length zero in some operations to allow
+         * bootstrapping mechanics that are currently not needed.)
+         */
+        transient Node<K,V>[] table;
+
+    table数组在第一次被使用时进行初始化，并在需要的时候重新调整大小。
+    在分配空间时，length的数值始终是2的指数值；
+    在某些操作中，我们还允许长度为零，以允许使用当前不需要的引导机制。）
+
+构造方法：
+    默认的构造方法：空参数；
+    指定了初始容量的构造方法：xxx
+
+核心APIs:
+    1 put(key, value)
+        putVal(xxx, xxx, xxx...)
+
+final V putVal(int hash, K key, V value, boolean onlyIfAbsent,
+                   boolean evict) {
+    // 准备一堆的局部变量
+    Node<K,V>[] tab;  // Node[]类型的变量tab
+    Node<K,V> p; // Node类型的变量p
+    int n, i; // int类型的变量n、i
+
+    // 为tab变量绑定table变量所引用的值，然后对tab进行判空      作用：其实就是在对table变量引用的值进行判空
+    if ((tab = table) == null || (n = tab.length) == 0)
+        // 如果tab变量的值为空，说明table还没有被初始化。则...
+        n = (tab = resize()).length; // Ⅰ 调用resize()方法来完成table的初始化工作，并把初始化的结果绑定到tab变量上
+    if ((p = tab[i = (n - 1) & hash]) == null)
+        tab[i] = newNode(hash, key, value, null);
+    else {
+        Node<K,V> e; K k;
+        if (p.hash == hash &&
+            ((k = p.key) == key || (key != null && key.equals(k))))
+            e = p;
+        else if (p instanceof TreeNode)
+            e = ((TreeNode<K,V>)p).putTreeVal(this, tab, hash, key, value);
+        else {
+            for (int binCount = 0; ; ++binCount) {
+                if ((e = p.next) == null) {
+                    p.next = newNode(hash, key, value, null);
+                    if (binCount >= TREEIFY_THRESHOLD - 1) // -1 for 1st
+                        treeifyBin(tab, hash);
+                    break;
+                }
+                if (e.hash == hash &&
+                    ((k = e.key) == key || (key != null && key.equals(k))))
+                    break;
+                p = e;
+            }
+        }
+        if (e != null) { // existing mapping for key
+            V oldValue = e.value;
+            if (!onlyIfAbsent || oldValue == null)
+                e.value = value;
+            afterNodeAccess(e);
+            return oldValue;
+        }
+    }
+    ++modCount;
+    if (++size > threshold)
+        resize();
+    afterNodeInsertion(evict);
+    return null;
+}
+
+---
+Ⅰ 完成table的初始化工作，并把初始化的结果绑定到tab变量上
+tab = resize()
+
+/*
+    Initializes or doubles table size.
+    If null, allocates in accord with initial capacity target held in field threshold.
+    Otherwise, because we are using power-of-two expansion, the elements from each bin must either stay at same index,
+    or move with a power of two offset in the new table.
+
+    初始化table或者把table的尺寸翻倍；
+    如果为null，则根据存储在threshold字段中的初始目标容量来为table分配内存；
+    否则的话，由于我们会使用2的指数值，每个桶中的元素要么呆在相同的索引处，要么在新的table中偏移2的指数个位置；
+*/
+final Node<K,V>[] resize() {
+    /* 准备一些局部变量 */
+    Node<K,V>[] oldTab = table; // Node[]类型的oldTab变量    表示旧的table对象
+    int oldCap = (oldTab == null) ? 0 : oldTab.length; // 计算旧table的容量
+    int oldThr = threshold; // 计算旧table的扩容门槛
+    int newCap, newThr = 0; // 准备新的容量变量newCap、门槛变量newThr
+
+    /* ① 根据旧的table对象的情况来为newCap、newThr绑定正确的值 */
+    // 如果旧容量oldCap大于0...
+    if (oldCap > 0) {
+        // 如果旧的容量就已经大于等于“HashMap所能接受的最大容量MAX_CAPACITY”,说明已经没有空间进行扩容了。则:...
+        if (oldCap >= MAXIMUM_CAPACITY) {
+            // 更新下全局变量threshold
+            threshold = Integer.MAX_VALUE;
+            // 并直接返回旧得table对象
+            return oldTab;
+        }
+        // 如果旧得容量小于“HashMap所能接受得最大容量MAX_CAPACITY”,并且：
+        //      1 旧容量扩大一倍后的值小于“最大容量（接近于Integer.MAX_VALUE）”； 2 旧容量大于“默认的初始容量16”
+        // 说明可以对旧的table正常进行扩容。则：...
+        else if ((newCap = oldCap << 1) < MAXIMUM_CAPACITY &&
+                 oldCap >= DEFAULT_INITIAL_CAPACITY) // 新容量newCap = 旧容量oldCap的两倍
+            newThr = oldThr << 1; // double threshold 新门槛newThr = 旧门槛oldThr的两倍
+    }
+
+    // 如果旧容量oldCap不大于0，并且旧门槛oldThr大于0.说明程序员在创建map对象时传入了预期的初始容量。则:...
+    else if (oldThr > 0) // initial capacity was placed in threshold
+        // 获取到“程序员传入的预期容量（调整后的结果）”，并把这个结果绑定到newCap上     参考：HashMap(initialCapacity)构造方法
+        newCap = oldThr;
+    // 如果旧容量oldCap不大于0，并且旧门槛oldThr也不大于0，说明程序员在创建map对象时使用了默认构造器。则:...
+    else {               // zero initial threshold signifies using defaults
+        // 直接为newCap、newThr绑定默认值
+        newCap = DEFAULT_INITIAL_CAPACITY; // 默认初始容量为DEFAULT_INITIAL_CAPACITY aka 16
+        newThr = (int)(DEFAULT_LOAD_FACTOR * DEFAULT_INITIAL_CAPACITY); // 使用公式来计算新门槛newThr
+    }
+
+    /* 在经过上面的if/else if/else选择结构后，newCap、newThr参数还有可能没被初始化 */
+    // 如果newThr没有被初始化,则：...
+    if (newThr == 0) {
+        // 根据newCap与计算公式(threshold = loadFactor * cap)来计算newThr
+        float ft = (float)newCap * loadFactor;
+        // 根据计算结果ft与MAXIMUM_CAPACITY的大小情况来初始化newThr
+        newThr = (newCap < MAXIMUM_CAPACITY && ft < (float)MAXIMUM_CAPACITY ?
+                  (int)ft : Integer.MAX_VALUE); // 如果xxx，就为newThr绑定最大容量
+    }
+
+    // 把计算得到的新容量绑定到threshold字段上
+    threshold = newThr;
+
+    // 根据前面计算得到的newCap来创建一个Node[]的对象，并绑定到table变量上 aka table的初始化
+    @SuppressWarnings({"rawtypes","unchecked"})
+        Node<K,V>[] newTab = (Node<K,V>[])new Node[newCap];
+    table = newTab;
+
+
+    // 如果旧的table对象不为空，说明原始桶数组中已经存储了一些元素。则：...
+    //      table数组扩容后，需要对先前存储的元素进行重新映射与存储
+    if (oldTab != null) {
+        // 手段：分类讨论；
+        // 具体方法：由于数组元素（桶）中存储的键值对集合可能是链表，也可能是红黑树。所以对集合中的键值对重新映射时需要考虑这两种情况
+        // step1 遍历数组中的每一个位置上的桶
+        for (int j = 0; j < oldCap; ++j) {
+            // 准备一个局部变量，记录当前的桶元素
+            Node<K,V> e;
+            // 如果当前的桶元素不为null，说明桶中已经存储了键值对
+            if ((e = oldTab[j]) != null) { // 1 把桶中的元素存储到局部变量e上
+                // 2 把这个位置的元素设置为null
+                oldTab[j] = null;
+                // 3 查看记录的当前桶元素的next属性是否为null,如果为null，说明当前桶的位置就只存储了一个键值对。则:...
+                if (e.next == null)
+                    // 对键值对进行重新hash，并把hash值作为table数组中存储键值对的下标-来在新table中存储键值对
+                    newTab[e.hash & (newCap - 1)] = e;
+                // 如果e.next不为null,说明当前桶中存储的是键值对集合，则：需要分类讨论
+                // 如果键值对集合为树...     手段：桶中的节点是否为树节点(TreeNode类型的节点)
+                else if (e instanceof TreeNode)
+                    // 如果是树节点，则：调用split()方法完成“键值对的重新映射与存储”
+                    ((TreeNode<K,V>)e).split(this, newTab, j, oldCap);
+                // 如果键值对集合不为树（说明是链表），则：对链表中的节点进行重新映射与存储
+                else { // preserve order
+                    // 手段：
+                    // 1 准备一堆的指针；
+                    Node<K,V> loHead = null, loTail = null;
+                    Node<K,V> hiHead = null, hiTail = null;
+                    Node<K,V> next;
+
+                    // 2 准备一个循环；    作用：遍历链表中的每一个节点；
+                    do {
+                        // 获取到当前节点的下一个节点，并绑定到next变量上
+                        next = e.next;
+
+                        // 计算(e.hash & oldCap)的值【原理：？？？】
+                        // 如果当前节点的计算结果等于0，说明当前节点在重新映射到新数组时，索引位置不变。则：...
+                        if ((e.hash & oldCap) == 0) {
+                            // 把所有这样的节点连接成一个链表(使用头节点来标识)
+                            // 手段：使用两个指针loHead与loTail，然后不断移动指针loTail来扩展链表
+                            // 1 把当前节点追加到链表尾部
+                            if (loTail == null) // 如果链表尾指针指向的节点为null，说明链表中还没有任何节点。则:...
+                                // 当前节点也是链表的头节点
+                                loHead = e;
+                            else
+                                loTail.next = e;
+                            // 2 更新链表尾节点指针loTail的指向位置
+                            loTail = e;
+                        }
+                        // 如果当前节点的计算结果不等于0，说明当前节点在重新映射到新数组时，索引位置会变大扩容的桶位置那么多。则:...
+                        else {
+                            // 把所有这样的节点连接成一个链表（使用头节点来标识）
+                            if (hiTail == null)
+                                hiHead = e;
+                            else
+                                hiTail.next = e;
+                            hiTail = e;
+                        }
+                    } while ((e = next) != null); // 当循环执行完成后，两个新的链表loHead与hiHead就创建完成了
+
+                    // 3 把创建的两个新链表绑定到新的table中对应的桶位置上
+                    if (loTail != null) {
+                        // 为loHead链表收尾
+                        loTail.next = null;
+                        // 把loHead链表绑定到新桶数组预期的位置上去
+                        newTab[j] = loHead;
+                    }
+
+                    // 同上
+                    if (hiTail != null) {
+                        hiTail.next = null;
+                        newTab[j + oldCap] = hiHead;
+                    }
+                }
+            }
+        }
+    }
+    return newTab;
+}
+
+总结：
+resize()方法中：
+    1 根据当前的情况计算出了新数组的newCap与newThr；
+    2 使用newCap与newThr来创建新数组；
+    3 把旧数组中的键值对重新映射并存储到新数组中；
+        3-1 如果桶中的键值对集合是链表，则：把链表节点分成两组，然后绑定到新数组中预期的桶位置上；
+        3-2 如果桶中的键值对集合是树，则：进行“红黑树的链化与拆分”操作；
+
+---
+-- 插入部分：在对红黑树进行拆分之前，先要形成红黑树； --
+任务：当桶中链表的长度比较长时，把链表转换成红黑树；
+相关操作：链表的树化操作；
+手段：
+    1 先把链表中的所有节点转化成为树节点；
+    2 再对树节点组成的链表进行树化操作；
+        treeify();
+方法：
+    treeifyBin();
+应用：putVal();
+特征：树化操作后的树节点中会保留原始链表中的节点的顺序；
+原理：TreeNode类型（树节点）继承自Node类型(普通链表节点)
+作用：在遍历红黑树中的节点时，可以使用遍历链表的方式来实现；
+
+-
+相关常量
+static final int TREEIFY_THRESHOLD = 8;
+
+/**
+ * 当桶数组容量小于该值时，优先进行扩容，而不是树化
+ */
+static final int MIN_TREEIFY_CAPACITY = 64;
+
+-
+树节点
+static final class TreeNode<K,V> extends LinkedHashMap.Entry<K,V> {
+    TreeNode<K,V> parent;  // red-black tree links
+    TreeNode<K,V> left;
+    TreeNode<K,V> right;
+    TreeNode<K,V> prev;    // needed to unlink next upon deletion
+    boolean red;
+    TreeNode(int hash, K key, V val, Node<K,V> next) {
+        super(hash, key, val, next);
+    }
+}
+
+-
+把普通节点的链表转化成树节点的链表
+final void treeifyBin(Node<K,V>[] tab, int hash) {
+    int n, index; Node<K,V> e;
+    // 桶数组容量小于 MIN_TREEIFY_CAPACITY，优先进行扩容而不是树化
+    if (tab == null || (n = tab.length) < MIN_TREEIFY_CAPACITY)
+        resize();
+    else if ((e = tab[index = (n - 1) & hash]) != null) {
+        // hd 为头节点（head），tl 为尾节点（tail）
+        TreeNode<K,V> hd = null, tl = null;
+        do {
+            // 将普通节点替换成树形节点
+            TreeNode<K,V> p = replacementTreeNode(e, null);
+            if (tl == null)
+                hd = p;
+            else {
+                p.prev = tl;
+                tl.next = p;
+            }
+            tl = p;
+        } while ((e = e.next) != null);  // 将普通链表转成由树节点链表
+        if ((tab[index] = hd) != null)
+            // 将树形链表转换成红黑树
+            hd.treeify(tab);
+    }
+}
+
+-
+把树节点链表转换成红黑树
+hd.treeify(tab);
+
+---
+任务：把桶中红黑树中的节点重新映射并存储到新数组中（aka 红黑树的拆分）；
+手段：
+    1 对现有的红黑树进行链化操作；【这个操作并不需要，因为红黑树中已经记录了链表节点的顺序    手段：prev指针 + next指针】
+    2 对链化后得到的链表进行拆分；
+    3 把拆分后的链表绑定到新数组对应的位置上；
+相关操作：红黑树的链化与拆分；
+实现方法：
+// 红黑树转链表阈值
+static final int UNTREEIFY_THRESHOLD = 6;
+
+final void split(HashMap<K,V> map, Node<K,V>[] tab, int index, int bit) {
+    TreeNode<K,V> b = this;
+    // Relink into lo and hi lists, preserving order
+    TreeNode<K,V> loHead = null, loTail = null;
+    TreeNode<K,V> hiHead = null, hiTail = null;
+    int lc = 0, hc = 0;
+    /*
+     * 红黑树节点仍然保留了 next 引用，故仍可以按链表方式遍历红黑树。
+     * 下面的循环是对红黑树节点进行分组，与上面类似
+     */
+    for (TreeNode<K,V> e = b, next; e != null; e = next) {
+        next = (TreeNode<K,V>)e.next;
+        e.next = null;
+        if ((e.hash & bit) == 0) {
+            if ((e.prev = loTail) == null)
+                loHead = e;
+            else
+                loTail.next = e;
+            loTail = e;
+            ++lc;
+        }
+        else {
+            if ((e.prev = hiTail) == null)
+                hiHead = e;
+            else
+                hiTail.next = e;
+            hiTail = e;
+            ++hc;
+        }
+    }
+
+    if (loHead != null) {
+        // 如果 loHead 不为空，且链表长度小于等于 6，则将红黑树转成链表
+        if (lc <= UNTREEIFY_THRESHOLD)
+            tab[index] = loHead.untreeify(map);
+        else {
+            tab[index] = loHead;
+            /*
+             * hiHead == null 时，表明扩容后，
+             * 所有节点仍在原位置，树结构不变，无需重新树化
+             */
+            if (hiHead != null)
+                loHead.treeify(tab);
+        }
+    }
+    // 与上面类似
+    if (hiHead != null) {
+        if (hc <= UNTREEIFY_THRESHOLD)
+            tab[index + bit] = hiHead.untreeify(map);
+        else {
+            tab[index + bit] = hiHead;
+            if (loHead != null)
+                hiHead.treeify(tab);
+        }
+    }
+}
+
+启示：
+    重新映射红黑树的逻辑和重新映射链表的逻辑基本一致。
+    不同的地方在于：
+        1 重新映射后，会将红黑树拆分成两条由 TreeNode 组成的链表。
+        2 如果链表长度小于 UNTREEIFY_THRESHOLD，则将链表转换成普通链表。
+        3 否则根据条件重新将 TreeNode 链表树化；
+
+--
+红黑树的链化：
+手段：把红黑树中的节点转化为普通节点；
+原理：数据结构既是一棵树，又是一个链表；
+方法：untreeify()
+方法实现：
+    final Node<K,V> untreeify(HashMap<K,V> map) {
+        Node<K,V> hd = null, tl = null;
+        // 遍历 TreeNode 链表，并用 Node 替换
+        for (Node<K,V> q = this; q != null; q = q.next) {
+            // 替换节点类型
+            Node<K,V> p = map.replacementNode(q, null);
+            if (tl == null)
+                hd = p;
+            else
+                tl.next = p;
+            tl = p;
+        }
+        return hd;
+    }
+
+    Node<K,V> replacementNode(Node<K,V> p, Node<K,V> next) {
+        return new Node<>(p.hash, p.key, p.value, next);
+    }
+
+---
+回顾：
+putVal()
+    resize()
+        红黑树的拆分/重新映射：split();
+            1 把红黑树中的节点按照链表的方式分成两个TreeNode类型的链表；
+                如果子链表的长度小于成树要求的个数，则：
+                    把TreeNode类型的链表转化为普通类型的链表；
+                        tab[index] = loHead.untreeify(map);
+                如果子链表的长度大于成树要求的个数，则：
+                    把TreeNode类型的链表转化为树；
+                        loHead.treeify(tab);
+
+    treeifyBin()
+        把普通节点组成的链表转化成为红黑树；
+            1 先把链表中的普通节点(Node类型)转化为树节点(TreeNode类型)；
+            2 再把树节点组成的链表转化为红黑树对象；
+                treeify();
+
+trick：
+    1 普通节点组成的链表 <- (反树化)TreeNode节点组成的链表(树化) -> TreeNode节点组成的树
+    2 普通节点组成的链表(创建TreeNode类型节点) -> TreeNode节点组成的链表
+    3 TreeNode节点组成的树(也就是) -> TreeNode节点组成的链表
+
+this is for now, pretty tired 😄
+
+expr：
+1 赋值表达式精简了代码，但是也导致了阅读代码时的困难；

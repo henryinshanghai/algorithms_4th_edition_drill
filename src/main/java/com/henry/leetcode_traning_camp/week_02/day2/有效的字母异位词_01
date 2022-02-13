@@ -1,0 +1,65 @@
+# 242 题设与要求：
+//给定两个字符串 s 和 t ，编写一个函数来判断 t 是否是 s 的字母异位词。
+//
+// 示例 1:
+//
+// 输入: s = "anagram", t = "nagaram"
+//输出: true
+
+
+分析难点：什么是字母异位词？
+答：由相同字符组成的单词互为字母异位词；
+
+思路：既然互为字母异位词的单词中的各个字符出现的次数总是相同的，那么就可以：
+    1 对字符进行计数；
+    2 通过比较计数结果来判断两个单词是否为字母异位词；
+
+SOP:
+    1 准备一个用于对字符进行计数的数组/map对象；
+    2 遍历字符串s中的每一个字符，并对字符出现的次数进行累计计数；
+    3 遍历字符串t中的每一个字符，并对字符出现的次数进行--操作；
+    4 判断最终数组中的每一个元素是否都为0，如果是，则两个字符串互为字母异位词。否则不是
+
+代码：
+    // 鲁棒性代码
+    if(s == null || t == null) return false;
+
+    // 准备一个int[]数组 记录字符串中每一个字符出现的次数
+    int[] counts = new int[26];
+    for (char ch : s.toCharArray()) {
+        counts[ch - 'a']++;
+    }
+
+    for (char ch : t.toCharArray()) {
+        counts[ch - 'a']--;
+    }
+
+    for (int i = 0; i < counts.length; i++) {
+        if (counts[i] != 0) {
+            return false;
+        }
+    }
+
+    return true;
+
+代码行数优化：
+
+        // 鲁棒性代码
+        if(s == null || t == null) return false;
+
+        // 准备一个int[]数组 记录字符串中每一个字符出现的次数
+        int[] counts = new int[26];
+
+        for (int i = 0; i < s.length(); i++) {
+            // 先求索引，再去求索引对应的值
+            counts[s.charAt(i) - 'a']++; // s对元素值做增益
+            counts[t.charAt(i) - 'a']--; // t对元素值做减损
+        }
+
+        for (int i = 0; i < counts.length; i++) {
+            if (counts[i] != 0) {
+                return false;
+            }
+        }
+
+        return true;

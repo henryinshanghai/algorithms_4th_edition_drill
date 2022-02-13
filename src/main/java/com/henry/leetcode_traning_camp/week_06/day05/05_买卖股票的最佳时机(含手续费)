@@ -1,0 +1,83 @@
+# 714 买卖股票的最佳时机(包含手续费)
+
+//给定一个整数数组 prices，其中第 i 个元素代表了第 i 天的股票价格 ；非负整数 fee 代表了交易股票的手续费用。
+//
+// 你可以无限次地完成交易，但是你每笔交易都需要付手续费。如果你已经购买了一个股票，在卖出它之前你就不能再继续购买股票了。
+//
+// 返回获得利润的最大值。
+//
+// 注意：这里的一笔交易指买入持有并卖出股票的整个过程，每笔交易你只需要为支付一次手续费。
+
+
+// 示例 1:
+//
+// 输入: prices = [1, 3, 2, 8, 4, 9], fee = 2
+//输出: 8
+//解释: 能够达到的最大利润:
+//在此处买入 prices[0] = 1
+//在此处卖出 prices[3] = 8
+//在此处买入 prices[4] = 4
+//在此处卖出 prices[5] = 9
+//总利润: ((8 - 1) - 2) + ((9 - 4) - 2) = 8.
+
+======
+题设与要求
+题设：
+    1 给定表示某只股票价格的股价序列arr； arr[i]表示第(i+1)天股票的价格
+    2 交易可以多次进行，但是每次交易都需要缴纳手续费；
+    3 在开启新的一次交易之前，需要先关闭正在进行的交易；
+要求：
+    在这样的约束条件下，从这个股价序列中能够赚取的最大利润；
+
+
+分析难点 & 提出解决方案
+难点1：一次交易应该何时买入？何时卖出？
+答：既然是想要赚取利润，显然在低价时买入，在高价时卖出；
+
+难点2：如何在代码中描述每次交易需要付出的手续费呢？
+答：可以把这笔费用 添加到购买时需要支付的费用中 / 从售出时能够赚取的利润中扣除；
+
+代码思路：
+准备一个dpTable[][] 第一维表示当前的时刻是第(i+1)天，第二维表示当前手中是否持有股票；
+1 由于对买入卖出的限制 & 每天只有有限的状态，因此导致当前状态的可能性也是有限的(可列举的)
+2 列举所有可能出现的case，从而在 相邻的子问题的解之间建立联系；
+    state 1: I have stock on i-th day, which represented by dp[i][1].
+        - case one: I bought it today~
+            dp[i][1] = dp[i-1][0] - prices[i] - fee // 选择第一种方式：在购买股票时，就把手续费添加进来
+        - case two: I do not buy it today, I'm just carrying forward what remains from before by doing nothing
+            dp[i][1] = dp[i-1][1]
+
+    state 2: I don't have stock on i-th day, which represented by dp[i][0].
+        - case one: I sold the stock today;
+            dp[i][0] = dp[i-1][1] + prices[i];
+        - case two: I sold the stock at some previous day. I'm carrying forward by doing nothing
+            dp[i][0] = dp[i-1][0];
+
+loop through the days, and for each day:
+    // calculate its value for:
+        if I hold the stock today;
+        if I sell the stock today;
+
+代码：
+/* 〇 对参数进行判断 */
+/* Ⅰ 准备一个dpTable[][]    用于逐步得到最终结果  */
+/* Ⅱ 初始化dpTable[][]的第一行元素     用于 build up the dpTable */
+/* Ⅲ build up the dpTable */
+    // for each day,calculate its value for:
+        // if I hold the stock today;
+        // if I sell the stock today;
+/* Ⅳ 返回dpTable中的合适的元素值 */
+
+
+讲解参考：https://www.youtube.com/watch?v=oVKaUeQsQJE
+代码参考：https://www.youtube.com/watch?v=oVKaUeQsQJE
+
+
+
+
+
+
+
+
+
+

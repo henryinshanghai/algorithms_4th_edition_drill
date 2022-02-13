@@ -1,0 +1,177 @@
+//给定两个单词（beginWord 和 endWord）和一个字典 wordList，找出所有从 beginWord 到 endWord 的最短转换序列。
+
+规则如下：
+// 每次转换只能改变一个字母。
+// 转换过程中的中间单词必须是字典中的单词。
+
+// 说明:
+//
+//
+// 如果不存在这样的转换序列，返回一个空列表。
+// 所有单词具有相同的长度。
+// 所有单词只由小写字母组成。
+// 字典中不存在重复的单词。
+// 你可以假设 beginWord 和 endWord 是非空的，且二者不相同。
+
+// 示例 1:
+//
+// 输入:
+//beginWord = "hit",
+//endWord = "cog",
+//wordList = ["hot","dot","dog","lot","log","cog"]
+//
+//输出:
+//[
+//  ["hit","hot","dot","dog","cog"],
+//  ["hit","hot","lot","log","cog"]
+//]
+
+------
+题设与要求：
+题设：
+    1 给定两个指定的单词和一个单词列表；
+    2 wordList中不存在重复的单词；
+    3 所有单词（beginWord、endWord与wordList中的单词）长度都相同，并且是由小写字母组成的；
+    4 beginWord与endWord非空，并且两者不相同；
+
+要求：
+    1 找出所有的 从 beginWord到endWord的最短转换路径；
+    2 如果不存在这样的路径，就返回一个空列表；
+
+转换规则：
+    1 每次转换只能改变一个字母。
+    2 转换过程中的中间单词必须是字典中的单词。
+
+分析难点 & 提出解决方案
+难点1：如果从beginWord开始，向endWord进行转换？
+手段：
+    1 把beginWord转化成为一个字符数组，然后使用 a-z来逐个替换每一个位置上的字符；
+    2 判断得到的新字符串是不是endWord 或者 是不是在wordList中
+
+难点2：如何在转换的过程中记录序列中的当前字符串？
+手段：在遍历树的过程中，使用一个列表记录（添加与删除）整个序列的元素；
+
+难点3：如何确定得到的路径是不是最短转换路径？
+手段：？？？
+
+难点4：得到一条可行的转换路径后，如何能够继续尝试其他可能的转换路径？
+手段：？？？
+
+口述算法：
+    xxx
+
+伪代码：
+根据要求，反推应该使用的思路；
+要求：求出所有满足条件的路径 => 回溯（try everything）
+        【wordList】
+beginWord -> endWord
+
+we can find the transformation relation among those words.
+and build a graph to represent these relation
+
+for instance, if the beginWord = "hit" and the endWord = "cog"
+and wordList = ["hot", "dot", "dog", "lot", "log", "cog"]
+
+hit -> hot
+this means hit(as a Vertex) have a Edge point to hot(as a Vertex)
+meanwhile, hot can transfer to hit, that means the graph is two-direction graph
+
+hot -> dot、lot
+    dot -> hit(×)   once we use a word, we need to delete it from wordList
+        -> dog(√)
+
+    lot -> log（√）
+
+dog -> cog(Bingo!)
+log -> cog(Bingo!)
+
+图的特性：1 无权重； 2 无方向；
+问题转化：从一个无向无权图中找到从 VertexA到 VertexB的最短路径；
+手段：BFS（Breadth-First Search）
+
+Algorithm:
+use BFS to build the graph that represent the transfer relationship between word to words;
+
+feature:
+for each transformation operation -> it will cost same constant amount of time(O(1))
+this indicate that the graph is unweighted.
+since we already know that the graph is undirected.
+we know now it's a unweighted and undirected graph.
+
+how the algorithm work:
+goal:find all the shortest path in undirected,unweighted graph;
+
+刚开始时，第一层就只有一个单词。但是在转化后的其他层中，可能会有多个单词
+所以使用一个startSet来表示当前层的起始单词
+伪代码：
+for each word in current level words set:
+    for each char in curr word:
+        change from 'a' to 'z':
+            if new word exists in wordList:
+                we can build a relation
+                    like hit -> hot
+                once new word equals to endWord.
+                    we are done.
+
+算法的问题与fix：
+drawback：随着图的建立，startSet可能会越来越大
+the startSet grows larger and larger, more transformation needs to be done.
+
+优化方法：把startSet与endSet（开始的时候也是只有一个endWord）交换一下
+原则：always let startSet be the smaller-size set, and endSet be the larger one.
+当前操作（待优化）：对startSet中的单词进行修改，进入到下一个level；
+优化后的操作(交换startSet与endSet)之后，需要做出的转换就会变少
+衍生问题：最开始startSet，经过变换得到下一个单词；
+在交换后，endWord里的单词作为value，修改后的单词作为key； aka 映射关系也要交换
+
+startSet
+hit -> hot -> dot
+           -> lot //startSet中的单词开始变多了，在对startSet中的每个单词进行转化（字符修改）时，操作就会很多次
+                  //优化手段：交换 startSet 与 endSet,由于endSet中只有一个单词，所以所需要进行的转换就会少一些
+cog -> dog
+    -> log // 走到这里还没有找到endSet中的单词
+---
+endSet
+cog
+
+dot
+lot
+
+采用上述做法后，graph（使用一个哈希表来表示）中存储的内容如下：
+hit -> hot
+hot -> dot, lot
+
+// 记录翻转后的映射关系
+dog -> cog
+log -> cog
+
+dot -> dog
+lot -> log // 也是反的
+
+final step:
+使用回溯来生成需要的结果（所有从startWord到endWord的最短路径）；
+具体手段：在图中进行DFS，找到一条路径后，untrack，继续查找
+
+参考链接：https://www.youtube.com/watch?v=DFpYnKBGbXY
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

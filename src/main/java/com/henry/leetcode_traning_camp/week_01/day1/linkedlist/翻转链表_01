@@ -1,0 +1,73 @@
+# 206
+题设与要求：
+    反转链表中元素的指向；
+
+分析：可以使用递归吗？
+子问题的结果有助于解决大问题吗？ yes
+
+手段1：使用递归；
+思路:
+    1 把链表分解为：头节点head + 剩余节点组成的子链表rest
+    2 对rest执行反转操作————反转后，链表的头节点发生变化；
+    3 想办法把原始的head节点拼接到2中翻转后的链表中；
+
+代码：
+// 递归方法的作用：反转一个单链表，返回翻转后的链表
+    public ListNode reverseList(ListNode head) {
+        // 0 递归终结条件
+        if(head == null || head.next == null) return head;
+
+        // 2 本级递归要做的事情
+        ListNode oldNext = head.next;
+
+        ListNode newHead = reverseList(oldNext);
+
+        head.next = null;
+        oldNext.next = head;
+
+        return newHead;
+
+    }
+
+------
+使用迭代的手段来反转链表；
+
+分析：如何执行反转的操作？
+这需要一些指针；
+a.next = b;
+b.next = c;
+
+原始：a -> b -> c
+现在要反转节点b的指向，使之指向节点a；
+a <- b
+当b改变指向后，就没有办法通过next关系获取到节点c。所以需要一个指针来在反转之前预先记录下节点c
+
+需要的两个指针：prev指针、curr指针；
+这时候画一张图就会很有帮助，不要依赖于你的想象力
+
+思路：
+    1 准备两个相邻的指针；
+    2 准备一个循环，在循环中不断地更新指针。直到所有的节点都已经被反转
+
+代码：
+    ListNode prev = null;
+    ListNode curr = head;
+
+    while(curr != null){
+        ListNode temp = curr.next;
+
+        // 反转节点的指向
+        curr.next = prev;
+        prev = curr;
+        curr = temp;
+    }
+
+    return prev; // 根据最终指针的状态来：返回指向链表头节点的指针
+
+
+
+
+
+
+
+

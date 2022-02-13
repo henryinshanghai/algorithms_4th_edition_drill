@@ -1,0 +1,59 @@
+# 141 //给定一个链表，判断链表中是否有环。
+//
+// 如果链表中有某个节点，可以通过连续跟踪 next 指针再次到达，则链表中存在环。 为了表示给定链表中的环，我们使用整数 pos 来表示链表尾连接到链表中的
+//位置（索引从 0 开始）。 如果 pos 是 -1，则在该链表中没有环。注意：pos 不作为参数进行传递，仅仅是为了标识链表的实际情况。
+//
+// 如果链表中存在环，则返回 true 。 否则，返回 false 。
+
+分析：如何能够证明链表中存在环呢？
+环有什么特征？
+    它是封闭的，如果沿着环一直走，肯定会经过同一个节点多次；
+
+手段1：
+    1 沿着链表一边遍历节点，一边用一个集合记录所遍历的节点；
+    2 遍历下一个节点时，判断此节点是不是已经在集合中了。（注：这里比较的不是值，而是内存地址）
+特征：这是一种暴力的解法；
+
+代码：
+public boolean hasCycle(ListNode head) {
+    Set<ListNode> nodesSeen = new HashSet<>();
+    while (head != null) {
+        if (nodesSeen.contains(head)) {
+            return true;
+        } else {
+            nodesSeen.add(head);
+        }
+        head = head.next;
+    }
+    return false;
+}
+
+时间复杂度分析：处理节点的个数为N个，所以时间复杂度为O(N)
+---
+手段2：使用快慢指针；
+    1 准备两个指针slow、fast，两个指针初始化都指向head节点；
+    2 开始移动指针：慢指针每次移动一个节点，快指针每次移动两个节点；
+        如果链表中不存在环，fast指针会率先到达nil节点；
+        如果链表中存在环，fast指针一定会追上slow指针；
+        根据这种情况来判断是否存在环
+代码：
+// 0
+    if(head == null || head.next == null) return false;
+
+    // 1 准备两个指针
+    ListNode slow = head;
+    ListNode fast = head;
+
+    while(fast != null && fast.next != null){
+        // 移动指针
+        slow = slow.next;
+        fast = fast.next.next;
+
+        if(slow == fast){
+            return true;
+        }
+    }
+
+    return false;
+
+时间复杂度：处理节点的个数是与N有关的一个数字（与N的大小差不多），所以时间复杂度仍旧是O(N)

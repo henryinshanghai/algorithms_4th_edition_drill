@@ -1,0 +1,42 @@
+# 279 凑出一个给定数字N所需要的完全平方数的最小个数
+
+//给定正整数 n，找到若干个完全平方数（比如 1, 4, 9, 16, ...）使得它们的和等于 n。你需要让组成和的完全平方数的个数最少。
+//
+// 示例 1:
+//
+// 输入: n = 12
+//输出: 3
+//解释: 12 = 4 + 4 + 4.
+//
+
+======
+题设与要求：
+题设：
+    1 给定一个正整数N；
+    2 给定为了凑出N可选择的数字序列(完全平方数1 4 9 16);
+        note:由于有1的存在，因此总是能够凑出N
+    3 数字序列中的每个数字都是可以重复选择的；
+
+要求：
+    求出凑出正整数N所需要的完全平方数的最小个数；
+
+分析难点 & 提出解决方案
+难点1：既然可选的硬币面额是有限的，会不会存在凑不出N的情况呢？
+答：因为有面额为1的硬币存在，所以总是能够凑出N的（缺的零头拿1来凑就成了）
+
+难点2：凑出N可能存在多种凑法，如何能够找出使用硬币最少的哪一种呢？
+答：this is tangled. it's not that intuitive, but let's see if we can divide and conquer it
+
+尝试把 (从特定集合中选择元素来凑出N) 这个问题 downsize 为(凑出N-1)的问题；
+思路1（自顶向下）：分治 + 缓存；
+思路2（自下而上）：动态规划；
+
+代码：
+// 1 prepare the dpTable
+// 2 fill the dpTable with a value, so that we can update each item later
+// 3 prepare the first couple of item's value, to build up the dpTable all the way to the end
+// 4 to 'make up to N step by step'
+    // for each subProblem i, we try to make it up with the choices collection
+    // how do you represent the choices collection?
+    // dpTable[i] equals to either (itself) or (its subProblem's solution + 1)
+

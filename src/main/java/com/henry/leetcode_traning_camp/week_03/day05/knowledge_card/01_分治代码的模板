@@ -1,0 +1,21 @@
+private static int divide_conquer(Problem problem, ) {
+    // 递归终结条件 递归树种需要返回到上一级的情景 aka xxx
+    if (problem == NULL) {
+        int res = process_last_result();
+        return res;
+    }
+
+    // 2 准备数据
+    subProblems = split_problem(problem)
+
+    // 3 解决子问题
+    res0 = divide_conquer(subProblems[0])
+    res1 = divide_conquer(subProblems[1])
+
+    // 4 合并子问题的结果，得到最终结果
+    result = process_result(res0, res1);
+
+    // 5 恢复当前层的状态变量(如果需要的话)
+
+    return result;
+}

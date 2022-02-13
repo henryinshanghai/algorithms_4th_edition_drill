@@ -1,0 +1,31 @@
+// Java
+
+// 参数：一个给定的数组 & 一个给定的目标查找值
+public int binarySearch(int[] array, int target) {
+    // 1 初始化左边界、右边界、中间位置
+    int left = 0, right = array.length - 1, mid;
+
+    // 2 准备循环 每次循环都把查找范围减半
+    // 手段：把先前范围的中间位置作为新范围的边界(左边界/右边界)
+    while (left <= right) {
+        // 2-1 计算当前范围的中间位置 mid
+        mid = (right - left) / 2 + left;
+
+        // 2-2 比较mid位置上的值 与 要查找的目标值target
+        if (array[mid] == target) {
+            // 返回此位置
+            return mid;
+        } else if (array[mid] > target) {
+            // 更新范围的右边界
+            right = mid - 1;
+        } else {
+            // 更新范围的左边界
+            left = mid + 1;
+        }
+    }
+
+
+    // 3 如果循环执行完成仍旧没有返回，说明：在数组array中没有找到 target
+    // 则：返回-1
+    return -1;
+}

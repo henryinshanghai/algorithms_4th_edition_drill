@@ -1,0 +1,57 @@
+# 24
+题设与要求：两两交换链表中的相邻节点；
+// 你不能只是单纯的改变节点内部的值，而是需要实际的进行节点交换。
+示例：
+    给定 1->2->3->4, 你应该返回 2->1->4->3.
+
+分析：可以用递归解决这个问题吗？
+链表 = 头节点 + second节点 + 剩余节点构成的链表rest；
+可以分成这三个部分处理，然后得到满足条件的链表
+
+递归是可行的；
+
+思路：
+    1 链表 = 头节点 + second节点 + 剩余节点构成的链表rest；
+    2 两两交换rest中的相邻节点，并返回反转后的头节点；
+    3 使用子问题的结果来解决大问题：
+        处理细节
+
+代码：
+// 递归方法的作用：两两交换链表中的节点，并返回交换后的链表的头节点
+    public ListNode swapPairs(ListNode head) {
+        // 0 终结条件
+        if(head == null || head.next == null) return head;
+
+        // 1 本级递归要做的事情  给定 1->2->3->4, 你应该返回 2->1->4->3.
+        ListNode second = head.next;
+        ListNode rest = second.next;
+
+        ListNode subListHead = swapPairs(rest);
+        head.next = subListHead;
+        second.next = head;
+
+        return second;
+    }
+
+------
+使用的迭代方式：
+分析：如何能够两两交换链表中相邻的节点呢？
+感觉上很复杂，不记得具体步骤了 哈哈哈哈哈哈哈哈哈
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

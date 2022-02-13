@@ -1,0 +1,38 @@
+// Java
+public void recur(int level, int param) {
+  // terminator     递归的终结条件（递归执行到最底层，返回给上一级调用）
+  if (level > MAX_LEVEL) {
+    // process result
+    return;
+  }
+
+  // process current logic  处理当前层的逻辑
+  process(level, param);  // 递归方法的参数列表需要因地制宜地设计
+
+  // drill down   往下一层
+  recur( level: level + 1, newParam);
+
+  // restore current status 4 重建当前状态
+
+}
+
+===
+repeat
+===
+
+public void recur(int level, int param) { // feature1 ：参数列表中包含当前递归的层级
+    // 1 terminator
+    if (level > MAX_LEVEL) {
+        // process result
+        return;
+    }
+
+    // 2 处理当前层的逻辑
+    process(level, params);
+
+    // 3 向下走一层
+    recur(level + 1, params);
+
+    // 4 重建当前状态
+    // restore current status
+}

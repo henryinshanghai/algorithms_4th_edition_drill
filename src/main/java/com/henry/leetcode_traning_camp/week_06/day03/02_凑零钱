@@ -1,0 +1,102 @@
+# 322 使用一堆硬币来凑出特定金额的钱
+
+//给定不同面额的硬币 coins 和一个总金额 amount。编写一个函数来计算可以凑成总金额所需的最少的硬币个数。如果没有任何一种硬币组合能组成总金额，返回
+// -1。
+//
+// 你可以认为每种硬币的数量是无限的。
+
+//输入：coins = [1, 2, 5], amount = 11
+//输出：3
+//解释：11 = 5 + 5 + 1
+
+======
+题设与要求
+
+题设：
+    1 给定不同面额的硬币coins数组；
+    2 每种面额的硬币都有无限个；
+    3 给定一个具体的金额amount；
+要求：
+    求出凑出这个金额amount 所需要使用的最少硬币个数；
+
+分析难点 & 提出解决方案
+难点1：如何能够凑出金额amount？
+答：凑出 amount的方案可能有多个，我们可以逐个选择硬币。
+每次选择都fork出 coins.length个选择，这样通过不断地fork，最终生成一个非常倾斜地N叉树。
+在这棵树中就能找到 所有凑出amount的方案；
+注：这种方式显然是指数级的
+
+难点2：如何能够证明/确保 当前方案所使用的硬币数量是最少的？
+手段1（top-down）：
+    递归/分治： 降低问题的规模；
+    记忆化存储：防止重复的计算；
+
+代码思路：
+The idea is very classic dynamic programming:
+    think of the last step we take.
+这是一个非常典型得动态规划的思路：考虑我们所采用的最后一步；
+
+Suppose we have already found out the best way to sum up to amount a,
+then for the last step,we can
+    choose any coin type which gives us a remainder r
+        where r = a-coins[i] for all i's.
+假如我们已经找到了凑出金额a的最佳方式/最少硬币，
+那么在最后一步时，我们可以
+    选择任意面额的硬币————这会给我们一个剩余需要的金额 r
+        对于每一个i，都有 r = a - coins[i];
+
+For every remainder, go through exactly the same process as before
+    until either the remainder is 0 or less than 0 (meaning not a valid solution).
+对于每一个 remainder， 想前面一样执行完全相同的流程。
+    知道 remainder 要么是0 要么比0更小(这种情况意味着没有一个无效的解)
+
+With this idea, the only remaining detail is to
+    store the minimum number of coins needed to sum up to r
+        so that we don't need to recompute it over and over again.
+有了上面的思路后，唯一留下的细节就是
+    存储 凑够金额r所需要的最少硬币个数
+        这样我们就不需要一遍遍地重新计算它
+
+代码：
+    /* 〇 列举边界条件 */
+    /* Ⅰ 记忆化：判断当前的子问题是不是已经计算过了 */
+            // 如果是，就直接返回 对应的count[]数组中的元素
+    /* Ⅱ 遍历每一个硬币，并尝试使用当前硬币来凑出 给定金额rem */
+        // 1 先凑出 rem - coin 的金额，得到所需要的最小硬币数量
+        // 2 判断1中的计算结果是否有效 如果是，说明：本轮循环中计算得到了一种凑出 res金额的硬币组合(而且该组合的最后一个硬币使用了coin)
+            // 判断 所使用的硬币数量 是不是小于 min。 如果是，说明xxx，则：更新min
+    /* Ⅲ 返回最终得到的计算结果 count[rem - 1] */
+        // 在return之前，把此次子问题的结算结果添加到 dpTable[]中  以避免重复计算
+
+
+手段2(bottom-up)：
+    动态规划：先解决小问题，使用小问题的结果来逐步地递推出(lead up to)最终问题的结果。
+
+代码思路：
+For the iterative solution, we think in bottom-up manner.
+Suppose we have already computed all the minimum counts up to sum, what would be the minimum count for sum+1?
+对于迭代的方案，我们使用自底向上的方式。
+假设我们已经计算得到了 凑出sum金额所需要的最少硬币数量， 那么凑出(sum+1)金额需要多少硬币呢？
+
+代码：
+    /* 〇 准备dpTable[] */
+    /* Ⅰ 使用递推公式来填充dpTable[] */
+        // 1 把大问题 amount 拆分成小问题 amount-1
+        // 2 对每一个小问题 使用同样的 可用硬币组合来求解其 “使用最少硬币的组合”
+            // ① 如果当前硬币可以作为 凑出i的最后一个硬币，则：
+            // 使用dpTable[i - coin]来临时更新 min
+        // 3 如果min没有被更新，说明使用 coins数组 凑不出来 当前金额i。则：把dpTable[i]设置为 -1
+
+    /* Ⅱ 返回dpTable[]中合适位置的元素 */
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,80 @@
+# 72 求 字符串strA 到 字符串strB的编辑距离
+
+//给你两个单词 word1 和 word2，请你计算出将 word1 转换成 word2 所使用的最少操作数 。
+//
+// 你可以对一个单词进行如下三种操作：
+//
+//
+// 插入一个字符
+// 删除一个字符
+// 替换一个字符
+
+// 示例 1：
+//
+//
+//输入：word1 = "horse", word2 = "ros"
+//输出：3
+//解释：
+//horse -> rorse (将 'h' 替换为 'r')
+//rorse -> rose (删除 'r')
+//rose -> ros (删除 'e')
+
+======
+题设与要求
+题设：
+    1 给定两个字符串 word1 与 word2；
+    2 对于给定的字符串，可以执行3种操作：
+        插入一个字符； insert
+        删除一个字符； delete
+        替换一个字符（这个操作看起来更高效些）； replace
+    ------
+    这三种操作的具体用法：
+    > replace:
+        1 隐藏最后一个字符(not match);
+        2 把前面的字符序列 transfer to 到目标字符序列；
+        3 对不匹配的字符 进行 replace 操作
+
+    > insert:
+        1 先隐藏 目标字符序列的最后一个字符；
+        2 把原始字符串 transfer to 1的结果；
+        3 对2中转换后的字符序列 执行 insert操作（最终得到 目标字符序列）
+
+    > delete:
+        1 直接删除原始字符串的最后一个字符，得到一个 临时的字符序列；
+        2 把1中的结果 transfer to 目标字符序列
+    there's high chance you might combine them together, so note each operation for each grid in dpTable[][]
+
+    replace  |  insert
+    delete
+要求：
+    计算出 从 word1 变换得到 word2 所至少需要进行的操作步数；
+
+分析难点 & 提出解决方案
+难点1：如何表示这三种操作？
+比如从 e 如何能转换到 h?
+如果只使用 insert 操作，是做不到的； 需要先 delete掉e，然后再insert h;
+如果只使用 delete 操作，也是做不到的； 需要先 delete掉e，然后再insert h;
+如果只是用 replace操作，可以一步实现；
+
+难点2：如何判断当前应该执行的是哪一种操作呢？
+答：这个没法直接通过比较判断，最好的做法是尝试三种操作。 然后取max 或者 min
+
+难点3：如何能够最终得到 word2？
+答：可能最终得到 word2 有多种具体的步骤，但我们不关心具体的步骤。只关心 最少步骤
+这就非常适合使用 DP了
+
+难点4：如何能够保证 变换成 word2 所使用的操作步骤最少？
+答：使用DP的方式，保证当前子问题的解 是最小的————这就能保证最终得到的解是原始问题的最小解
+
+思路参考：https://www.youtube.com/watch?v=MiqoA-yF-0M
+代码参考：https://leetcode.com/problems/edit-distance/discuss/987964/JAVA-DP-99.4
+代码：
+    /* 〇 把字符串转化成为字符数组   方便得到子字符序列 */
+    /* Ⅰ 准备一个dpTable[]  这里有两个需要比较的字符串，所以dpTable[][] */
+    /* Ⅱ 初始化dpTable[][]中的一些位置  用来build up the dpTable[][] from */
+    /* Ⅲ 使用 已经初始化的元素值 + 不同规模子问题之间的递推关系 来 填充dpTable[][] */
+        // 1 比较最后一个位置的字符是否相等  如果相等,说明xxx。则问题可以直接简化为...
+            // 当前问题的值 就等于 子问题的元素值
+            // 否则，找出回退得到的子问题的最小解
+
+    /* Ⅳ 返回dpTable[][]中最右下角的值 */

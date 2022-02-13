@@ -1,0 +1,92 @@
+# 25
+铺垫题目：
+    1 反转整个链表中的所有节点；
+    2 两两交换链表中的节点；
+
+---
+题设与要求：
+要求：给你一个链表，每 k 个节点一组进行翻转，请你返回翻转后的链表。
+
+题设1：k 是一个正整数，它的值小于或等于链表的长度。
+题设2：如果节点总数不是 k 的整数倍，那么请将最后剩余的节点保持原有顺序。
+
+--
+分析：如何能够k个一组来反转链表呢？
+这个如果使用迭代的方式，估计脑袋要瓦特了。既然数据结构是链表 && 问题可以分解成更小的子问题，所以可以使用递归实现
+递归做法的SOP:
+    0 递归方法的作用：k个一组地反转链表中的节点，并返回反转后的链表；
+    1 终结条件：不需要进行反转的情况
+        链表的长度小于k时，不需要执行反转，直接返回原始链表即可；
+
+    2 本级递归需要完成的事情：
+        1 对其他节点组成的链表rest进行“k个一组反转”的操作，并返回得到的新链表A（头节点）；
+        2 反转链表中的前k个节点，得到新链表B; 【 this is a private method】
+        3 使用新链表A与新链表B来组合得到最终需要的结果；
+--
+任务：反转链表中的前k个节点
+类比：反转整个链表的操作；
+SOP:
+    1 准备两个指针prev、curr；
+    2 准备一个循环（循环直到链表尾节点才终止），在循环中：
+        1 改变curr节点的连接方向；
+        2 更新指针prev、curr的区间；
+
+所以，为了“反转链表中的前k个节点”。
+手段：在执行循环时，传入一个参数。手动指定循环终止的节点
+
+--
+根据递归的思路进行编码：
+错误代码：见nodepad++
+错误原因：更新指针时使用了错误的绑定值；
+
+--
+// 辅助函数：对链表中end节点之前的所有节点进行反转
+private static ListNode reverse(ListNode head, ListNode end) {
+    if(head == null || head.next == null) return head;
+
+    // 准备指针
+    ListNode prev = null;
+    ListNode curr = head;
+
+    // 准备循环
+    while (curr != end) { // curr == end时，指针指向的节点不会参与反转
+        ListNode temp = curr.next;
+
+        // 反转节点的连接方向
+        curr.next = prev;
+
+        // 更新指针的区间
+        prev = curr;
+        curr = temp;
+    }
+
+    return prev;
+}
+
+------
+主功能函数：
+// 递归方法：k个一组地反转链表中的节点，并返回反转后的新链表
+    private static ListNode reverseKGroup(ListNode head, int k) {
+        if(head == null || head.next == null) return head;
+
+        // 1 递归终结条件:链表的长度小于k
+        // 手段：让一个指针沿着链表向后走n个节点
+        ListNode cursor = head;
+        for (int i = 0; i < k; i++) {
+            if(cursor == null) return head;
+            cursor = cursor.next;
+        } // cursor指针指在第(k+1)个节点上
+
+        /* 2 本级递归需要做的事情 */
+        // 2-1 把链表中的前k个节点今进行反转，得到新链表A
+        ListNode newHead = reverse(head, cursor);
+
+        // 2-2 对剩下的节点所构成的rest链表执行“k个一组进行反转”的操作，得到新链表B
+        head.next = reverseKGroup(cursor, k);
+
+        return newHead; // 返回新链表的头节点
+    }
+
+---
+看看国际站的代码：
+国际站上有一些只是用迭代的做法，估计要想破脑壳。所以其他的解法先跳过吧

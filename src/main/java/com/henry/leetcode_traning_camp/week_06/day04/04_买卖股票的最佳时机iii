@@ -1,0 +1,114 @@
+# 123 买卖股票的最佳时机iii
+
+给定一个数组，它的第 i 个元素是一支给定的股票在第 i 天的价格。
+//
+// 设计一个算法来计算你所能获取的最大利润。你最多可以完成 两笔 交易。
+//
+// 注意: 你不能同时参与多笔交易（你必须在再次购买前出售掉之前的股票）。
+
+
+// 示例 1:
+//
+// 输入: [3,3,5,0,0,3,1,4]
+//输出: 6
+//解释: 在第 4 天（股票价格 = 0）的时候买入，在第 6 天（股票价格 = 3）的时候卖出，这笔交易所能获得利润 = 3-0 = 3 。
+//     随后，在第 7 天（股票价格 = 1）的时候买入，在第 8 天 （股票价格 = 4）的时候卖出，这笔交易所能获得利润 = 4-1 = 3 。
+
+======
+题设与要求
+题设：
+    1 给出特定的数组 arr[i]表示某只股票第i天的价格
+    2 在一笔交易未完成之前，你不能进行另一笔交易 aka 再次购买之前需要先售出手上的股票；
+    3 最多只允许完成两次交易；
+要求：
+    在遵守上述规则时，所能够赚取的最大利润；
+
+分析难点 & 提出解决方案
+难点1：如何进行交易，能够保证单笔交易是在赚钱的？
+答：低价买入，高价卖出；
+
+难点2：最多允许进行两次交易，如何能够在这个条件下从交易中获取到最大利润？
+答：1 保证每次交易都是在赚钱； 2 在遍历数组的同时来时时更新赚钱的金额
+
+
+思路：
+对于股票价格序列 arr = {1, 5, 2, 9, 1, 7}
+
+把所有操作抽象为两类：买入操作 + 卖出操作；
+使用现金流的方式来考察赚取的利润：买入股票时，现金流增值为负，卖出股票时，现金流增值为正；
+
+for(int price : prices) {
+    /* 第一次交易 */
+    // 在股价最低时买入股票
+    buy1 = Math.max(buy1, -price);
+
+    // 通过卖出操作来实现赚取利润    以当前股价卖出： + price
+    profit1 = Math.max(profit 1, price + buy1);
+
+    /* 第二次交易(利润必须为正)*/
+    // 买入操作：从现有利润中 - 买入股票的花费
+    buy2 = Math.max(buy2, profit1 - price);
+
+    // 卖出操作，计算得到总利润
+    total_profit = Math.max(total_profit, price + buy2);
+
+}
+
+======
+that wasn't enough, do more understanding
+参考：https://www.youtube.com/watch?v=gVavspgEHyM
+
+难点1：是否需要两次交易？
+Fist buy -> First sell：
+对于每一次交易，都需要使本次交易的利润最大；
+    1 对于 {1, 2, 3, 4, 5}这样的序列，只需要进行一次交易就能得到最大的profit；
+    2 对于其他的序列，可能进行两次交易能够 profit 更多；
+        比如 {3, 3, 5, 0, 0, 3, 1, 4}
+        这时候如果还是通过找到 max 与 min的方式的话,有：min = 0, max = 4
+        由于在 本次交易期间 不能再进行其他的交易，这就导致能够赚钱的区间就只有 {0, 0, 3, 1, 4}
+        we would be devoid of the other opportunity of making more profit.
+        这样其他可以用来 make a profit的区间就被忽略掉了———— 如果存在第二次交易的话，这笔利润就能赚到
+所以，每次交易的操作都是 interdependent （相互依赖的）
+that is to say, we need to consider:
+    first buy -> first sell -> second buy -> second sell
+in a row.
+
+we need keep track of how much money we left in hand after every buy/sell;
+and in any case(buy/sell), we want to keep MIH(money in hand) be maximum.
+
+stock price: 1, 10
+MIH 100
+corresponding MIH: 99, 90
+
+since we keep every move(buy/sell) maximum, when the 2 transaction is over. we will get
+the maximum profit;
+with that said, we can not compute them separately, we need to
+compute them in one go~~~
+
+for each day, if i take this day as my first buy, what would be the impact?
+so we need compare two things:
+    1 what if I but it at current day;
+    2 or what if I get to buy at less price at someday before current day/till now
+
+we write the code now...
+
+代码：
+/* 〇 对参数进行特殊值判断 */
+/* Ⅰ 准备一些变量并绑定初始值————用于在循环过程中更新 */
+    // 初始化 买入的价格 为 Integer.MIN_VALUE
+    // 初始化 卖出的价格 为 0
+
+/* Ⅱ 准备循环，遍历每一天的股价*/
+// note that: you don't know what the real profit gonna be until the last day, therefore
+// all you need to do it keep it maximum all the way to the end
+    /* first transaction */
+    // 尝试获取till today,买入股票的最低价格 aka MIN(money in hand)的最大值
+    /* second transaction */
+
+/* Ⅲ 返回循环结束后得到的min_ss */
+
+
+
+
+
+
