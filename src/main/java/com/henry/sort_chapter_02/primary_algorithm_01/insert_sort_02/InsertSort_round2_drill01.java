@@ -1,7 +1,8 @@
 package com.henry.sort_chapter_02.primary_algorithm_01.insert_sort_02;
 
-// 通过插入操作，不断扩展有序区间
-// 插入 = 连续比较 + 连续交换
+// 算法简要描述：通过插入操作，不断扩展有序区间
+// 有意义的变量名： currentBoundary, backwardsCursor
+// 基础操作：插入 = 连续比较 + 连续交换
 public class InsertSort_round2_drill01 {
 
     public static void sort(Comparable[] a) {
