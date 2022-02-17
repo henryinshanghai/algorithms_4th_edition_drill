@@ -43,7 +43,7 @@ import edu.princeton.cs.algs4.StdOut;
  *  For additional documentation, see
  *  <a href="https://algs4.cs.princeton.edu/22mergesort">Section 2.2</a> of
  *  <i>Algorithms, 4th Edition</i> by Robert Sedgewick and Kevin Wayne.
- *  For an optimized version, see {@link MergeX}.
+ *  For an optimized version, see {@link Merge}.
  *
  *  @author Robert Sedgewick
  *  @author Kevin Wayne
