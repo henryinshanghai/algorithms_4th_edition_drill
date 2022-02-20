@@ -40,6 +40,18 @@ package com.henry.sort_chapter_02.merge_sort_algorithm_02.merge_01;
 ------
 String[] a = {"S", "O", "R", "T", "E", "X", "A", "M", "P", "L", "E"};
 
+动态过程：
+    归并前两个元素；
+    归并前四个元素中的后两个元素;
+    归并前四个元素;
+
+    ...
+
+    归并前半个数组中的元素;
+    ...
+    归并后半个数组中的元素；
+    ...
+    归并整个数组中的所有元素
  */
 public class Merge_round02_drill01 {
 

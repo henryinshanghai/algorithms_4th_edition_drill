@@ -19,6 +19,12 @@ package com.henry.sort_chapter_02.merge_sort_algorithm_02.marge_down_to_top_03;
         不断向右移动游标，完成对当前所有分组的归并
         游标的下一个位置H：当前位置 + 分组大小*2   rightBar的位置：H - 1  注：这种计算方式可能会导致游标超界限，所以需要取较小值
         middle的位置： leftBar + size - 1
+
+    动态过程：
+        两个为一组归并
+        四个为一组归并
+        ...
+        数组有序
  */
 public class MergeBU_round02_drill03 {
     private static Comparable[] aux;
