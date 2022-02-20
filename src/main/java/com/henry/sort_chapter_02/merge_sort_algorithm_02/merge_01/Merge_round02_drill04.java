@@ -43,7 +43,7 @@ String[] a = {"S", "O", "R", "T", "E", "X", "A", "M", "P", "L", "E"};
 // here is <=
 // "int cursor = 0; cursor < a.length; cursor++" is wrong
  */
-public class Merge_round02_drill03 {
+public class Merge_round02_drill04 {
     private static Comparable[] aux;
 
     public static void sort(Comparable[] a) {
@@ -52,9 +52,8 @@ public class Merge_round02_drill03 {
         sort(a, 0, a.length - 1);
     }
 
-    // 递归方式 实现排序
     private static void sort(Comparable[] a, int leftBar, int rightBar) {
-        if (leftBar >= rightBar) return;
+        if(leftBar >= rightBar) return;
 
         int middle = leftBar + (rightBar - leftBar) / 2;
 
@@ -63,8 +62,9 @@ public class Merge_round02_drill03 {
         merge(a, leftBar, middle, rightBar);
     }
 
+    // 归并 a[leftBar, middle] 与 a[middle+1, rightBar]
     private static void merge(Comparable[] a, int leftBar, int middle, int rightBar) {
-        // 初始化指针位置
+        // 准备左右指针
         int leftHalfCursor = leftBar;
         int rightHalfCursor = middle + 1;
 
@@ -75,7 +75,6 @@ public class Merge_round02_drill03 {
         for (int cursor = leftBar; cursor <= rightBar; cursor++) {
             if(leftHalfCursor > middle) a[cursor] = aux[rightHalfCursor++];
             else if(rightHalfCursor > rightBar) a[cursor] = aux[leftHalfCursor++];
-
             else if(less(aux[leftHalfCursor], aux[rightHalfCursor])) a[cursor] = aux[leftHalfCursor++];
             else a[cursor] = aux[rightHalfCursor++];
         }
@@ -85,9 +84,8 @@ public class Merge_round02_drill03 {
         return v.compareTo(w) < 0;
     }
 
-    public static void printItems(Comparable[] a) {
+    private static void printItems(Comparable[] a) {
         int N = a.length;
-
         for (int i = 0; i < N; i++) {
             System.out.print(a[i] + " ");
         }
@@ -96,7 +94,8 @@ public class Merge_round02_drill03 {
     }
 
     public static void main(String[] args) {
-        String[] a = new String[]{"S", "O", "R", "T", "E", "X", "A", "M", "P", "L", "E"};
+        String[] a = {"S", "O", "R", "T", "E", "X", "A", "M", "P", "L", "E"};
+
         sort(a);
 
         printItems(a);

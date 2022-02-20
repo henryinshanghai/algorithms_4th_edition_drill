@@ -75,7 +75,7 @@ public class Merge_round02_drill02 {
             if(leftHalfCursor > middle) a[cursor] = aux[rightHalfCursor++];
             else if(rightHalfCursor > rightBar) a[cursor] = aux[leftHalfCursor++];
 
-            else if(less(a[leftHalfCursor], a[rightHalfCursor])) a[cursor] = aux[leftHalfCursor++];
+            else if(less(aux[leftHalfCursor], aux[rightHalfCursor])) a[cursor] = aux[leftHalfCursor++];
             else a[cursor] = aux[rightHalfCursor++];
         }
     }
