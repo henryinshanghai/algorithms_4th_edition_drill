@@ -3,6 +3,17 @@ package com.henry.sort_chapter_02.merge_sort_algorithm_02.marge_down_to_top_03;
 import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.StdOut;
 
+/*
+    分治思想的方式：用更小规模的问题的解 来解决原始问题。
+
+    自顶向下： 大问题 -> 拆解成为小问题 -> 解决小问题 -> 聚合小问题的解，以解决大问题
+    自底向上： 小问题 -> 聚合小问题的解，解决大问题。
+
+    自底向上的算法描述：
+        先归并这些个微型数组，然后再 成对地归并所得到的子数组；
+
+    难点：如何区分这些个微型数组？
+ */
 public class MergeBU {
 
     private static Comparable[] aux; // 辅助数组
@@ -11,8 +22,12 @@ public class MergeBU {
         // 进行lgN次两两合并
         int N = a.length;
         aux = new Comparable[N];
+
+        // 子数组的size从1开始，逐渐翻倍
         for (int sz = 1; sz < N; sz = sz + sz) { // sz 子数组的大小
+            // 根据当前子数组的大小sz 进行两两归并 - 执行归并的次数：
             for (int lo = 0; lo < N - sz; lo+= sz+sz) { // lo：子数组的索引
+                // 归并 a[lo, middle] 与 a[middle+1, hi]
                 merge(a, lo, lo + sz + 1, Math.min(lo + sz + sz - 1, N - 1));
             }
         }

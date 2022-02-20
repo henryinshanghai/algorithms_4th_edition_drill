@@ -1,0 +1,73 @@
+package com.henry.sort_chapter_02.merge_sort_algorithm_02.marge_down_to_top_03;
+
+import edu.princeton.cs.algs4.In;
+import edu.princeton.cs.algs4.StdOut;
+
+/*
+    分治思想的方式：用更小规模的问题的解 来解决原始问题。
+
+    自顶向下： 大问题 -> 拆解成为小问题 -> 解决小问题 -> 聚合小问题的解，以解决大问题
+    自底向上： 小问题 -> 聚合小问题的解，解决大问题。
+
+    自底向上的算法描述：
+        先归并这些个微型数组，然后再 成对地归并所得到的子数组；
+
+    难点：如何区分这些个微型数组？
+ */
+public class MergeBU_round02_drill01 {
+    private static Comparable[] aux;
+
+    // 使用自底向上的方式 来 实现对数组完全排序
+    public static void sort(Comparable[] a) {
+        int N = a.length;
+        aux = new Comparable[N];
+
+        // 创建不同的size, 并根据size来对原始数组进行 分组归并 -
+        // 分组大小从1开始，逐渐变大; 下一组的分组大小比起上一组翻倍
+        for (int groupSize = 1; groupSize < N; groupSize = groupSize + groupSize) {
+            // 不断向右移动游标，完成对当前所有分组的归并
+            for (int leftBarCursor = 0; leftBarCursor < N - groupSize; leftBarCursor += groupSize + groupSize) {
+                merge(a, leftBarCursor, leftBarCursor + groupSize - 1, Math.min(leftBarCursor + groupSize + groupSize - 1, N - 1));
+
+            }
+        }
+    }
+
+    private static void merge(Comparable[] a, int leftBar, int middle, int rightBar) {
+        int leftHalfCursor = leftBar;
+        int rightHalfCursor = middle + 1;
+
+        for (int cursor = leftBar; cursor <= rightBar; cursor++) {
+            aux[cursor] = a[cursor];
+        }
+
+        for (int cursor = leftBar; cursor <= rightBar; cursor++) { // pay attention to <=
+            if(leftHalfCursor > middle) a[cursor] = aux[rightHalfCursor++];
+            else if(rightHalfCursor > rightBar) a[cursor] = aux[leftHalfCursor++];
+            else if(less(a[leftHalfCursor], a[rightHalfCursor])) a[cursor] = aux[leftHalfCursor++];
+            else a[cursor] = aux[rightHalfCursor++]; // pay attention to "copy what to whom"
+        }
+    }
+
+    private static boolean less(Comparable v, Comparable w) {
+        return v.compareTo(w) < 0;
+    }
+
+    public static void printItems(Comparable[] a) {
+        int N = a.length;
+
+        for (int cursor = 0; cursor < N; cursor++) {
+            System.out.print(a[cursor] + " ");
+        }
+
+        System.out.println();
+    }
+
+    public static void main(String[] args) {
+        String[] a = new String[]{"M", "E", "R", "G", "E", "S", "O", "R", "T", "E", "X", "A", "M", "P", "L", "E"};
+
+        sort(a);
+
+        printItems(a);
+    }
+}
