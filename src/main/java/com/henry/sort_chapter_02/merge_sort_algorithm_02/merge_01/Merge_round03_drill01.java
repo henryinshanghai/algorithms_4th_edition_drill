@@ -43,56 +43,46 @@ String[] a = {"S", "O", "R", "T", "E", "X", "A", "M", "P", "L", "E"};
 // here is <=
 // "int cursor = 0; cursor < a.length; cursor++" is wrong
  */
-public class Merge_round02_drill04 {
+public class Merge_round03_drill01 {
+
     private static Comparable[] aux;
 
     public static void sort(Comparable[] a) {
+        // 初始化放在这里比较合适，因为能够获取到原始数组a的大小
         aux = new Comparable[a.length];
-
         sort(a, 0, a.length - 1);
     }
 
-    // 排序数组的指定区间 [leftBar, rightBar]
     private static void sort(Comparable[] a, int leftBar, int rightBar) {
-        // 递归终结的条件：区间变窄为0
         if(leftBar >= rightBar) return;
 
         int middle = leftBar + (rightBar - leftBar) / 2;
 
-        // 使左区间有序
         sort(a, leftBar, middle);
-        // 使右区间有序
         sort(a, middle+1, rightBar);
-        // 有了两个有序的子数组后，使用归并操作 得到一个完全有序的数组
         merge(a, leftBar, middle, rightBar);
     }
 
-    // 归并 a[leftBar, middle] 与 a[middle+1, rightBar]
     private static void merge(Comparable[] a, int leftBar, int middle, int rightBar) {
-        // 准备左右指针
         int leftHalfCursor = leftBar;
         int rightHalfCursor = middle + 1;
 
-        // 拷贝区间[leftBar, rightBar]之间的元素 到 aux
         for (int cursor = leftBar; cursor <= rightBar; cursor++) {
             aux[cursor] = a[cursor];
         }
 
-        // 比较左右两半部分, 并逐个拷贝回去原数组
+        // 拷贝需要的元素到原始数组
         for (int cursor = leftBar; cursor <= rightBar; cursor++) {
-            // 左半部分元素用尽
             if(leftHalfCursor > middle) a[cursor] = aux[rightHalfCursor++];
-            // 右半部分元素用尽
             else if(rightHalfCursor > rightBar) a[cursor] = aux[leftHalfCursor++];
-            // 比较左右指针指向的元素，并拷贝较小值到原数组中
+            // 注：这里比较的是 aux中的元素
             else if(less(aux[leftHalfCursor], aux[rightHalfCursor])) a[cursor] = aux[leftHalfCursor++];
-            // 拷贝较小值
             else a[cursor] = aux[rightHalfCursor++];
         }
     }
 
-    private static boolean less(Comparable v, Comparable w) {
-        return v.compareTo(w) < 0;
+    private static boolean less(Comparable v1, Comparable v2) {
+        return v1.compareTo(v2) < 0;
     }
 
     private static void printItems(Comparable[] a) {
