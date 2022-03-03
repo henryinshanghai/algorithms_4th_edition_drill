@@ -78,6 +78,7 @@ public class Quick_recursive {
         int leftCursor = leftBar;
         int rightBackwardsCursor = rightBar + 1;
         int arrangedPosition = -1;
+
         Comparable pivot = a[leftBar];
 
         // 这时候用while比用for就省事多了 不存在步长什么的
