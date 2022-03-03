@@ -39,7 +39,8 @@ public class Quick3way {
 
             疑问：
                 1 为什么lt指针指向的元素 总是能够等于 pivot元素？
-                答：not clear yet. but seems be true
+                答：由于lt指针总是落后于 i指针（表示当前正在处理的元素），所以当lt指针++时，它所指向的元素其实是被处理过的
+                因此可以肯定 它所指向的元素 是 pivot元素
          */
         while (equalZoneBoundary <= greaterZoneBoundary) {
             int compareResult = a[equalZoneBoundary].compareTo(pivot);
