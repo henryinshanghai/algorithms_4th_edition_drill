@@ -261,6 +261,10 @@ public class MaxPQ_heap_round2_drill01<Key> implements Iterable<Key> {
 
     // 判断当前数组是不是大顶堆？
     // aka is pq[1..n] a max heap?
+    /*
+        1 null值判断；
+        2 节点值大小判断；
+     */
     private boolean isMaxHeap() {
         // #con1: 是不是存在null元素
         for (int i = 1; i <= itemAmount; i++) {
@@ -280,6 +284,15 @@ public class MaxPQ_heap_round2_drill01<Key> implements Iterable<Key> {
     // is subtree of pq[1..n] rooted at k a max heap?
     // 数组中 以k为根节点的子树是不是一个 大顶堆
     // 手段： 大顶堆的规则
+    /*
+        如何判断是不是所有的节点都符合 堆的规则？
+        由于堆的定义是递归的，所以这里的判断也是递归的
+
+        定义/实现：
+            1 对当前的二叉树来说， 根节点的值 > max(左节点的值, 右节点的值)
+            2 对于两棵子树来说，子树本身也是堆有序的。
+
+     */
     private boolean isMaxHeapOrdered(int currentSpot) {
         if (currentSpot > itemAmount) return true;
         // 左、右子节点
@@ -319,8 +332,10 @@ public class MaxPQ_heap_round2_drill01<Key> implements Iterable<Key> {
         // add all items to copy of heap
         // takes linear time since already in heap order so no keys move
         public HeapIterator() {
+            // 容量的初始化
             if (comparator == null) copy = new MaxPQ_heap_round2_drill01<Key>(size());
             else copy = new MaxPQ_heap_round2_drill01<Key>(size(), comparator);
+            // 值的初始化
             for (int i = 1; i <= itemAmount; i++)
                 copy.insert(itemArr[i]);
         }
