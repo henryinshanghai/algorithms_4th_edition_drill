@@ -1,6 +1,5 @@
 package com.henry.sort_chapter_02.quick_sort_algorithm_03.basic_quick_sort_01;
 
-import edu.princeton.cs.algs4.StdOut;
 import edu.princeton.cs.algs4.StdRandom;
 
 /*

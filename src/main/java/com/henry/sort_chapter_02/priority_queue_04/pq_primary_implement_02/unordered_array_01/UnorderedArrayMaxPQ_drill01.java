@@ -73,6 +73,7 @@ public class UnorderedArrayMaxPQ_drill01 {
         pq.insert("is");
         pq.insert("a");
         pq.insert("test");
+
         while (!pq.isEmpty())
             StdOut.println(pq.delMax());
     }
