@@ -78,7 +78,7 @@ public class MaxPQ_heap_round2_drill01<Key> implements Iterable<Key> {
      * @param keys the array of keys
      */
     public MaxPQ_heap_round2_drill01(Key[] keys) {
-        // setUp the spots
+        // set up the spots
         itemAmount = keys.length;
         itemArr = (Key[]) new Object[keys.length + 1];
 
@@ -263,7 +263,11 @@ public class MaxPQ_heap_round2_drill01<Key> implements Iterable<Key> {
     // aka is pq[1..n] a max heap?
     /*
         1 null值判断；
+            // #con1: 是不是存在null元素
+            // #con2： 从队列元素结束的位置到剩下的空间中是不是还有其他的元素
+            // #con3： 数组的第一个位置是不是null元素
         2 节点值大小判断；
+
      */
     private boolean isMaxHeap() {
         // #con1: 是不是存在null元素
@@ -294,6 +298,8 @@ public class MaxPQ_heap_round2_drill01<Key> implements Iterable<Key> {
 
      */
     private boolean isMaxHeapOrdered(int currentSpot) {
+        // 为什么传入的节点比 堆中元素更多时，要返回true？ 因为这是一个递归调用 currentSpot的值会随着递归的深度增大而不断变大
+        // 当 currentSpot > itemAmount时，就是递归终结的时机
         if (currentSpot > itemAmount) return true;
         // 左、右子节点
         int leftChildSpot = 2 * currentSpot;
