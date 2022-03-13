@@ -40,32 +40,37 @@ import java.util.NoSuchElementException;
  *  @author Robert Sedgewick
  *  @author Kevin Wayne
  *
- *  @param <Key> the generic type of key on this priority queue
+ *  @param <Element> the generic type of key on this priority queue
  *  不是太容易理解 参考：https://blog.csdn.net/weixin_43696529/article/details/104675343 理解一下
+ *
+    维护 key得到一个优先队列
  */
-public class indexMinPQFromWebsite<Key extends Comparable<Key>> implements Iterable<Integer> {
-    private int maxN;        // maximum number of elements on PQ
-    private int n;           // number of elements on PQ
-    private int[] pq;        // binary heap using 1-based indexing 以1作为索引开头的二叉堆
-    private int[] qp;        // inverse of pq - qp[pq[i]] = pq[qp[i]] = i pq二叉堆的逆向：把pq的索引作为值，把pq的值作为索引
-    private Key[] keys;      // keys[i] = priority of i
+public class indexMinPQFromWebsite<Element extends Comparable<Element>> implements Iterable<Integer> {
+    private int capacity;        // maximum number of elements on PQ
+    private int elementAmount;           // number of elements on PQ
+    private int[] indexOfElementArr;        // binary heap using 1-based indexing 以1作为索引开头的二叉堆
+    private int[] theSpotOfIndex;        // 作用： 快速找到 index在优先队列数组中的位置
+    private Element[] elementArr;      // keys[i] = priority of i
 
     /**
      * Initializes an empty indexed priority queue with indices between {@code 0}
      * and {@code maxN - 1}.
-     * @param  maxN the keys on this priority queue are index from {@code 0}
+     * @param  capacity the keys on this priority queue are index from {@code 0}
      *         {@code maxN - 1}
      * @throws IllegalArgumentException if {@code maxN < 0}
      */
-    public indexMinPQFromWebsite(int maxN) {
-        if (maxN < 0) throw new IllegalArgumentException();
-        this.maxN = maxN;
-        n = 0;
-        keys = (Key[]) new Comparable[maxN + 1];    // make this of length maxN??
-        pq   = new int[maxN + 1];
-        qp   = new int[maxN + 1];                   // make this of length maxN??
-        for (int i = 0; i <= maxN; i++)
-            qp[i] = -1;
+    public indexMinPQFromWebsite(int capacity) {
+        if (capacity < 0) throw new IllegalArgumentException();
+        this.capacity = capacity;
+        elementAmount = 0;
+
+        elementArr = (Element[]) new Comparable[capacity + 1];    // make this of length maxN??
+        indexOfElementArr = new int[capacity + 1];
+        theSpotOfIndex = new int[capacity + 1];                   // make this of length maxN??
+
+        // initialize each item with value
+        for (int i = 0; i <= capacity; i++)
+            theSpotOfIndex[i] = -1;
     }
 
     /**
@@ -75,20 +80,20 @@ public class indexMinPQFromWebsite<Key extends Comparable<Key>> implements Itera
      *         {@code false} otherwise
      */
     public boolean isEmpty() {
-        return n == 0;
+        return elementAmount == 0;
     }
 
     /**
      * Is {@code i} an index on this priority queue?
      *
-     * @param  i an index
+     * @param  index an index
      * @return {@code true} if {@code i} is an index on this priority queue;
      *         {@code false} otherwise
      * @throws IllegalArgumentException unless {@code 0 <= i < maxN}
      */
-    public boolean contains(int i) {
-        validateIndex(i);
-        return qp[i] != -1;
+    public boolean contains(int index) {
+        validateIndex(index);
+        return theSpotOfIndex[index] != -1;
     }
 
     /**
@@ -97,26 +102,32 @@ public class indexMinPQFromWebsite<Key extends Comparable<Key>> implements Itera
      * @return the number of keys on this priority queue
      */
     public int size() {
-        return n;
+        return elementAmount;
     }
 
     /**
      * Associates key with index {@code i}.
      *
-     * @param  i an index
-     * @param  key the key to associate with index {@code i}
+     * @param  index an index
+     * @param  element the key to associate with index {@code i}
      * @throws IllegalArgumentException unless {@code 0 <= i < maxN}
      * @throws IllegalArgumentException if there already is an item associated
      *         with index {@code i}
      */
-    public void insert(int i, Key key) {
-        validateIndex(i);
-        if (contains(i)) throw new IllegalArgumentException("index is already in the priority queue");
-        n++;
-        qp[i] = n;
-        pq[n] = i;
-        keys[i] = key;
-        swim(n);
+    public void insert(int index, Element element) {
+        validateIndex(index);
+        if (contains(index)) throw new IllegalArgumentException("index is already in the priority queue");
+
+        elementAmount++;
+        // 把index插入到数组的最后一个位置
+        theSpotOfIndex[index] = elementAmount;
+        indexOfElementArr[elementAmount] = index;
+
+        // 把 element添加到 elementArr的index位置上去
+        elementArr[index] = element;
+
+        // restore the indexOfElementArr -> 得到堆有序的数组（堆/优先队列）
+        swim(elementAmount);
     }
 
     /**
@@ -126,8 +137,9 @@ public class indexMinPQFromWebsite<Key extends Comparable<Key>> implements Itera
      * @throws NoSuchElementException if this priority queue is empty
      */
     public int minIndex() {
-        if (n == 0) throw new NoSuchElementException("Priority queue underflow");
-        return pq[1];
+        if (elementAmount == 0) throw new NoSuchElementException("Priority queue underflow");
+        // indexOfElementArr是一个优先队列，数组中的元素是：连续而且有序的
+        return indexOfElementArr[1];
     }
 
     /**
@@ -136,9 +148,9 @@ public class indexMinPQFromWebsite<Key extends Comparable<Key>> implements Itera
      * @return a minimum key
      * @throws NoSuchElementException if this priority queue is empty
      */
-    public Key minKey() {
-        if (n == 0) throw new NoSuchElementException("Priority queue underflow");
-        return keys[pq[1]];
+    public Element minElement() {
+        if (elementAmount == 0) throw new NoSuchElementException("Priority queue underflow");
+        return elementArr[indexOfElementArr[1]];
     }
 
     /**
@@ -147,138 +159,158 @@ public class indexMinPQFromWebsite<Key extends Comparable<Key>> implements Itera
      * @throws NoSuchElementException if this priority queue is empty
      */
     public int delMin() {
-        if (n == 0) throw new NoSuchElementException("Priority queue underflow");
-        int min = pq[1];
-        exch(1, n--);
-        sink(1);
-        assert min == pq[n+1];
+        if (elementAmount == 0) throw new NoSuchElementException("Priority queue underflow");
 
-        qp[min] = -1;        // delete
-        keys[min] = null;    // to help with garbage collection
-        pq[n+1] = -1;        // not needed
-        return min;
+        int indexOfMinElement = indexOfElementArr[1];
+        // 交换元素 + 重建堆有序
+        exch(1, elementAmount--);
+        sink(1);
+        // 最小元素的index 被移动到了数组的末尾
+        assert indexOfMinElement == indexOfElementArr[elementAmount +1];
+
+        // 删除 theSpotOfIndex中的索引
+        theSpotOfIndex[indexOfMinElement] = -1;        // delete
+        // 删除 elementArr中 索引对应的元素
+        elementArr[indexOfMinElement] = null;    // to help with garbage collection
+        // 删除 indexOfElementArr中的索引值
+        indexOfElementArr[elementAmount +1] = -1;        // not needed
+
+        // 返回 indexOfMinElement
+        return indexOfMinElement;
     }
 
     /**
      * Returns the key associated with index {@code i}.
      *
-     * @param  i the index of the key to return
+     * @param  index the index of the key to return
      * @return the key associated with index {@code i}
      * @throws IllegalArgumentException unless {@code 0 <= i < maxN}
      * @throws NoSuchElementException no key is associated with index {@code i}
      */
-    public Key keyOf(int i) {
-        validateIndex(i);
-        if (!contains(i)) throw new NoSuchElementException("index is not in the priority queue");
-        else return keys[i];
+    public Element ElementOf(int index) {
+        validateIndex(index);
+        if (!contains(index)) throw new NoSuchElementException("index is not in the priority queue");
+        else return elementArr[index];
     }
 
     /**
      * Change the key associated with index {@code i} to the specified value.
      *
-     * @param  i the index of the key to change
-     * @param  key change the key associated with index {@code i} to this key
+     * @param  index the index of the key to change
+     * @param  element change the key associated with index {@code i} to this key
      * @throws IllegalArgumentException unless {@code 0 <= i < maxN}
      * @throws NoSuchElementException no key is associated with index {@code i}
      */
-    public void changeKey(int i, Key key) {
-        validateIndex(i);
-        if (!contains(i)) throw new NoSuchElementException("index is not in the priority queue");
-        keys[i] = key;
-        swim(qp[i]);
-        sink(qp[i]);
+    public void changeElement(int index, Element element) {
+        validateIndex(index);
+        if (!contains(index)) throw new NoSuchElementException("index is not in the priority queue");
+        elementArr[index] = element;
+
+        // 维护 indexOfElementArr堆有序
+        swim(theSpotOfIndex[index]);
+        sink(theSpotOfIndex[index]);
     }
 
     /**
      * Change the key associated with index {@code i} to the specified value.
      *
      * @param  i the index of the key to change
-     * @param  key change the key associated with index {@code i} to this key
+     * @param  element change the key associated with index {@code i} to this key
      * @throws IllegalArgumentException unless {@code 0 <= i < maxN}
      * @deprecated Replaced by {@code changeKey(int, Key)}.
      */
     @Deprecated
-    public void change(int i, Key key) {
-        changeKey(i, key);
+    public void change(int i, Element element) { // 过时的API
+        changeElement(i, element);
     }
 
     /**
      * Decrease the key associated with index {@code i} to the specified value.
      *
-     * @param  i the index of the key to decrease
-     * @param  key decrease the key associated with index {@code i} to this key
+     * @param  index the index of the key to decrease
+     * @param  element decrease the key associated with index {@code i} to this key
      * @throws IllegalArgumentException unless {@code 0 <= i < maxN}
      * @throws IllegalArgumentException if {@code key >= keyOf(i)}
      * @throws NoSuchElementException no key is associated with index {@code i}
      */
-    public void decreaseKey(int i, Key key) {
-        validateIndex(i);
-        if (!contains(i)) throw new NoSuchElementException("index is not in the priority queue");
-        if (keys[i].compareTo(key) == 0)
+    public void decreaseElement(int index, Element element) {
+        validateIndex(index);
+        if (!contains(index)) throw new NoSuchElementException("index is not in the priority queue");
+        if (elementArr[index].compareTo(element) == 0)
             throw new IllegalArgumentException("Calling decreaseKey() with a key equal to the key in the priority queue");
-        if (keys[i].compareTo(key) < 0)
+        if (elementArr[index].compareTo(element) < 0)
             throw new IllegalArgumentException("Calling decreaseKey() with a key strictly greater than the key in the priority queue");
-        keys[i] = key;
-        swim(qp[i]);
+
+
+        elementArr[index] = element;
+        swim(theSpotOfIndex[index]);
     }
 
     /**
      * Increase the key associated with index {@code i} to the specified value.
      *
-     * @param  i the index of the key to increase
-     * @param  key increase the key associated with index {@code i} to this key
+     * @param  index the index of the key to increase
+     * @param  element increase the key associated with index {@code i} to this key
      * @throws IllegalArgumentException unless {@code 0 <= i < maxN}
      * @throws IllegalArgumentException if {@code key <= keyOf(i)}
      * @throws NoSuchElementException no key is associated with index {@code i}
      */
-    public void increaseKey(int i, Key key) {
-        validateIndex(i);
-        if (!contains(i)) throw new NoSuchElementException("index is not in the priority queue");
-        if (keys[i].compareTo(key) == 0)
+    public void increaseElement(int index, Element element) {
+        validateIndex(index);
+        if (!contains(index)) throw new NoSuchElementException("index is not in the priority queue");
+        if (elementArr[index].compareTo(element) == 0)
             throw new IllegalArgumentException("Calling increaseKey() with a key equal to the key in the priority queue");
-        if (keys[i].compareTo(key) > 0)
+        if (elementArr[index].compareTo(element) > 0)
             throw new IllegalArgumentException("Calling increaseKey() with a key strictly less than the key in the priority queue");
-        keys[i] = key;
-        sink(qp[i]);
+
+        elementArr[index] = element;
+        sink(theSpotOfIndex[index]);
     }
 
     /**
      * Remove the key associated with index {@code i}.
      *
-     * @param  i the index of the key to remove
+     * @param  index the index of the key to remove
      * @throws IllegalArgumentException unless {@code 0 <= i < maxN}
      * @throws NoSuchElementException no key is associated with index {@code i}
      */
-    public void delete(int i) {
-        validateIndex(i);
-        if (!contains(i)) throw new NoSuchElementException("index is not in the priority queue");
-        int index = qp[i];
-        exch(index, n--);
-        swim(index);
-        sink(index);
-        keys[i] = null;
-        qp[i] = -1;
+    public void delete(int index) {
+        validateIndex(index);
+        if (!contains(index)) throw new NoSuchElementException("index is not in the priority queue");
+
+        int spotOfIndex = theSpotOfIndex[index];
+        exch(spotOfIndex, elementAmount--);
+
+        // 删除操作后，既可能会上浮，也可能会下沉
+        swim(spotOfIndex);
+        sink(spotOfIndex);
+
+        // 清除对此index的记录
+        elementArr[index] = null;
+        theSpotOfIndex[index] = -1;
     }
 
     // throw an IllegalArgumentException if i is an invalid index
     private void validateIndex(int i) {
         if (i < 0) throw new IllegalArgumentException("index is negative: " + i);
-        if (i >= maxN) throw new IllegalArgumentException("index >= capacity: " + i); // 为什么=maxN也会有异常呢？
+        if (i >= capacity) throw new IllegalArgumentException("index >= capacity: " + i); // 为什么=maxN也会有异常呢？
     }
 
     /***************************************************************************
      * General helper functions.
      ***************************************************************************/
     private boolean greater(int i, int j) {
-        return keys[pq[i]].compareTo(keys[pq[j]]) > 0;
+        return elementArr[indexOfElementArr[i]].compareTo(elementArr[indexOfElementArr[j]]) > 0;
     }
 
     private void exch(int i, int j) {
-        int swap = pq[i];
-        pq[i] = pq[j];
-        pq[j] = swap;
-        qp[pq[i]] = i;
-        qp[pq[j]] = j;
+        int swap = indexOfElementArr[i];
+        indexOfElementArr[i] = indexOfElementArr[j];
+        indexOfElementArr[j] = swap;
+
+        // 维护 theSpotOfIndex数组 这是一个恒等式
+        theSpotOfIndex[indexOfElementArr[i]] = i;
+        theSpotOfIndex[indexOfElementArr[j]] = j;
     }
 
 
@@ -293,9 +325,9 @@ public class indexMinPQFromWebsite<Key extends Comparable<Key>> implements Itera
     }
 
     private void sink(int k) {
-        while (2*k <= n) {
+        while (2*k <= elementAmount) {
             int j = 2*k;
-            if (j < n && greater(j, j+1)) j++;
+            if (j < elementAmount && greater(j, j+1)) j++;
             if (!greater(k, j)) break;
             exch(k, j);
             k = j;
@@ -318,14 +350,14 @@ public class indexMinPQFromWebsite<Key extends Comparable<Key>> implements Itera
 
     private class HeapIterator implements Iterator<Integer> {
         // create a new pq
-        private indexMinPQFromWebsite<Key> copy;
+        private indexMinPQFromWebsite<Element> copy;
 
         // add all elements to copy of heap
         // takes linear time since already in heap order so no keys move
         public HeapIterator() {
-            copy = new indexMinPQFromWebsite<Key>(pq.length - 1);
-            for (int i = 1; i <= n; i++)
-                copy.insert(pq[i], keys[pq[i]]);
+            copy = new indexMinPQFromWebsite<Element>(indexOfElementArr.length - 1);
+            for (int i = 1; i <= elementAmount; i++)
+                copy.insert(indexOfElementArr[i], elementArr[indexOfElementArr[i]]);
         }
 
         public boolean hasNext()  { return !copy.isEmpty();                     }
@@ -347,12 +379,15 @@ public class indexMinPQFromWebsite<Key extends Comparable<Key>> implements Itera
         // insert a bunch of strings
         String[] strings = { "it", "was", "the", "best", "of", "times", "it", "was", "the", "worst" };
 
+        // 初始化索引优先队列
         indexMinPQFromWebsite<String> pq = new indexMinPQFromWebsite<String>(strings.length);
+
+        // 遍历字符串数组，并逐个插入到 索引优先队列中
         for (int i = 0; i < strings.length; i++) {
             pq.insert(i, strings[i]);
         }
 
-        // delete and print each key
+        // 删除并打印每一个值
         while (!pq.isEmpty()) {
             int i = pq.delMin();
             StdOut.println(i + " " + strings[i]);
