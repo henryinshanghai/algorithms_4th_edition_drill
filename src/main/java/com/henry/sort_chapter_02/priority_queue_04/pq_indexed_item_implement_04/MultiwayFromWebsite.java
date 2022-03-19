@@ -57,7 +57,7 @@ public class MultiwayFromWebsite {
         IndexMinPQ<String> pq = new IndexMinPQ<String>(n);
         for (int i = 0; i < n; i++)
             if (!streams[i].isEmpty())
-                // 读取文件中的字符串，并插入到以索引值作为元素的优先队列中
+                // 读取 当前文件中的字符串，并插入到 索引优先优先队列(队列中的元素有一个索引)中
                 pq.insert(i, streams[i].readString());
 
         // Extract and print min and read next from its stream.
@@ -65,7 +65,7 @@ public class MultiwayFromWebsite {
         while (!pq.isEmpty()) {
             StdOut.print(pq.minKey() + " ");
             int i = pq.delMin();
-            if (!streams[i].isEmpty())
+            if (!streams[i].isEmpty()) // 读取 最小元素所在的文件流中的下一个元素, 并添加进队列中
                 pq.insert(i, streams[i].readString()); // 只有在插入时执行了索引i
         }
         StdOut.println();
@@ -87,8 +87,8 @@ public class MultiwayFromWebsite {
             streams[i] = new In(args[i]); // 为数组中的每一个元素绑定值
         merge(streams); // 对streams数组中的每一个元素进行merge操作
     }
-}
+} // 为什么一定要使用 索引优先队列， 一个基础的优先队列似乎就能完成工作了
 /*
-allright, let's see what we can do here.
+alright, let's see what we can do here.
 启示：get pass this, or it is your last piece.
  */

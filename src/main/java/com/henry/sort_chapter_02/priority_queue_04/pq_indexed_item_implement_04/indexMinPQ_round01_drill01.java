@@ -13,39 +13,16 @@ import edu.princeton.cs.algs4.StdOut;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-/**
- *  The {@code indexMinPQFromWebsite} class represents an indexed priority queue of generic keys.
- *  It supports the usual <em>insert</em> and <em>delete-the-minimum</em>
- *  operations, along with <em>delete</em> and <em>change-the-key</em> 
- *  methods. In order to let the client refer to keys on the priority queue,
- *  an integer between {@code 0} and {@code maxN - 1}
- *  is associated with each key—the client uses this integer to specify
- *  which key to delete or change.
- *  It also supports methods for peeking at the minimum key,
- *  testing if the priority queue is empty, and iterating through
- *  the keys.
- *  <p>
- *  This implementation uses a binary heap along with an array to associate
- *  keys with integers in the given range.
- *  The <em>insert</em>, <em>delete-the-minimum</em>, <em>delete</em>,
- *  <em>change-key</em>, <em>decrease-key</em>, and <em>increase-key</em>
- *  operations take &Theta;(log <em>n</em>) time in the worst case,
- *  where <em>n</em> is the number of elements in the priority queue.
- *  Construction takes time proportional to the specified capacity.
- *  <p>
- *  For additional documentation, see
- *  <a href="https://algs4.cs.princeton.edu/24pq">Section 2.4</a> of
- *  <i>Algorithms, 4th Edition</i> by Robert Sedgewick and Kevin Wayne.
- *
- *  @author Robert Sedgewick
- *  @author Kevin Wayne
- *
- *  @param <Element> the generic type of key on this priority queue
- *  不是太容易理解 参考：https://blog.csdn.net/weixin_43696529/article/details/104675343 理解一下
- *
-    维护 key得到一个优先队列
+/*
+    算法描述：
+        一个能够直接引用其中元素的优先队列 - aka 索引优先队列
+
+        手段：使用两个数组
+        数组 elementArr 用来存储 element；
+        数组 indexOfElementArr 用来存储 index;
+        数组 theSpotOfIndex 用来存储 索引在堆中的位置
  */
-public class indexMinPQFromWebsite<Element extends Comparable<Element>> implements Iterable<Integer> {
+public class indexMinPQ_round01_drill01<Element extends Comparable<Element>> implements Iterable<Integer> {
     private int capacity;        // maximum number of elements on PQ
     private int elementAmount;           // number of elements on PQ
 
@@ -64,7 +41,7 @@ public class indexMinPQFromWebsite<Element extends Comparable<Element>> implemen
      *         {@code maxN - 1}
      * @throws IllegalArgumentException if {@code maxN < 0}
      */
-    public indexMinPQFromWebsite(int capacity) {
+    public indexMinPQ_round01_drill01(int capacity) {
         if (capacity < 0) throw new IllegalArgumentException();
         this.capacity = capacity;
         elementAmount = 0;
@@ -155,6 +132,7 @@ public class indexMinPQFromWebsite<Element extends Comparable<Element>> implemen
      */
     public Element minElement() {
         if (elementAmount == 0) throw new NoSuchElementException("Priority queue underflow");
+        // 最小元素存储在什么地方？ 下标 = 索引的位置  索引值是多少？ 查看indexOfElementArr[]数组
         return elementArr[indexOfElementArr[1]];
     }
 
@@ -355,12 +333,12 @@ public class indexMinPQFromWebsite<Element extends Comparable<Element>> implemen
 
     private class HeapIterator implements Iterator<Integer> {
         // create a new pq
-        private indexMinPQFromWebsite<Element> copy;
+        private indexMinPQ_round01_drill01<Element> copy;
 
         // add all elements to copy of heap
         // takes linear time since already in heap order so no keys move
         public HeapIterator() {
-            copy = new indexMinPQFromWebsite<Element>(indexOfElementArr.length - 1);
+            copy = new indexMinPQ_round01_drill01<Element>(indexOfElementArr.length - 1);
             for (int i = 1; i <= elementAmount; i++)
                 copy.insert(indexOfElementArr[i], elementArr[indexOfElementArr[i]]);
         }
@@ -385,7 +363,7 @@ public class indexMinPQFromWebsite<Element extends Comparable<Element>> implemen
         String[] strings = { "it", "was", "the", "best", "of", "times", "it", "was", "the", "worst" };
 
         // 初始化索引优先队列
-        indexMinPQFromWebsite<String> pq = new indexMinPQFromWebsite<String>(strings.length);
+        indexMinPQ_round01_drill01<String> pq = new indexMinPQ_round01_drill01<String>(strings.length);
 
         // 遍历字符串数组，并逐个插入到 索引优先队列中
         for (int i = 0; i < strings.length; i++) {
