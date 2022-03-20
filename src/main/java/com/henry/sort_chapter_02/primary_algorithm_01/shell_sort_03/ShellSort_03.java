@@ -2,60 +2,75 @@ package com.henry.sort_chapter_02.primary_algorithm_01.shell_sort_03;
 
 import edu.princeton.cs.algs4.StdOut;
 
+/*
+    算法思路描述：
+        对原始数组，按照指定间隔分组，然后对每一个子组进行排序；
+        把间隔调小直到1，重复以上行为，直到整个数组被完全排序。
+    原理：
+        分组间隔比较大时，只需要 对少量的数据交换很少的次数，就能把元素放到 离最终排定位置很近的位置上；
+        分组间隔比较小时，需要 对大量的数据交换很少的次数（因为它们离自己的最终位置其实很近了）。
+        综合来说，比起直接使用插入排序，交换的次数要少很多
+
+    算法过程：
+        1
+
+    有意义的变量名：
+
+    严格的边界条件：
+
+ */
 public class ShellSort_03 {
-    /**
-     * 对数组中的元素进行排序
-     * @param a
-     */
-    public static void sort(Comparable[] a){
-        // 希尔排序
-        // 把a[]中的元素按照升序排列
-        int N = a.length;
-        int h = 1;
-        while(h < N/3){
-            h = 3*h + 1; // h序列：1, 4, 13, 40, 121, 364, 1093...
+
+    public static void sort(Comparable[] a) {
+        // 先把序列元素更新到 最大元素
+        int itemAmount = a.length;
+        int span = 1;
+        while (span < itemAmount / 3) {
+            span = 3 * span + 1; // h序列：1, 4, 13, 40, 121, 364, 1093...
         } // 循环结束时，h是一个比较大的值...
 
-        // 这里每一次的局部排序是分开的 虽然算法描述是对每一个子数据序列进行局部排序，但是实际实现时局部排序是分开进行的
-        // 不清楚循环会执行多少次时，使用while循环
-        while(h >= 1){
-            // 把数组变成局部有序 h有序    h值每改变一次，就会对数组进行一次 h- 排序
+        // 完成对数组中所有元素的排序
+        /*
+            手段：
+                1 对于当前的gap/span, 对得到的所有子数组进行排序；- aka 把数组变成局部有序(h有序)
+                2 调整当前的gap/span, 并继续对得到的所有子数组进行排序；
+         */
+        while (span >= 1) { // 不清楚循环会执行多少次时，使用while循环
+            // 把数组变成 span排序
             /*
                 手段：
-                1 根据h的值来挑选出待排序的几组子数据序列（对于N=16 h=13的数组来说，这样的子数据序列就只有N-h个）；
-                    待排序的子数据序列就只有（N-h）组      作用：用作外循环的次数
-                2 对“当前子数据序列”进行插入排序（参见drill02）
-                    1 记录当前元素；   [0, h-1] [h, 2h-1]... 子序列中的当前元素是h   手段：j=i
-                    2 比较当前元素与当前元素的前一个元素（根据情况决定是交换还是终止循环）；
-                    3 根据需要把比较向前推进
-                    4 考虑i=0与比较的边界情况：j > 0
-                3 把同样的过程向前推进
+                    从 span位置上的元素开始，对 每一个子元素序列 进行排序 - 插入排序
              */
-            for(int i = h; i < N; i++){ // 内循环的次数
-                // 每次内循环：完成一组待排序子序列的排序工作
-                // 但其实每次内循环就只是向有序区添加了一个元素而已     这能保证待排序子序列的有序性吗？
+            int secondItemInSequence = span;
+            for (int cursorOfItemToInsert = secondItemInSequence; cursorOfItemToInsert < itemAmount; cursorOfItemToInsert++) { // 内循环的次数
+                // 作用：完成一组 待排序子序列的排序工作???
                 /*
-                    可以的。虽然内循环其实就只是向有序区添加了一个元素，但是由于h与N的关系，其实得到的子数据序列就只有两个元素而已
+                    这里内循环的作用并不是对 当前子元素序列 完成排序.
+                    而是在遍历数组元素的过程中，完成 对 每一个子元素序列 的排序。
+
+                    原理：对于每一个当前元素，对于它所在的 子元素序列来说，都是 待插入的元素
+                    特征：
+                        1 当前元素的起始位置为 span - 也就是第一个子元素序列中的第二个元素
+                        2 当前元素应在怎么命名？ cursorOfItemToInsert
+                        3 这里通过 交换操作 来保证 交换发生在 预期的子元素序列中 - 这些子元素序列是逻辑上划分的，而没有物理上创建
                  */
-                // 对当前子数据序列完成排序
-                // 把a[i]插入到a[i-h],a[i-2*h],a[i-3*h...之中
-                for(int j=i; j>=h && less(a[j], a[j-h]); j -= h){ // 每次循环会处理所有子数据序列的有序区
-                    // h=13 i=13 j=13 j-h=0 a[0] a[13] 比较/交换 跳出内循环
-                    // h=13 i=14 j=14 j-h=1 a[1] a[14] 比较/交换 j=14-13=1 不满足条件，退出内循环
-                    // h=13 i=15 j=15 j-h=2 a[2] a[15] 比较/交换 j=2 不满足条件，退出内循环
-
-
-                    // h=4 i=4 j=4 j-h=0 a[0] a[4] 比较/交换 j=0 跳出循环   第一个子数据序列的第一次CAS操作
-                    // h=4 i=5 j=5 j-h=1 a[1] a[5] 比较/交换 j=1 跳出内循环
-                    // ...
-                    // h=4 i=8 j=8 j-h=4 a[4] a[8] 比较/交换 j=4 a[0] a[4] 比较/交换    第一个子数据序列的第二次CAS操作
-
-                    // 随着i的增大，j会随之增大，也就能像插入排序一样，从后往前把元素插入到有序队列中
-                    exch(a, j, j - h);
+                // 作用：把a[cursorOfItemToInsert]插入到a[cursorOfItemToInsert-span],a[cursorOfItemToInsert-2*span],a[cursorOfItemToInsert-3*span...之中
+                /*
+                    手段：按照 span的跨度，来把当前元素 插入到 它所属的有序序列中。直到最后一个元素也被插入到 它所属的序列中
+                    特征：
+                        1 随着 cursorOfItemToInsert的增大，循环的次数会变多；
+                        2 循环终止的条件是：往回走的指针 落在了 元素序列的第二个元素上 - 因为这时候还能获取到有效的 "前一个元素"去交换
+                        3 这里交换的步距是 span
+                 */
+                for (int backwardsCursor = cursorOfItemToInsert;
+                     backwardsCursor >= secondItemInSequence && less(a[backwardsCursor], a[backwardsCursor - span]);
+                     backwardsCursor -= span) {
+                    exch(a, backwardsCursor, backwardsCursor - span);
                 }
             }
+
             // 两层循环结束后，h值所产生的各个子数据序列都是有序的
-            h = h/3;
+            span = span / 3;
         }
     }
 
@@ -66,6 +81,7 @@ public class ShellSort_03 {
 
     /**
      * 交换i、j这两个位置的元素
+     *
      * @param a
      * @param i
      * @param j
@@ -76,7 +92,7 @@ public class ShellSort_03 {
         a[j] = t;
     }
 
-    private static void show(Comparable[] a){
+    private static void show(Comparable[] a) {
         // 在单行中打印数组
         for (int i = 0; i < a.length; i++) {
             StdOut.print(a[i] + " ");
@@ -84,7 +100,7 @@ public class ShellSort_03 {
         System.out.println();
     }
 
-    public static boolean isSorted(Comparable[] a){
+    public static boolean isSorted(Comparable[] a) {
         // 测试数组中的元素是否有序
         for (int i = 0; i < a.length; i++) {
             if (less(a[i], a[i - 1])) {

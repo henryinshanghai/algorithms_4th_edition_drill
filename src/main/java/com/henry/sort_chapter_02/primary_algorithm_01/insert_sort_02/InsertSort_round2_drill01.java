@@ -33,7 +33,9 @@ public class InsertSort_round2_drill01 {
             /*
                 手段：比较 当前元素 与 当前元素的前一个元素，更小则执行交换。否则，就已经到达预期位置
              */
-            for (int backwardCursor = cursorOfItemToInsert; backwardCursor > 0 && less(a[backwardCursor], a[backwardCursor - 1]); backwardCursor--) {
+            for (int backwardCursor = cursorOfItemToInsert;
+                 backwardCursor > 0 && less(a[backwardCursor], a[backwardCursor - 1]);
+                 backwardCursor--) {
                 exch(a, backwardCursor, backwardCursor - 1);
             }
 

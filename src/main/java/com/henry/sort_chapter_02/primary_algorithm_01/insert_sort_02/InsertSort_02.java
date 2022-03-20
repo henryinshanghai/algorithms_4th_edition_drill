@@ -16,6 +16,9 @@ import edu.princeton.cs.algs4.StdOut;
         3 对每一个 新的待插入元素，做2中同样的操作
 
     有意义的变量名：
+        N - itemAmount;
+        currentBoundary - cursorOfItemToInsert
+        backwardsCursor - backwardsCursor
 
     严格的边界条件：
         循环条件的猜想与验证：
