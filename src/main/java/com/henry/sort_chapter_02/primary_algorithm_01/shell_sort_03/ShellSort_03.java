@@ -15,9 +15,14 @@ import edu.princeton.cs.algs4.StdOut;
         1
 
     有意义的变量名：
+        1 用来把原始数组 分组成为 元素子序列的跨距 - span
+        2 指向 开始执行插入操作的元素 的指针 - secondItemInSequence
+        3 指向 待插入到有序区中的元素 的指针 - cursorOfItemToInsert
+        4 从后往前遍历有序序列时 所使用的指针 - backwardsCursor
 
     严格的边界条件：
-
+        1 从序列的第二个元素开始，到数组的最后一个元素为止；
+        2 执行交换时，backwardsCursor的边界位置在第二个元素上
  */
 public class ShellSort_03 {
 
