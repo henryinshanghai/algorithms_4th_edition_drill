@@ -5,6 +5,11 @@ import edu.princeton.cs.algs4.StdOut;
 
 /*
     选择排序算法描述：逐一排定数组中的元素 ———— 找到/选择到未排定区间中的最小元素，并排定它
+    算法过程：
+        1 遍历数组中的元素，将当前元素作为 定锚指针；
+        2 把定锚指针的下一个元素作为 游标指针；
+        3 移动游标指针，直到数组的末尾。以找出当前数组中的最小值并排定它。
+        4 移动定锚指针到下一个位置，以排定剩余元素中的最小值 - 循环操作，直到所有的最小值都被排定
     有意义的变量名：
         定锚指针 - anchorCursor
         游标指针 - dynamicCursor
@@ -33,11 +38,11 @@ public class SelectionSort_round2_drill01 {
     }
 
     private static boolean isSorted(Comparable[] a) {
-        return isSorted(a, 0, a.length);
+        return isSorted(a, 0, a.length - 1);
     }
 
     private static boolean isSorted(Comparable[] a, int leftBar, int rightBar) {
-        for (int cursor = leftBar+1; cursor < rightBar; cursor++) {
+        for (int cursor = leftBar+1; cursor <= rightBar; cursor++) {
             if (less(a[cursor], a[cursor - 1])) return false;
         }
 

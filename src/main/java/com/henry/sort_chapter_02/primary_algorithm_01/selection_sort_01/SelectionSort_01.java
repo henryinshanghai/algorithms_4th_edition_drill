@@ -6,15 +6,12 @@ import edu.princeton.cs.algs4.StdOut;
 /*
 选择排序算法描述：逐一排定数组中的元素 ———— 找到/选择到未排定区间中的最小元素，并排定它
 
-测试用例：
- *  % more tiny.txt
- *  S O R T E X A M P L E
- *
- *  % java Selection < tiny.txt
- *  A E E L M O P R S T X                 [ one string per line ]
- *
- *  % java Selection < words3.txt
- *  all bad bed bug dad ... yes yet zoo    [ one string per line ]
+有意义的变量名：
+        定锚指针 - anchorCursor
+        游标指针 - dynamicCursor
+        指向最小元素的指针 - cursorToMinItem
+        数组元素数量 - itemAmount
+
  */
 public class SelectionSort_01 {
 
