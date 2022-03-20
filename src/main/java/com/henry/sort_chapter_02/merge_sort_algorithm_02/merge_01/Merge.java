@@ -170,7 +170,7 @@ public class Merge {
     // print array to standard output
     private static void show(Comparable[] a) {
         for (int i = 0; i < a.length; i++) {
-            StdOut.println(a[i]);
+            StdOut.print(a[i] + " ");
         }
     }
 
@@ -181,7 +181,9 @@ public class Merge {
      * @param args the command-line arguments
      */
     public static void main(String[] args) {
-        String[] a = StdIn.readAllStrings();
+//        String[] a = StdIn.readAllStrings();
+
+        String[] a = new String[]{"M", "E", "R", "G", "E", "S", "O", "R", "T", "E", "A", "X", "M", "P", "L", "E"};
         Merge.sort(a);
         show(a);
     }

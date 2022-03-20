@@ -54,7 +54,7 @@ public class Merge_round03_drill01 {
     }
 
     private static void sort(Comparable[] a, int leftBar, int rightBar) {
-        if(leftBar >= rightBar) return;
+        if(rightBar <= leftBar) return;
 
         int middle = leftBar + (rightBar - leftBar) / 2;
 
