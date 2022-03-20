@@ -34,11 +34,11 @@ public class MergeBU_round03_drill01 {
         aux = new Comparable[N];
 
 
-        // 分组归并
+        // 自底向上的归并方式 手段：对不同的groupSize，执行 两两归并子数组
         for (int groupSize = 1; groupSize <= N/2; groupSize = groupSize*2) {
-            // 什么时候不再需要更新leftBar了？ N - groupSize
-            for (int leftBar = 0; leftBar < N - groupSize; leftBar += (groupSize * 2)) {
-                merge(a, leftBar, leftBar + groupSize - 1, Math.min(N - 1, leftBar + (groupSize * 2 - 1)));
+            // 指针初始化; 归并排序的区间; 归并排序区间的更新 & 终止
+            for (int leftBarCursor = 0; leftBarCursor < N - groupSize; leftBarCursor += (groupSize * 2)) {
+                merge(a, leftBarCursor, leftBarCursor + groupSize - 1, Math.min(N - 1, leftBarCursor + (groupSize * 2 - 1)));
             }
         }
     }

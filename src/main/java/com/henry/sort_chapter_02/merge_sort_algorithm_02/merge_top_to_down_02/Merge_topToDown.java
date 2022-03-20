@@ -1,4 +1,4 @@
-package com.henry.sort_chapter_02.merge_sort_algorithm_02.merge_01;
+package com.henry.sort_chapter_02.merge_sort_algorithm_02.merge_top_to_down_02;
 
 import edu.princeton.cs.algs4.StdIn;
 
@@ -42,7 +42,7 @@ String[] a = {"S", "O", "R", "T", "E", "X", "A", "M", "P", "L", "E"};
 // here is <=
 // "int cursor = 0; cursor < a.length; cursor++" is wrong, 这里应该使用的是左右区间
  */
-public class Merge_round02_drill01 {
+public class Merge_topToDown {
     // 成员变量 - 好处：可以在当前类的所有方法中使用它
     private static Comparable[] aux;
 

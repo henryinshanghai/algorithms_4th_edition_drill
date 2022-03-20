@@ -1,6 +1,5 @@
 package com.henry.sort_chapter_02.merge_sort_algorithm_02.merge_01;
 
-import edu.princeton.cs.algs4.StdIn;
 import edu.princeton.cs.algs4.StdOut;
 
 
