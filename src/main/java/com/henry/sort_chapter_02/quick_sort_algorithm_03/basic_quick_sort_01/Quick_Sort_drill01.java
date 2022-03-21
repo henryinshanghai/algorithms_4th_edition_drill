@@ -30,7 +30,7 @@ import edu.princeton.cs.algs4.StdRandom;
     3 对右半部分进行排序
 
  */
-public class Quick_recursive {
+public class Quick_Sort_drill01 {
     /**
      * 对数组中的元素进行排序
      *
