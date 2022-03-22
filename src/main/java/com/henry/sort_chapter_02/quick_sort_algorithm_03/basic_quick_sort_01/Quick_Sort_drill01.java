@@ -100,6 +100,10 @@ public class Quick_Sort_drill01 {
             }
 
             // 交换 两个位置上的元素
+            /*
+                特征：如果左右指针刚好遇到了两个 与pivot相同的元素，那么 这两个元素也会被交换 - 这其实是多余的操作
+                解决手段： 维护三个区间的快速归并
+             */
             exch(a, leftCursor, rightBackwardsCursor);
         }
 
