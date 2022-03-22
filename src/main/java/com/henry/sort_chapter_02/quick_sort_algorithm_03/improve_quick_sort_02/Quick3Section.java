@@ -37,7 +37,7 @@ public class Quick3Section {
         // lessZone section的右边界
         int lessZoneRightBoundary = leftBar;
         // 待与pivot比较的元素的指针（从左往右前进）
-        int cursorOfItemToCompare = leftBar + 1;
+        int cursorOfItemToCompare = leftBar;
         // greater Zone的左边界
         int greaterZoneLeftBoundary = rightBar;
 

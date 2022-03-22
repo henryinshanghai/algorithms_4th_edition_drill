@@ -22,7 +22,7 @@ import edu.princeton.cs.algs4.StdRandom;
 
 import java.util.TreeSet;
 
-public class Quick3wayBars {
+public class Quick3SectionBars {
     private static int rows;
     private static int row = 0;
     private static final int VERTICAL = 70;
@@ -34,19 +34,20 @@ public class Quick3wayBars {
         show(a, 0, 0, -1, a.length-1);
     }
 
-    private static void sort(double[] a, int lo, int hi) {
-        if (hi == lo) show(a, lo, lo, lo, lo);
-        if (hi <= lo) return;
-        int lt = lo, gt = hi;
-        double v = a[lo];
-        int i = lo;
-        while (i <= gt)
-            if      (less(v, a[i])) exch(a, i, gt--);
-            else if (less(a[i], v)) exch(a, lt++, i++);
-            else                    i++;
-        show(a, lo, lt, gt, hi);
-        sort(a, lo, lt - 1);
-        sort(a, gt + 1, hi);
+    private static void sort(double[] a, int leftBar, int rightBar) {
+        if (rightBar == leftBar) show(a, leftBar, leftBar, leftBar, leftBar);
+        if (rightBar <= leftBar) return;
+        int lessZoneRightBoundary = leftBar, greaterZoneLeftBoundary = rightBar;
+        double v = a[leftBar];
+        int cursorOfItemToCompare = leftBar;
+        while (cursorOfItemToCompare <= greaterZoneLeftBoundary)
+            if      (less(v, a[cursorOfItemToCompare])) exch(a, cursorOfItemToCompare, greaterZoneLeftBoundary--);
+            else if (less(a[cursorOfItemToCompare], v)) exch(a, lessZoneRightBoundary++, cursorOfItemToCompare++);
+            else                    cursorOfItemToCompare++;
+
+        show(a, leftBar, lessZoneRightBoundary, greaterZoneLeftBoundary, rightBar);
+        sort(a, leftBar, lessZoneRightBoundary - 1);
+        sort(a, greaterZoneLeftBoundary + 1, rightBar);
     }
 
     private static boolean less(double v, double w) {

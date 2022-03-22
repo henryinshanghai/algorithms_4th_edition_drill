@@ -133,6 +133,7 @@ public class Quick3wayFromWebsite {
      * @param args the command-line arguments
      */
     public static void main(String[] args) {
+        // IDEA的图形化界面中的 Program Arguments字段 不认得 重定向符号 <, 只能通过它所提供的Redirect from的功能实现 重定向标准输入流
         String[] a = StdIn.readAllStrings();
         Quick3way.sort(a);
         show(a);
