@@ -45,48 +45,44 @@ public class TopMFromWebsite {
      * @param args the command-line arguments
      */
     public static void main(String[] args) {
-        int m = Integer.parseInt(args[0]);
-        MinPQ<Transaction> pq = new MinPQ<Transaction>(m+1); // this is the key point~
+        // 从命令行参数中 读取M的值
+        int biggestMth = Integer.parseInt(args[0]);
+        MinPQ<Transaction> collectionForBiggestMItems = new MinPQ<Transaction>(biggestMth+1); // this is the key point~
 
         while (StdIn.hasNextLine()) {
-            // Create an entry from the next line and put on the PQ.
-            // 从下一行创建一个条目并将其放在PQ上。
+            // 从标准输入的下一行中 创建一个item，并把它添加到 最大元素集合中
             String line = StdIn.readLine();
             Transaction transaction = new Transaction(line);
-            pq.insert(transaction);
+            collectionForBiggestMItems.insert(transaction);
 
-            // remove minimum if m+1 entries on the PQ
-            // 如果PQ上有m + 1个条目，则删除最小值
-            if (pq.size() > m)
-                pq.delMin();
-        }   // top m entries are on the PQ 前M个条目位于PQ上
+            // 如果集合中被添加了 最大的M+1个元素，就把其中最小的元素移除
+            if (collectionForBiggestMItems.size() > biggestMth)
+                collectionForBiggestMItems.delMin();
+        }   // 循环结束后，最大的M个元素就被存放在 collectionForBiggestMItems 中了
 
-        // print entries on PQ in reverse order
-        // 以相反的顺序在PQ上打印条目
+
+        // 从 collectionForBiggestMItems 中取出元素打印 - 需要按序取出
         Stack<Transaction> stack = new Stack<Transaction>();
-        for (Transaction transaction : pq)
+        // collectionForBiggestMItems是支持迭代的集合
+        /*
+            特征：这需要在 数据类型中实现自己的迭代器 - 它会决定迭代的方式。
+         */
+        for (Transaction transaction : collectionForBiggestMItems)
             stack.push(transaction);
+
+        // 栈（algs4包中所实现的）的迭代方式：从栈顶到栈底？
         for (Transaction transaction : stack)
             StdOut.println(transaction);
     }
 }
 /*
 启示：
-    这是PQ应用的一个具体案例：从N个元素中，找到最大的M个元素；
-    这里的PQ是一个使用数字作为键的优先队列；
-    说明：1 队列由元素组成； 2 元素可以是一个单一的元素，也可以是键 - 键对应的值组成的复合元素；
+    为了完成任务，我们需要的是一个能够提供特定操作的集合；
+    特定操作：
+        1 向其中插入元素；
+        2 删除集合中的最小值；
 
-    任务：打印tinyBatch.txt文件中的数字最大的M行；
-    说明：在N非常大的情况下，这是一件很棘手的事情。优先队列提供了一个很好的解决方案
-    原理：
-        1 使用一个优先队列来存储最先读取到的M行数据；
-        2 当优先队列的大小超过M时，就删除掉队列中最小的元素；
-    结果：优先队列中最终存储的是————以增序排列的最大的M行？
-
-    增序排列是怎么做到的？？？
-
-    任务：倒序输出这些行；
-    手段：使用栈存储所有元素，再从栈中读取；
-
-    第一次成功运行algorithms4中的代码，避开了命令行参数的坑 感觉很好 哈哈
+    程序获取外界输入的方式：
+        1 命令行参数； - 手段： args[0]
+        2 标准输入流：StdIn.Xxx()
  */
