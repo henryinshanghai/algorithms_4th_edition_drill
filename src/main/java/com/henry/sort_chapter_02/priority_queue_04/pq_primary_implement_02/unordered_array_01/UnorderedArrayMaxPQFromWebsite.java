@@ -18,27 +18,35 @@ import edu.princeton.cs.algs4.StdOut;
 
 public class UnorderedArrayMaxPQFromWebsite<Key extends Comparable<Key>> {
     // 实例变量
-    private Key[] pq;      // elements
-    private int n;         // number of elements
+    private Key[] itemArray;      // elements
+    private int itemAmount;         // number of elements
 
     // set initial size of heap to hold size elements
     public UnorderedArrayMaxPQFromWebsite(int capacity) {
-        pq = (Key[]) new Comparable[capacity]; // 不能直接创建泛型数组，只能先创建通用类型的数组，然后再进行强制类型转换
-        n = 0;
+        itemArray = (Key[]) new Comparable[capacity]; // 不能直接创建泛型数组，只能先创建通用类型的数组，然后再进行强制类型转换
+        itemAmount = 0;
     }
 
     // APIs
-    public boolean isEmpty()   { return n == 0; }
-    public int size()          { return n;      }
-    public void insert(Key x)  { pq[n++] = x;   }
+    public boolean isEmpty()   { return itemAmount == 0; }
 
+    // 优先队列中的元素个数
+    public int size()          { return itemAmount;      }
+
+    // 向“优先队列” 中插入一个元素 - 由于这里使用无序数组实现 PQ，所以直接把元素添加到 数组末尾即可
+    public void insert(Key x)  { itemArray[itemAmount++] = x;   }
+
+    // 从“优先队列”中删除最大元素 - 由于底层的数组是无序的，所以找到最大值要费点力气
     public Key delMax() {
-        int max = 0;
-        for (int i = 1; i < n; i++)
-            if (less(max, i)) max = i;
-        exch(max, n-1);
+        int cursorToMaxItem = 0;
+        for (int dynamicCursor = 1; dynamicCursor < itemAmount; dynamicCursor++)
+            if (less(cursorToMaxItem, dynamicCursor)) cursorToMaxItem = dynamicCursor;
 
-        return pq[--n]; // 直接返回最后一个元素的值
+        // 把数组中的最大元素 交换到数组的末尾
+        exch(cursorToMaxItem, itemAmount -1);
+
+        // 返回数组末尾的元素(aka 最大值元素) 并 把队列中的元素数量-1 注：这相当于 逻辑上删除了 队列中的元素
+        return itemArray[--itemAmount]; // 直接返回最后一个元素的值
     }
 
 
@@ -46,13 +54,13 @@ public class UnorderedArrayMaxPQFromWebsite<Key extends Comparable<Key>> {
      * Helper functions. 辅助函数
      ***************************************************************************/
     private boolean less(int i, int j) {
-        return pq[i].compareTo(pq[j]) < 0;
+        return itemArray[i].compareTo(itemArray[j]) < 0;
     }
 
     private void exch(int i, int j) {
-        Key swap = pq[i];
-        pq[i] = pq[j];
-        pq[j] = swap;
+        Key swap = itemArray[i];
+        itemArray[i] = itemArray[j];
+        itemArray[j] = swap;
     }
 
 
@@ -61,10 +69,13 @@ public class UnorderedArrayMaxPQFromWebsite<Key extends Comparable<Key>> {
      ***************************************************************************/
     public static void main(String[] args) {
         UnorderedArrayMaxPQFromWebsite<String> pq = new UnorderedArrayMaxPQFromWebsite<String>(10);
-        pq.insert("this");
-        pq.insert("is");
-        pq.insert("a");
-        pq.insert("test");
+        pq.insert("Do");
+        pq.insert("Or");
+        pq.insert("Do Not");
+        pq.insert("There's");
+        pq.insert("No");
+        pq.insert("Try");
+
         while (!pq.isEmpty())
             StdOut.println(pq.delMax());
     }

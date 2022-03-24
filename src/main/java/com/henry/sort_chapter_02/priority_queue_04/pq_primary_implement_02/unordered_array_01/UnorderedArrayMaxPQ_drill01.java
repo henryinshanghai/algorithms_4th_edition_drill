@@ -2,31 +2,48 @@ package com.henry.sort_chapter_02.priority_queue_04.pq_primary_implement_02.unor
 
 import edu.princeton.cs.algs4.StdOut;
 
-/**
- * 先按照自己的想法来实现，再对比书上提供的实现方式有什么不同
- */
-public class UnorderedArrayMaxPQ_drill01 {
-    // 实例变量
-    private Comparable[] pq;
-    private int N; // 队列中的元素个数  也相当于是指针
+/*
+    算法描述：
+        使用无序数组 来实现 一个优先队列；（能够插入元素 + 删除队列中的最大值）
 
-    // 构造方法 创建指定容量大小的优先队列
+    底层数据结构：数组
+    泛型： 继承自Comparable的Key
+        泛型应该要什么时候添加呢？
+    区分： 队列的容量 与 队列中的元素个数
+    支持的API：
+        - 向此 集合类型中添加元素
+        - 从此 集合类型中删除集合中的最大元素
+    特征：
+        由于要找到最大元素，所以要求集合中的元素能够支持比较操作 -
+        手段1：元素本身是 Comparable类型的；
+        手段2：一个继承自Comparable的泛型类型 - 有什么作用?
+            不使用泛型的话，元素之间的比较就会报错 Why？
+            因为同样实现了 Comparable接口的元素类型，它们各自定义的compareTo()可能并不一致
+ */
+public class UnorderedArrayMaxPQ_drill01<Key extends Comparable<Key>> { // 类型参数
+
+    private Key[] itemArray;
+    private int itemAmount;
+
+    // 构造方法 - 用例创建实例的方式
     public UnorderedArrayMaxPQ_drill01(int Max) {
-        pq = new Comparable[Max];
+        itemArray = (Key[])new Comparable[Max];
+        // 不要少了 实例变量的初始化步骤
+        itemAmount = 0;
     }
 
     // APIs
     public int size() {
-        return N;
+        return itemAmount;
     }
 
     public boolean isEmpty(){
-        return N == 0;
+        return itemAmount == 0;
     }
 
     // 两个核心的APIs
-    public void insert(Comparable item) {
-        pq[N++] = item;
+    public void insert(Key item) {
+        itemArray[itemAmount++] = item;
     }
 
     /**
@@ -34,45 +51,50 @@ public class UnorderedArrayMaxPQ_drill01 {
      * @return
      */
     public Comparable delMax() {
-        int max = 0;
-        for (int i = 1; i < N; i++) {
+        int cursorToMaxItem = 0;
+        for (int dynamicCursorr = 1; dynamicCursorr < itemAmount; dynamicCursorr++) {
             // 如果出现了比max还要大的元素，就更新max的值
-            if (less(pq[max], pq[i])) {
-                max = i;
+            if (less(cursorToMaxItem, dynamicCursorr)) {
+                cursorToMaxItem = dynamicCursorr;
             }
         }
 
-        // 在交换之前获取到最大值
-//        Comparable maxItem = pq[max]; // todo:this can be better
-        exch(pq, max, N-1);
+        exch(cursorToMaxItem, itemAmount -1);
 
-        // 在交换之后获取到最大值  注：在交换之后获取最大值更方便些 因为这时候是从N中获取 可以直接执行-1操作
-        Comparable maxItem = pq[--N];
-        pq[N - 1] = null; // 数组删除元素
-//        N--;
+        // 从数组末尾获取最大元素 & 同时调整元素的个数
+        Key maxItem = itemArray[--itemAmount];
+
+        // 物理删除 最大元素？
+        itemArray[itemAmount + 1] = null;
+
         return maxItem;
     }
 
     // 两个辅助函数
-    public boolean less(Comparable i, Comparable j) {
-        return i.compareTo(j) < 0;
+    public boolean less(int i, int j) {
+        return itemArray[i].compareTo(itemArray[j]) < 0;
     }
 
-    public void exch(Comparable[] pq, int i, int j) {
-        Comparable temp = pq[i];
-        pq[i] = pq[j];
-        pq[j] = temp;
+    public void exch(int i, int j) { // Comparable[] pq, 可以作为参数 也可以作为实例变量
+        Key temp = itemArray[i];
+        itemArray[i] = itemArray[j];
+        itemArray[j] = temp;
     }
 
     /***************************************************************************
      * Test routine. 测试用例
      ***************************************************************************/
     public static void main(String[] args) {
-        UnorderedArrayMaxPQFromWebsite<String> pq = new UnorderedArrayMaxPQFromWebsite<String>(10);
-        pq.insert("this");
-        pq.insert("is");
-        pq.insert("a");
-        pq.insert("test");
+        UnorderedArrayMaxPQ_drill01<String> pq = new UnorderedArrayMaxPQ_drill01<String>(10);
+
+        pq.insert("Do");
+        pq.insert("Or");
+        pq.insert("Do Not");
+        pq.insert("There's");
+        pq.insert("No");
+        pq.insert("Try");
+
+        System.out.println(pq.size());
 
         while (!pq.isEmpty())
             StdOut.println(pq.delMax());

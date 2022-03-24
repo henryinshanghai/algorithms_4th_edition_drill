@@ -35,7 +35,9 @@ public class MaxPQ_unorderedArray_round2_drill02<Key extends Comparable<Key>>{
 
         exch(cursor_for_max, itemAmount - 1);
 
-        return elements[--itemAmount];
+        Key maxItem = elements[--itemAmount];
+        elements[itemAmount + 1] = null;
+        return maxItem;
     }
 
     public boolean isEmpty() {

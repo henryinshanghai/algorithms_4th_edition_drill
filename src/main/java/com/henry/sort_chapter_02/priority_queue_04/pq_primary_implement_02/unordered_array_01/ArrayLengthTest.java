@@ -15,4 +15,4 @@ public class ArrayLengthTest {
 
         System.out.println(what_is_length_of_array(strArr)); // 结果为10 aka 数组初始化的容量大小
     }
-}
+} // length属性获取到的是 数组的初始化容量大小
