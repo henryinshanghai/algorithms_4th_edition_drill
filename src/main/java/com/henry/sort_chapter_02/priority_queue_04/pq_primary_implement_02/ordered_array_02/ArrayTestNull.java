@@ -12,8 +12,7 @@ public class ArrayTestNull {
             integers[i] = null;
         }
 
-        for (Integer integer:
-             integers) {
+        for (Integer integer : integers) {
             System.out.println(integer);
         }
     }

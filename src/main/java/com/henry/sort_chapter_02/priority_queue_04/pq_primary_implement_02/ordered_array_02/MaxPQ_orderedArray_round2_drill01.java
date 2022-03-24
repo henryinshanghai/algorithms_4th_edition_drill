@@ -9,18 +9,6 @@ import edu.princeton.cs.algs4.StdOut;
 
     底层数据结构：
         elements array
-
-    insert操作：
-        为了保持 有序数组在插入元素后仍旧有序，这里的insert操作要求会复杂一些
-
-    delMax 操作：
-        既然数组已经是 元素有序的状态， 那么直接删除掉数组的最后一个元素就可以了
-
-    less操作：
-        不需要传入 数组本身 作为参数
-
-    exch操作：
-        没有用到
  */
 public class MaxPQ_orderedArray_round2_drill01<Key extends Comparable<Key>> {
     private Key[] elements;          // elements
@@ -82,8 +70,6 @@ public class MaxPQ_orderedArray_round2_drill01<Key extends Comparable<Key>> {
         itemAmount++;
     }
 
-    // 甚至没有用到交换操作
-
 
     /***************************************************************************
      * Helper functions.
@@ -96,13 +82,18 @@ public class MaxPQ_orderedArray_round2_drill01<Key extends Comparable<Key>> {
      * Test routine.
      ***************************************************************************/
     public static void main(String[] args) {
-        MaxPQ_orderedArray_round2_drill01<String> pq = new MaxPQ_orderedArray_round2_drill01<String>(10);
-        pq.insert("this");
-        pq.insert("is");
-        pq.insert("a");
-        pq.insert("test");
-        while (!pq.isEmpty())
-            StdOut.println(pq.delMax());
+        MaxPQ_orderedArray_round2_drill01<String> maxPQ = new MaxPQ_orderedArray_round2_drill01<String>(10);
+
+        maxPQ.insert("Ada");
+        maxPQ.insert("Alicia");
+        maxPQ.insert("Henry");
+        maxPQ.insert("Ben");
+        maxPQ.insert("Quinta");
+        maxPQ.insert("Kelly");
+        maxPQ.insert("Annie");
+
+        while (!maxPQ.isEmpty())
+            StdOut.println(maxPQ.delMax());
     }
 
 }
