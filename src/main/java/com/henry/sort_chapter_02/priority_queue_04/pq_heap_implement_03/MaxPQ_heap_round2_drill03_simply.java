@@ -11,7 +11,7 @@ import edu.princeton.cs.algs4.StdOut;
         数组 -> 完全二叉树(数值要求) -> 堆有序的完全二叉树
 
     底层数据结构：
-        一个数组 itemArr
+        一个数组 itemHeap
         一个int itemAmount
 
     % java MaxPQFromWebsite < tinyPQ.txt
@@ -20,12 +20,12 @@ import edu.princeton.cs.algs4.StdOut;
  */
 public class MaxPQ_heap_round2_drill03_simply<Key extends Comparable<Key>> {
 
-    private Key[] itemArr;
+    private Key[] itemHeap;
     private int itemAmount;
 
 
     public MaxPQ_heap_round2_drill03_simply(int capacity) {
-        itemArr = (Key[])new Comparable[capacity];
+        itemHeap = (Key[])new Comparable[capacity];
         itemAmount = 0;
     }
 
@@ -35,7 +35,7 @@ public class MaxPQ_heap_round2_drill03_simply<Key extends Comparable<Key>> {
             2 update the items amount
             3 restore the heap
          */
-        itemArr[++itemAmount] = newItem;
+        itemHeap[++itemAmount] = newItem;
 
         swim(itemAmount);
     }
@@ -57,13 +57,13 @@ public class MaxPQ_heap_round2_drill03_simply<Key extends Comparable<Key>> {
     }
 
     private void exch(int i, int j) {
-        Key temp = itemArr[i];
-        itemArr[i] = itemArr[j];
-        itemArr[j] = temp;
+        Key temp = itemHeap[i];
+        itemHeap[i] = itemHeap[j];
+        itemHeap[j] = temp;
     }
 
     private boolean less(int i, int j) {
-        return itemArr[i].compareTo(itemArr[j]) < 0;
+        return itemHeap[i].compareTo(itemHeap[j]) < 0;
     }
 
     public Key delMax() {
@@ -73,13 +73,13 @@ public class MaxPQ_heap_round2_drill03_simply<Key extends Comparable<Key>> {
             3 update the item amount；
             4 restore the sorted-heap
          */
-        Key maxItem = itemArr[1];
+        Key maxItem = itemHeap[1];
 
         exch(1, itemAmount--);
 
         sink(1);
 
-        itemArr[itemAmount + 1] = null;
+        itemHeap[itemAmount + 1] = null;
 
         return maxItem;
     }
