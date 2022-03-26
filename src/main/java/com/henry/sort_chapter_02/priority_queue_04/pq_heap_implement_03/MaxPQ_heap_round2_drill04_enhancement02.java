@@ -48,6 +48,14 @@ public class MaxPQ_heap_round2_drill04_enhancement02<Key> implements Iterable<Ke
     private Comparator customComparator;
 
 
+    /* 四个构造方法 - 用户可以有四种不同的方式来创建 当前类型的实例对象 👇*/
+    /*
+        构造方法的作用：
+            在构造方法中 完成实例变量的初始化；
+            初始化的方式：
+            - 可以在构造方法中由跨发着 手动完成变量的初始化； 比如 itemAmount = 0;
+            - 也可以使用 Client通过 构造方法参数所传入的值 来 初始化实例变量 比如 customComparator = comparator;
+     */
     // 不需要Client指定 容量大小的构造方法
     public MaxPQ_heap_round2_drill04_enhancement02() {
         // 手段：提供一个默认的容量值
@@ -55,16 +63,21 @@ public class MaxPQ_heap_round2_drill04_enhancement02<Key> implements Iterable<Ke
     }
 
     public MaxPQ_heap_round2_drill04_enhancement02(int capacity) {
-        itemHeap = (Key[])new Comparable[capacity];
+        itemHeap = (Key[])new Comparable[capacity + 1];
         itemAmount = 0;
     }
 
-    public MaxPQ_heap_round2_drill04_enhancement02(int capacity, Comparator comparator) {
-        itemHeap = (Key[])new Comparable[capacity];
+    public MaxPQ_heap_round2_drill04_enhancement02(int capacity, Comparator<Key> comparator) {
+        itemHeap = (Key[])new Comparable[capacity + 1];
         itemAmount = 0;
         customComparator = comparator;
     }
 
+    public MaxPQ_heap_round2_drill04_enhancement02(Comparator<Key> comparator) {
+        this(1, comparator);
+    }
+
+    // 使用Client传入的 数组 来创建一个堆
     public MaxPQ_heap_round2_drill04_enhancement02(Key[] passInArr) {
         /*
             1 根据传入的数组 初始化 itemArr的容量；
@@ -79,9 +92,11 @@ public class MaxPQ_heap_round2_drill04_enhancement02<Key> implements Iterable<Ke
             itemHeap[cursor + 1] = passInArr[cursor];
         }
 
-        // 自下而上地构建堆
+        // 从完全二叉树的倒数第二层(有子节点的节点) 自下而上地构建堆
+        // 手段：从 itemAmount / 2所在的那个节点开始，来逐个节点倒序地构建堆
         for (int spotInDescendingSequence = itemAmount / 2;
-             spotInDescendingSequence <= 1; spotInDescendingSequence--) {
+             spotInDescendingSequence <= 1;
+             spotInDescendingSequence--) {
             sink(spotInDescendingSequence);
         }
 
@@ -90,21 +105,24 @@ public class MaxPQ_heap_round2_drill04_enhancement02<Key> implements Iterable<Ke
     }
 
     /*
-        1 null值判断；
+        1 对 完全二叉树的结构要求的判断；
             // #con1: 是不是存在null元素
             // #con2： 从队列元素结束的位置到剩下的空间中是不是还有其他的元素
             // #con3： 数组的第一个位置是不是null元素
-        2 节点值大小判断；
+        2 对 节点值大小要求的判断；
      */
     private boolean isMaxHeap() {
+        // 表示堆元素的数组位置
         for (int cursor = 1; cursor <= itemAmount; cursor++) {
             if (itemHeap[cursor] == null) return false;
         }
 
+        // 空闲的数组位置
         for (int cursor = itemAmount+1; cursor < itemHeap.length; cursor++) {
             if (itemHeap[cursor] != null) return false;
         }
 
+        // 数组的第一个位置
         if(itemHeap[0] != null) return false;
 
         return isMaxHeapSorted(1);
@@ -115,15 +133,21 @@ public class MaxPQ_heap_round2_drill04_enhancement02<Key> implements Iterable<Ke
         堆的递归定义/实现：
             1 对当前的二叉树来说， 根节点的值 > max(左节点的值, 右节点的值)
             2 对于两棵子树来说，子树本身也是堆有序的。
+
+        典型例题：判断一个递归式的数据结构是否合法？
+        手段：
+            - 判断当前节点是否符合要求；
+            - 判断 当前节点的左右子树 是否本身就是一个递归式的结构；
      */
     private boolean isMaxHeapSorted(int currentSpot) {
-        // 递归退出条件
+        // 递归退出条件 - 随着递归的进行， 参数 currentSpot会越来越大 - 直到到达堆的末尾
         if (currentSpot > itemAmount) return true;
 
         int leftChildSpot = currentSpot * 2;
         int rightChildSpot = currentSpot * 2 + 1;
 
-        // 左右子节点都要小于父节点 - 需要添加限制条件，否则可能数组下标越界
+        // 数值要求：左右子节点都要小于父节点
+        // 特征： 需要添加对位置的判断 因为会使用这个位置，从数组中取出元素 - 这个位置可能会导致数组下标越界
         if (leftChildSpot < itemAmount && less(currentSpot, leftChildSpot) ) {
             return false;
         }
@@ -141,10 +165,12 @@ public class MaxPQ_heap_round2_drill04_enhancement02<Key> implements Iterable<Ke
             2 update the items amount
             3 restore the heap
          */
-        // before insert, check if need to resize
+        // 在插入元素之间，查看下 是不是需要扩容
+        // 手段： 比较当前堆中的元素数量 与 底层数组的容量大小 之间的关系
         if(itemAmount == itemHeap.length - 1) resize(itemHeap.length * 2);
 
         itemHeap[++itemAmount] = newItem;
+        // 把最后一个位置上的元素上浮 来恢复数组的堆有序
         swim(itemAmount);
 
         // verify if the array is heap-sorted.
@@ -166,14 +192,15 @@ public class MaxPQ_heap_round2_drill04_enhancement02<Key> implements Iterable<Ke
         itemHeap = newItemArr;
     }
 
+    // 对 堆中指定位置上的元素 上浮，来回复堆有序的状态
     private void swim(int currentSpot) {
         /*
-            1 exchange the items if the condition are favorable, stop if it is not.
-            2 conditions:
-                - the current spot is the first element in the array;
-                - the item in the spot is less than its father
+            上浮操作其实是 向上交换的操作 - 节点与自己的父节点进行交换
+            对于最大堆来说，当一个节点大于它的父节点时，就需要进行上浮操作
 
-            note: be very aware who compare to whom.
+            交换终止的条件：
+                - 当前节点中的元素 不再小于 它的父节点元素
+                - 或者 当前节点 已经达到堆顶 aka currentSpot = 1
          */
         while (currentSpot > 1 && !less(currentSpot, currentSpot / 2)) {
             exch(currentSpot, currentSpot / 2);
@@ -190,15 +217,19 @@ public class MaxPQ_heap_round2_drill04_enhancement02<Key> implements Iterable<Ke
 
     private boolean less(int i, int j) {
         if (customComparator == null) {
-            // 先强制转换，再调用
+            // 先强制转换，再调用 元素本身的compareTo()方法
             return ((Comparable<Key>) itemHeap[i]).compareTo(itemHeap[j]) < 0;
         } else {
+            // 如果Client传入了 自定义的比较器，那就是用比较器来完成 元素之间的比较
             return customComparator.compare(itemHeap[i], itemHeap[j]) < 0;
         }
     }
 
+    // 删除 最大堆中的最大元素 aka 堆顶的元素
     public Key delMax() {
         /*
+            实现手段：
+                1 找到堆中的最大元素 并 把它作为返回值 - aka 数组中的第一个元素
             1 get the biggest item in the array to return;
             2 exchange it with the item in the last spot;
             3 update the item amount；
@@ -224,12 +255,13 @@ public class MaxPQ_heap_round2_drill04_enhancement02<Key> implements Iterable<Ke
         return maxItem;
     }
 
+    // 通过 下沉指定位置上的元素 来 实现堆有序
     private void sink(int currentSpot) {
         /*
-            exchange the items if conditions are favorable, stop if it's not.
+            手段：在需要的时候交换 当前位置上的元素 与 它的较大的子元素
             conditions:
-                1 when it has somewhere to sink;
-                2 when its bigger child is bigger than itself;
+                - 当前位置上的元素 有自己的子节点 currentSpot * 2 <= itemAmount
+                - 当前位置上的元素 < 它的较大的子节点   less(currentSpot, biggerChildSpot)
          */
         while (currentSpot * 2 <= itemAmount) {
             // find the bigger child
@@ -243,6 +275,7 @@ public class MaxPQ_heap_round2_drill04_enhancement02<Key> implements Iterable<Ke
             // exchange the items
             exch(currentSpot, biggerChildSpot);
 
+            // 更新指针指向的位置
             currentSpot = biggerChildSpot;
         }
     }
@@ -289,12 +322,12 @@ public class MaxPQ_heap_round2_drill04_enhancement02<Key> implements Iterable<Ke
     // 用例代码 aka 单元测试代码
     public static void main(String[] args) {
 
-        // Client使用不需要指定 capacity的构造器
+        // Client使用不需要指定capacity 的构造器
         MaxPQ_heap_round2_drill04_enhancement02<String> maxPQ = new MaxPQ_heap_round2_drill04_enhancement02<>();
 
         System.out.println("====== delete the maxItem of PQ when run into - in input stream =======");
 
-        // 获取到 标准输入流
+        // 判断 标准输入流是否为空
         while (!StdIn.isEmpty()) {
             // 读取标准输入流中的内容
             String item = StdIn.readString();

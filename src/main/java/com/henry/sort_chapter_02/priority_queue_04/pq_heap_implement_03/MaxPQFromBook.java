@@ -3,20 +3,92 @@ package com.henry.sort_chapter_02.priority_queue_04.pq_heap_implement_03;
 import edu.princeton.cs.algs4.StdIn;
 import edu.princeton.cs.algs4.StdOut;
 
-public class MaxPQFromBook<Key extends Comparable<Key>> {
-    private Key[] pq;
-    private int N = 0;
+import java.util.Comparator;
 
-    public MaxPQFromBook(int maxN) {
-        pq = (Key[]) new Comparable[maxN + 1];
+public class MaxPQFromBook<Item extends Comparable<Item>> {
+    private Item[] itemHeap;
+    private int itemAmount;
+
+    // 自定义的比较器
+    private Comparator customComparator;
+
+
+    // 五种不同的构造方法
+    public MaxPQFromBook() {
+        this(1);
+    }
+
+    public MaxPQFromBook(int capacity) {
+        itemHeap = (Item[]) new Comparable[capacity + 1];
+        itemAmount = 0;
+    }
+
+    public MaxPQFromBook(int initCapacity, Comparator<Item> comparator) {
+        itemHeap = (Item[])new Comparable[initCapacity + 1];
+        this.customComparator = comparator;
+        itemAmount = 0;
+    }
+    public MaxPQFromBook(Comparator<Item> comparator) {
+        this(1, comparator);
+    }
+
+    public MaxPQFromBook(Item[] itemArray) {
+        itemAmount = itemArray.length;
+
+        itemHeap = (Item[])new Comparable[itemArray.length + 1]; // Object[]
+        for (int i = 0; i < itemAmount; i++) {
+            itemHeap[i + 1] = itemArray[i];
+        }
+
+        // 初始化堆
+        for (int currentSpot = itemAmount / 2; currentSpot >= 1 ; currentSpot--) {
+            sink(currentSpot);
+        }
+
+        // 断言：我们已经得到了一个 堆有序的数组
+        assert isMaxHeap();
+    }
+
+    // 判断 当前的itemHeap 是不是一个最大堆
+    /*
+        手段： 二叉树的结构要求 + 堆的数值要求
+     */
+    private boolean isMaxHeap() {
+        // 堆区间的元素
+        for (int cursor = 1; cursor <= itemAmount; cursor++) {
+            if(itemHeap[cursor] == null) return false;
+        }
+
+        // 堆区间外的数组元素
+        for (int cursor = itemAmount + 1; cursor < itemHeap.length; cursor++) {
+            if (itemHeap[cursor] != null) return false;
+        }
+
+        // 第一个数组元素
+        if (itemHeap[0] != null) return false;
+
+        return isMaxHeapSorted(1);
+    }
+
+    // 判断堆 是否是 最大堆有序的状态
+    private boolean isMaxHeapSorted(int currentRootNodeSpot) {
+        if (currentRootNodeSpot > itemAmount) return true;
+
+        int leftChildSpot = currentRootNodeSpot * 2;
+        int rightChildSpot = currentRootNodeSpot * 2 + 1;
+
+        if (leftChildSpot <= itemAmount && less(currentRootNodeSpot, leftChildSpot)) return false;
+        if (rightChildSpot <= itemAmount && less(currentRootNodeSpot, rightChildSpot)) return false;
+
+        return isMaxHeapSorted(leftChildSpot) && isMaxHeapSorted(rightChildSpot);
     }
 
     public boolean isEmpty() {
-        return N == 0;
+        return itemAmount == 0;
     }
 
     public int size() {
-        return N;
+        return itemAmount;
     }
 
     // 核心APIs
@@ -24,70 +96,77 @@ public class MaxPQFromBook<Key extends Comparable<Key>> {
     /**
      * 向优先队列中插入一个指定的元素
      *
-     * @param item
+     * @param newItem
      */
-    public void insert(Key item) {
-        pq[++N] = item; // N=队列中的元素个数 需要的索引是N+1 使用++N能够一步到位
-        swim(N); // 参数：元素的索引 aka 数组的最后一个位置
+    public void insert(Item newItem) {
+        // 在插入元素之前，先查看是否需要对数组进行扩容
+        // 当 元素数量 = 数组容量 - 1时，表示堆已经满员了
+        if(itemAmount == itemHeap.length - 1) resize(itemHeap.length * 2);
+
+        itemHeap[++itemAmount] = newItem; // itemAmount=队列中的元素个数 需要的索引是N+1 使用++N能够一步到位
+        swim(itemAmount); // 参数：元素的索引 aka 数组的最后一个位置
+
+        assert isMaxHeap();
+    }
+
+    private void resize(int newCapacity) {
+        Item[] newItemHeap = (Item[])new Comparable[newCapacity];
+
+        for (int cursor = 1; cursor <= itemAmount; cursor++) {
+            newItemHeap[cursor] = itemHeap[cursor];
+        }
+
+        itemHeap = newItemHeap;
     }
 
     /**
      * 从优先队列中删除最大的元素
      */
-    public Key delMax() {
-        Key maxItem = pq[1];
+    public Item delMax() {
+        // 先获取到最大元素
+        Item maxItem = itemHeap[1];
 
         // 恢复二叉堆的平衡
-        // 1 交换顶点位置的元素与最后一个位置的元素
-        exch(1, N);
-        // 2 对顶点位置的元素执行下沉操作————这会恢复二叉堆的平衡
+        // 1 交换 顶点位置的元素(最大元素) 与 最后一个位置上的元素
+        exch(1, itemAmount--);
+        // 物理删除掉最后一个位置上的元素
+        itemHeap[itemAmount + 1] = null;
+        // 2 对顶点位置的元素 执行下沉操作————这会恢复二叉堆的平衡
         sink(1);
+
+        assert isMaxHeap();
         return maxItem;
     }
 
     /**
      * 对指定位置的元素执行下沉操作
      *
-     * @param k
+     * @param currentSpot
      */
-    private void sink(int k) {
-        // 比较&交换
-        // 编写过程优化
-//        int j = 2 * k;
-//        if (less(j, j + 1)) {
-//            j = j + 1;
-//        }
-
-//        while(k<N && less(k, j)){ // 比较合格：父节点的值小于子节点中的较大者
-//            // 执行交换
-//            exch(k, j);
-//
-//            // 更新当前节点 计算子节点的步骤也需要同步更新   为了能够同时对“计算子节点”的过程也进行更新————需要把计算过程放到循环中
-//            // 但这么做第一次计算j的过程就没有了    怎么办？把less(k,j)放到循环中，放在计算j值步骤的后面
-//            k = j;
-//        }
-
-        while (2 * k <= N) { // 极端情况：2k=N 所以k<=N/2
+    private void sink(int currentSpot) {
+        // 执行下沉操作的条件 - 当前节点有子节点 && 当前节点的值 < 它的较大子节点的值
+        while (2 * currentSpot <= itemAmount) {
             // 计算j/更新j
-            int j = 2 * k;
-            if (less(j, j + 1)) {
-                j++;
+            int biggerChildSpot = 2 * currentSpot;
+            if (less(biggerChildSpot, biggerChildSpot + 1)) {
+                biggerChildSpot++;
             }
 
             // 编写过程优化 这里的if/else可以优化成if(!xxx)的形式
-//            if (less(k, j)) {
-//                exch(k, j);
+//            if (less(currentSpot, biggerChildSpot)) {
+//                exch(currentSpot, biggerChildSpot);
 //            } else { // 如果当前节点的值并没有小于它最大的子节点...
 //                // 就不需要进行交换 后继过程也不需要了
 //                break;
 //            }
-            if (!less(k, j)) { // 把特殊的情况放在前面写...
+            // 比起上面的写法，这种方式👇就少了一个else子句
+            if (!less(currentSpot, biggerChildSpot)) {
                 break;
             }
-            exch(k, j); // 省略了else的语句
+            exch(currentSpot, biggerChildSpot); // 省略了else的语句
 
-            // 更新k
-            k = j;
+            // 更新游标位置
+            currentSpot = biggerChildSpot;
         }
     }
 
@@ -96,16 +175,15 @@ public class MaxPQFromBook<Key extends Comparable<Key>> {
      * 对当前节点进行上浮操作；
      * 原因：当前节点大于它的父节点
      *
-     * @param k
+     * @param currentSpot
      */
-    private void swim(int k) {
-        while (k > 1 && less(k / 2, k)) { // 极端情况：上浮到二叉堆的顶点处
-            // 由于数组的第一个位置是不使用的，所以位置最小的元素是a[1] 循环中k不能取到1，否则就会有a[0]的引用出现
-//            if (less(k/2, k)) { // 直接把这个条件放在循环条件中，能够避免无效的循环
-//                exch(k / 2, k);
-//            }
-            exch(k / 2, k);
-            k = k / 2;
+    private void swim(int currentSpot) {
+        // 把上浮操作的两个条件 && 在一起 - 作为循环进行的条件
+        while (currentSpot > 1 && less(currentSpot / 2, currentSpot)) {
+            exch(currentSpot / 2, currentSpot);
+
+            // 更新当前指针，继续进行上浮操作
+            currentSpot = currentSpot / 2;
         }
     }
 
@@ -116,9 +194,9 @@ public class MaxPQFromBook<Key extends Comparable<Key>> {
      * @param k
      */
     private void exch(int i, int k) {
-        Key temp = pq[i];
-        pq[i] = pq[k];
-        pq[k] = temp;
+        Item temp = itemHeap[i];
+        itemHeap[i] = itemHeap[k];
+        itemHeap[k] = temp;
     }
 
     /**
@@ -128,7 +206,7 @@ public class MaxPQFromBook<Key extends Comparable<Key>> {
      * @return
      */
     private boolean less(int i, int k) {
-        return pq[i].compareTo(pq[k]) < 0;
+        return itemHeap[i].compareTo(itemHeap[k]) < 0;
     }
 
     public static void main(String[] args) {
@@ -139,6 +217,6 @@ public class MaxPQFromBook<Key extends Comparable<Key>> {
             if (!item.equals("-")) pq.insert(item);
             else if (!pq.isEmpty()) StdOut.print(pq.delMax() + " ");
         }
-        StdOut.println("(" + pq.size() + " left on pq)");
+        StdOut.println("(" + pq.size() + " left on itemHeap)");
     }
 }
