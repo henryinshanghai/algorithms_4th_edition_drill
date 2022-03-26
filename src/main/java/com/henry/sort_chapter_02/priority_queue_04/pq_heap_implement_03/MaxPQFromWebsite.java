@@ -287,7 +287,7 @@ public class MaxPQFromWebsite<Item> implements Iterable<Item> {
         // add all items to copy of heap
         // takes linear time since already in heap order so no keys move
         public HeapIterator() {
-            // 初始化容量
+            // 初始化 优先队列对象
             if (comparator == null) copy = new MaxPQFromWebsite<Item>(size());
             else                    copy = new MaxPQFromWebsite<Item>(size(), comparator);
             // 初始化 队列中的元素

@@ -4,8 +4,10 @@ import edu.princeton.cs.algs4.StdIn;
 import edu.princeton.cs.algs4.StdOut;
 
 import java.util.Comparator;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
 
-public class MaxPQFromBook<Item extends Comparable<Item>> {
+public class MaxPQFromBook<Item extends Comparable<Item>> implements Iterable<Item>{
     private Item[] itemHeap;
     private int itemAmount;
 
@@ -218,5 +220,45 @@ public class MaxPQFromBook<Item extends Comparable<Item>> {
             else if (!pq.isEmpty()) StdOut.print(pq.delMax() + " ");
         }
         StdOut.println("(" + pq.size() + " left on itemHeap)");
+    }
+
+    // 使当前数据结构(优先队列)中的元素 能够支持迭代操作
+    @Override
+    public Iterator<Item> iterator() {
+        return new MyHeapIterator();
+    }
+
+    private class MyHeapIterator implements Iterator<Item> {
+
+        private MaxPQFromBook<Item> copy;
+
+        public MyHeapIterator() {
+            // 初始化 优先队列对象   手段：创建新对象 并 绑定到copy上
+            if (customComparator == null) copy = new MaxPQFromBook<>(size());
+            else copy = new MaxPQFromBook<>(size(), customComparator);
+
+            // 初始化 优先队列元素   手段：把 元素 逐一添加到 队列中
+            for (int cursor = 1; cursor <= itemAmount; cursor++) {
+                copy.insert(itemHeap[cursor]);
+            }
+        }
+
+        @Override
+        public boolean hasNext() {
+            return copy.isEmpty();
+        }
+
+        // 具体要怎么进行迭代，需要在next()方法中来实现
+        /*
+            手段：这里使用有破坏性的delMax() 来 实现next()
+            特征：这种方式其实会破坏 原始的数据 - 我们并不想要迭代操作破坏 被迭代的对象
+            解决手段： 让当前类 持有一个 待迭代对象的副本
+         */
+        @Override
+        public Item next() {
+            if (!hasNext()) throw new NoSuchElementException();
+            return copy.delMax();
+        }
+
     }
 }
