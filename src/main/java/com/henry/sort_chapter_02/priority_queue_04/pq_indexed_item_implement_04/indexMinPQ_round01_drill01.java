@@ -18,27 +18,27 @@ import java.util.NoSuchElementException;
         一个能够直接引用其中元素的优先队列 - aka 索引优先队列
 
         手段：使用两个数组
-        数组 elementArr 用来存储 element；
+        数组 elementValueArr 用来存储 element；
         数组 indexOfElementArr 用来存储 index;
-        数组 theSpotOfIndex 用来存储 索引在堆中的位置
+        数组 theSpotOfIndexInArr 用来存储 索引在堆中的位置
  */
 public class indexMinPQ_round01_drill01<Element extends Comparable<Element>> implements Iterable<Integer> {
     private int capacity;        // maximum number of elements on PQ
     private int elementAmount;           // number of elements on PQ
 
-    // f(index/priority) = element
-    private Element[] elementArr;      // keys[i] = priority of i
-    // f(spot_in_heap/array) = index
-    private int[] indexOfElementArr;        // binary heap using 1-based indexing 以1作为索引开头的二叉堆
-    // f(index) = spot_in_heap/array
-    private int[] theSpotOfIndex;        // 作用： 快速找到 index在优先队列数组 indexOfElementArr 中的位置
+    // f(index/priority) = element  用于存放 元素
+    private Element[] elementValueArr;
+    // f(spot_in_heap/array) = index    用于存放 index  特征：排序规则是elementValue
+    private int[] indexOfElementArr;
+    // f(index) = spot_in_heap/array    用于快速找到 指定的
+    private int[] theSpotOfIndexInArr;
 
 
     /**
      * Initializes an empty indexed priority queue with indices between {@code 0}
      * and {@code maxN - 1}.
-     * @param  capacity the keys on this priority queue are index from {@code 0}
-     *         {@code maxN - 1}
+     * 初始化一个空的 索引优先队列 - 允许使用的索引范围：[0, maxN -1]
+     * @param  capacity 索引优先队列中的元素 的索引范围： [0, maxN -1]
      * @throws IllegalArgumentException if {@code maxN < 0}
      */
     public indexMinPQ_round01_drill01(int capacity) {
@@ -46,18 +46,20 @@ public class indexMinPQ_round01_drill01<Element extends Comparable<Element>> imp
         this.capacity = capacity;
         elementAmount = 0;
 
-        elementArr = (Element[]) new Comparable[capacity + 1];    // make this of length maxN??
+        // 初始化实例变量
+        // 三个数组的初始容量 都是 capacity + 1
+        elementValueArr = (Element[]) new Comparable[capacity + 1];
         indexOfElementArr = new int[capacity + 1];
-        theSpotOfIndex = new int[capacity + 1];                   // make this of length maxN??
+        theSpotOfIndexInArr = new int[capacity + 1];                   // make this of length maxN??
 
-        // initialize each item with value
+        // 对 theSpotOfIndexInHeap数组中的元素进行初始化 - 用来支持 index不存在时, 查询index的返回
         for (int i = 0; i <= capacity; i++)
-            theSpotOfIndex[i] = -1;
+            theSpotOfIndexInArr[i] = -1;
     }
 
     /**
      * Returns true if this priority queue is empty.
-     *
+     * 优先队列是否为空？ aka 队列中没有任何元素
      * @return {@code true} if this priority queue is empty;
      *         {@code false} otherwise
      */
@@ -67,7 +69,7 @@ public class indexMinPQ_round01_drill01<Element extends Comparable<Element>> imp
 
     /**
      * Is {@code i} an index on this priority queue?
-     *
+     * 优先队列中 是否存在 索引为index的元素？
      * @param  index an index
      * @return {@code true} if {@code i} is an index on this priority queue;
      *         {@code false} otherwise
@@ -75,7 +77,8 @@ public class indexMinPQ_round01_drill01<Element extends Comparable<Element>> imp
      */
     public boolean contains(int index) {
         validateIndex(index);
-        return theSpotOfIndex[index] != -1;
+        // 如果插入了 索引为index的元素, 那么 theSpotOfIndexInArr 就不会为-1（这是初始化给数组元素的值）
+        return theSpotOfIndexInArr[index] != -1;
     }
 
     /**
@@ -89,7 +92,7 @@ public class indexMinPQ_round01_drill01<Element extends Comparable<Element>> imp
 
     /**
      * Associates key with index {@code i}.
-     *
+     * 向优先队列中插入一个 索引为index的元素element
      * @param  index an index
      * @param  element the key to associate with index {@code i}
      * @throws IllegalArgumentException unless {@code 0 <= i < maxN}
@@ -97,30 +100,37 @@ public class indexMinPQ_round01_drill01<Element extends Comparable<Element>> imp
      *         with index {@code i}
      */
     public void insert(int index, Element element) {
+        // Client输入是否合法
         validateIndex(index);
+        // Client输入的index 在优先队列中是否已经存在
         if (contains(index)) throw new IllegalArgumentException("index is already in the priority queue");
 
-        elementAmount++;
-        // 把index插入到数组的最后一个位置
-        theSpotOfIndex[index] = elementAmount;
-        indexOfElementArr[elementAmount] = index;
+        /* 向优先队列中添加元素 */
+        // 1 把 element添加到 elementArr的index位置上去
+        elementValueArr[index] = element;
 
-        // 把 element添加到 elementArr的index位置上去
-        elementArr[index] = element;
+        // 2 维护剩下的两个数组
+        /*
+            存放index的数组：把index 添加到数组的末尾，并对数组进行 堆有序操作
+            存放spot的数组：新添加的index 总是会被放在 elementIndexHeap的末尾(aka itemAmount的位置)
+         */
+        indexOfElementArr[++elementAmount] = index;
+        theSpotOfIndexInArr[index] = elementAmount;
 
-        // restore the indexOfElementArr -> 得到堆有序的数组（堆/优先队列）
+        // 对 indexOfElementHeap进行 堆有序的操作 & 维护 theSpotOfIndexHeap的数据 与堆有序的indexOfElementHeap一致
         swim(elementAmount);
     }
 
     /**
      * Returns an index associated with a minimum key.
-     *
+     * 返回 索引优先队列中 与最小元素相关联的index
      * @return an index associated with a minimum key
      * @throws NoSuchElementException if this priority queue is empty
      */
     public int minIndex() {
         if (elementAmount == 0) throw new NoSuchElementException("Priority queue underflow");
-        // indexOfElementArr是一个优先队列，数组中的元素是：连续而且有序的
+        // indexOfElementArr本身并不是一个优先队列，因为 比较操作的依据并不是它自己的元素，而是ElementArr中的元素
+        // indexOfElementArr[1]中存储的就是 最小元素的index
         return indexOfElementArr[1];
     }
 
@@ -132,8 +142,8 @@ public class indexMinPQ_round01_drill01<Element extends Comparable<Element>> imp
      */
     public Element minElement() {
         if (elementAmount == 0) throw new NoSuchElementException("Priority queue underflow");
-        // 最小元素存储在什么地方？ 下标 = 索引的位置  索引值是多少？ 查看indexOfElementArr[]数组
-        return elementArr[indexOfElementArr[1]];
+        // 最小元素 elementValueArr[最小元素的index]
+        return elementValueArr[indexOfElementArr[1]];
     }
 
     /**
@@ -144,72 +154,99 @@ public class indexMinPQ_round01_drill01<Element extends Comparable<Element>> imp
     public int delMin() {
         if (elementAmount == 0) throw new NoSuchElementException("Priority queue underflow");
 
+        /* 1 获取最小元素的index 并 返回它 */
         int indexOfMinElement = indexOfElementArr[1];
-        // 交换元素 + 重建堆有序
+
+        /* 2 删除最小元素 & 维护数组的性质(以支持当前的优先队列) */
+        // 把 最小元素的index 交换到 indexOfElementArr的末尾
         exch(1, elementAmount--);
         sink(1);
-        // 最小元素的index 被移动到了数组的末尾
+        // 断言：最小元素的index 被移动到了数组的末尾
         assert indexOfMinElement == indexOfElementArr[elementAmount +1];
 
-        // 删除 theSpotOfIndex中的索引
-        theSpotOfIndex[indexOfMinElement] = -1;        // delete
-        // 删除 elementArr中 索引对应的元素
-        elementArr[indexOfMinElement] = null;    // to help with garbage collection
-        // 删除 indexOfElementArr中的索引值
-        indexOfElementArr[elementAmount +1] = -1;        // not needed
+        /* 3 删除多余的数组元素 */
+        // 删除 element
+        elementValueArr[indexOfMinElement] = null;    // to help with garbage collection
+        // 删除 index
+        indexOfElementArr[elementAmount + 1] = -1;        // not needed
+        // 删除 theSpotOfIndex
+        theSpotOfIndexInArr[indexOfMinElement] = -1;        // delete
 
-        // 返回 indexOfMinElement
+        // 返回 indexOfMinElement - 这个值在整个过程中没有发生任何变化
         return indexOfMinElement;
     }
 
     /**
-     * Returns the key associated with index {@code i}.
-     *
-     * @param  index the index of the key to return
-     * @return the key associated with index {@code i}
+     * Returns the element associated with index {@code i}.
+     * 返回 与指定的index相关联的元素
+     * @param  index the index of the element to return
+     * @return the element associated with index {@code i}
      * @throws IllegalArgumentException unless {@code 0 <= i < maxN}
-     * @throws NoSuchElementException no key is associated with index {@code i}
+     * @throws NoSuchElementException no element is associated with index {@code i}
      */
     public Element ElementOf(int index) {
+        // 校验 Client传入的index
         validateIndex(index);
         if (!contains(index)) throw new NoSuchElementException("index is not in the priority queue");
-        else return elementArr[index];
+        // 直接从 elementValueArr中使用index就能够获取到 element
+        else return elementValueArr[index];
     }
 
     /**
-     * Change the key associated with index {@code i} to the specified value.
-     *
-     * @param  index the index of the key to change
-     * @param  element change the key associated with index {@code i} to this key
+     * Change the element associated with index {@code i} to the specified value.
+     * 修改优先队列中 指定的索引 所关联的元素值
+     * @param  index the index of the element to change
+     * @param  element change the element associated with index {@code i} to this element
      * @throws IllegalArgumentException unless {@code 0 <= i < maxN}
-     * @throws NoSuchElementException no key is associated with index {@code i}
+     * @throws NoSuchElementException no element is associated with index {@code i}
      */
     public void changeElement(int index, Element element) {
+        // 校验 Client所传入的index
         validateIndex(index);
         if (!contains(index)) throw new NoSuchElementException("index is not in the priority queue");
-        elementArr[index] = element;
 
-        // 维护 indexOfElementArr堆有序
-        swim(theSpotOfIndex[index]);
-        sink(theSpotOfIndex[index]);
+        // 修改 elementValueArr数组中 index所关联到的element
+        elementValueArr[index] = element;
+
+        // 由于 indexOfElementArr中元素的排序规则是based on elementValueArr的
+        // 所以 变更element之后，需要重新对 indexOfElementArr进行排序
+        /*
+            步骤：
+                1 获取到Client指定的index 在 indexOfElementArr中的位置；
+                2 以此作为参数来 对indexOfElementArr进行重新排序
+         */
+        swim(theSpotOfIndexInArr[index]);
+        sink(theSpotOfIndexInArr[index]);
     }
 
     /**
      * Change the key associated with index {@code i} to the specified value.
-     *
+     * 修改优先队列中 指定的索引 所关联的元素值
      * @param  i the index of the key to change
      * @param  element change the key associated with index {@code i} to this key
      * @throws IllegalArgumentException unless {@code 0 <= i < maxN}
      * @deprecated Replaced by {@code changeKey(int, Key)}.
      */
     @Deprecated
-    public void change(int i, Element element) { // 过时的API
+    public void change(int i, Element element) {
+        // 过时的API
+        /*
+            原因：可能是因为旧的API的签名不够见名知意，所以重新添加了一个 作用完全相同的API。
+            特征：
+                1 新的API 与 旧的API 就只有方法名称不同；
+                2 旧的API不能删除，因为已经有Client使用旧的API编写了代码 - 如果删除，Client代码就会编译失败
+            做法：
+                1 实现新的API；
+                2 在旧的API中，把实现委托给新的API；
+            用法：
+                鼓励Client使用新的API来编写代码
+         */
         changeElement(i, element);
     }
 
     /**
      * Decrease the key associated with index {@code i} to the specified value.
-     *
+     * 减小 优先队列中 指定索引所关联的元素值
      * @param  index the index of the key to decrease
      * @param  element decrease the key associated with index {@code i} to this key
      * @throws IllegalArgumentException unless {@code 0 <= i < maxN}
@@ -217,21 +254,24 @@ public class indexMinPQ_round01_drill01<Element extends Comparable<Element>> imp
      * @throws NoSuchElementException no key is associated with index {@code i}
      */
     public void decreaseElement(int index, Element element) {
+        // 校验index
         validateIndex(index);
         if (!contains(index)) throw new NoSuchElementException("index is not in the priority queue");
-        if (elementArr[index].compareTo(element) == 0)
+        if (elementValueArr[index].compareTo(element) == 0)
             throw new IllegalArgumentException("Calling decreaseKey() with a key equal to the key in the priority queue");
-        if (elementArr[index].compareTo(element) < 0)
+        if (elementValueArr[index].compareTo(element) < 0)
             throw new IllegalArgumentException("Calling decreaseKey() with a key strictly greater than the key in the priority queue");
 
+        // 更新element
+        elementValueArr[index] = element;
 
-        elementArr[index] = element;
-        swim(theSpotOfIndex[index]);
+        // 对 indexOfElementArr进行重新排序
+        swim(theSpotOfIndexInArr[index]);
     }
 
     /**
      * Increase the key associated with index {@code i} to the specified value.
-     *
+     * 增大 优先队列中 指定索引所关联的元素值
      * @param  index the index of the key to increase
      * @param  element increase the key associated with index {@code i} to this key
      * @throws IllegalArgumentException unless {@code 0 <= i < maxN}
@@ -239,38 +279,44 @@ public class indexMinPQ_round01_drill01<Element extends Comparable<Element>> imp
      * @throws NoSuchElementException no key is associated with index {@code i}
      */
     public void increaseElement(int index, Element element) {
+        // 校验 index
         validateIndex(index);
         if (!contains(index)) throw new NoSuchElementException("index is not in the priority queue");
-        if (elementArr[index].compareTo(element) == 0)
+        if (elementValueArr[index].compareTo(element) == 0)
             throw new IllegalArgumentException("Calling increaseKey() with a key equal to the key in the priority queue");
-        if (elementArr[index].compareTo(element) > 0)
+        if (elementValueArr[index].compareTo(element) > 0)
             throw new IllegalArgumentException("Calling increaseKey() with a key strictly less than the key in the priority queue");
 
-        elementArr[index] = element;
-        sink(theSpotOfIndex[index]);
+        // 更新 element
+        elementValueArr[index] = element;
+        // 对 indexOfElementArr进行排序
+        sink(theSpotOfIndexInArr[index]);
     }
 
     /**
-     * Remove the key associated with index {@code i}.
-     *
-     * @param  index the index of the key to remove
+     * Remove the element associated with index {@code i}.
+     * 删除 优先队列中 指定index所关联的element
+     * @param  index the index of the element to remove
      * @throws IllegalArgumentException unless {@code 0 <= i < maxN}
-     * @throws NoSuchElementException no key is associated with index {@code i}
+     * @throws NoSuchElementException no element is associated with index {@code i}
      */
     public void delete(int index) {
+        // 校验index
         validateIndex(index);
         if (!contains(index)) throw new NoSuchElementException("index is not in the priority queue");
 
-        int spotOfIndex = theSpotOfIndex[index];
+        // 找到index的位置 & 把它交换到 indexOfElementArr的末尾
+        int spotOfIndex = theSpotOfIndexInArr[index];
         exch(spotOfIndex, elementAmount--);
 
-        // 删除操作后，既可能会上浮，也可能会下沉
+        // 对 indexOfElementArr进行重新排序
         swim(spotOfIndex);
-        sink(spotOfIndex);
+        sink(spotOfIndex); // 下沉操作才会与 elementAmount有关
 
         // 清除对此index的记录
-        elementArr[index] = null;
-        theSpotOfIndex[index] = -1;
+        elementValueArr[index] = null;
+        indexOfElementArr[theSpotOfIndexInArr[index]] = -1;
+        theSpotOfIndexInArr[index] = -1;
     }
 
     // throw an IllegalArgumentException if i is an invalid index
@@ -283,37 +329,40 @@ public class indexMinPQ_round01_drill01<Element extends Comparable<Element>> imp
      * General helper functions.
      ***************************************************************************/
     private boolean greater(int i, int j) {
-        return elementArr[indexOfElementArr[i]].compareTo(elementArr[indexOfElementArr[j]]) > 0;
+        // 🐖：这里比较的并不是 indexOfElementArr中的元素， 而是 element数组中的元素
+        return elementValueArr[indexOfElementArr[i]].compareTo(elementValueArr[indexOfElementArr[j]]) > 0;
     }
 
     private void exch(int i, int j) {
-        int swap = indexOfElementArr[i];
+        int temp = indexOfElementArr[i];
         indexOfElementArr[i] = indexOfElementArr[j];
-        indexOfElementArr[j] = swap;
+        indexOfElementArr[j] = temp;
 
-        // 维护 theSpotOfIndex数组 这是一个恒等式
-        theSpotOfIndex[indexOfElementArr[i]] = i;
-        theSpotOfIndex[indexOfElementArr[j]] = j;
+        // 维护 theSpotOfIndex数组
+        int indexOfSpotI = indexOfElementArr[i];
+        theSpotOfIndexInArr[indexOfSpotI] = i;
+        int indexOfSpotJ = indexOfElementArr[j];
+        theSpotOfIndexInArr[indexOfSpotJ] = j;
     }
 
 
     /***************************************************************************
      * Heap helper functions.
      ***************************************************************************/
-    private void swim(int k) {
-        while (k > 1 && greater(k/2, k)) {
-            exch(k, k/2);
-            k = k/2;
+    private void swim(int currentSpot) {
+        while (currentSpot > 1 && greater(currentSpot /2, currentSpot)) {
+            exch(currentSpot, currentSpot /2);
+            currentSpot = currentSpot /2;
         }
     }
 
-    private void sink(int k) {
-        while (2*k <= elementAmount) {
-            int j = 2*k;
-            if (j < elementAmount && greater(j, j+1)) j++;
-            if (!greater(k, j)) break;
-            exch(k, j);
-            k = j;
+    private void sink(int currentSpot) {
+        while (2*currentSpot <= elementAmount) {
+            int biggerChildSpot = 2*currentSpot;
+            if (biggerChildSpot < elementAmount && greater(biggerChildSpot, biggerChildSpot+1)) biggerChildSpot++;
+            if (!greater(currentSpot, biggerChildSpot)) break;
+            exch(currentSpot, biggerChildSpot);
+            currentSpot = biggerChildSpot;
         }
     }
 
@@ -340,12 +389,13 @@ public class indexMinPQ_round01_drill01<Element extends Comparable<Element>> imp
         public HeapIterator() {
             copy = new indexMinPQ_round01_drill01<Element>(indexOfElementArr.length - 1);
             for (int i = 1; i <= elementAmount; i++)
-                copy.insert(indexOfElementArr[i], elementArr[indexOfElementArr[i]]);
+                copy.insert(indexOfElementArr[i], elementValueArr[indexOfElementArr[i]]);
         }
 
         public boolean hasNext()  { return !copy.isEmpty();                     }
         public void remove()      { throw new UnsupportedOperationException();  }
 
+        // 这种获取到下一个元素的方式有破坏性 —— 所以我们需要准备一个原始队列对象的副本 来绑定到类的成员变量上，以供操作
         public Integer next() {
             if (!hasNext()) throw new NoSuchElementException();
             return copy.delMin();
@@ -378,18 +428,5 @@ public class indexMinPQ_round01_drill01<Element extends Comparable<Element>> imp
         StdOut.println();
 
         System.out.println("----------------------");
-        // reinsert the same strings
-//        for (int i = 0; i < strings.length; i++) {
-//            pq.insert(i, strings[i]);
-//        }
-//
-//        // print each key using the iterator
-//        for (int i : pq) {
-//            StdOut.println(i + " " + strings[i]);
-//        }
-//        while (!pq.isEmpty()) {
-//            pq.delMin();
-//        }
-
     }
 }
