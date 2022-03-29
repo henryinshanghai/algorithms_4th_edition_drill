@@ -52,7 +52,7 @@ public class HeapFromWebsite {
     private HeapFromWebsite() { }
 
     // 把传入的数组中的元素，按照升序重新排列 - 升序的规则就是自然顺序
-    public static void sort(Comparable[] pq) { // 从输入流中读取的原始数组
+    public static void sort(Comparable[] pq) {
         int itemAmount = pq.length;
 
         // Ⅰ 把原始数组 构建成为一个堆
@@ -64,35 +64,54 @@ public class HeapFromWebsite {
                 所以 排定堆中的第一个位置上的元素 <=> 排定数组中的pq[0]
          */
         for (int spotInHeap = itemAmount/2; spotInHeap >= 1; spotInHeap--)
-            sink(pq, spotInHeap, itemAmount); // k最终的值是1 n值一直都是pq.length
+            sink(pq, spotInHeap, itemAmount);
 
-        // 逐个排定最大元素的阶段
+        /* 至此，原始数组中的元素已经被构建成为最大堆（0-based） */
+
+        // Ⅱ 逐个排定数组中当前的最大元素
+        /*
+            手段：
+                1 在堆中准备一个可以上下移动的游标/指针，初始化指向堆的最后一个元素；
+                2 逻辑删除堆中的最大值 —— 也就是把它移动到 物理数组的末尾；（最大元素被排定）
+                3 使用剩下的元素，重建起一个新的最大堆；
+                4 重复123，直到堆中就只剩下一个元素 —— 不需要再去排定它，因为它肯定是最小元素，而且在第一个位置（已经被排定了）
+         */
         int cursorToLastSpotInHeap = itemAmount;
-        while (cursorToLastSpotInHeap > 1) { // 当堆中只剩下一个元素的时候，它一定就是原始数组的最小值 不再需要任何的交换操作
-            // 删除顶点元素的操作
+        while (cursorToLastSpotInHeap > 1) {
+            // 逻辑删除顶点元素的操作
             /*
                 手段：把堆中最大的元素(也就是数组中最大的元素) 交换到数组的末尾；
                 特征：
                     1 这里并没有物理删除节点值。所以最后会得到一个升序的数组
                     2 交换完成之后，更新 指向最后一个元素的指针的位置 - 以便用剩下的元素 来 重建堆有序的数组
              */
-            exch(pq, 1, cursorToLastSpotInHeap--); // cursorToLastSpotInHeap-- 用于移动指针
+            exch(pq, 1, cursorToLastSpotInHeap--);
 
             // 用剩下的元素 来 重建堆有序的数组
             /*
-                手段：把完全二叉树的根节点sink；
+                手段：sink完全二叉树的根节点；
+                为什么sink根节点 能够使堆恢复有序？
+                    another day's topic
                 特征：
                     1 这里完全二叉树的末尾节点是 指针所在的位置（lastSpotInHeap）
              */
-            sink(pq, 1, cursorToLastSpotInHeap); // 这里的k是二叉堆中当前的节点数量
+            sink(pq, 1, cursorToLastSpotInHeap);
         }
     }
 
     /***************************************************************************
      * Helper functions to restore the heap invariant.
      ***************************************************************************/
-    // 把位置k上的元素移动到正确的位置上 注： spot = index + 1
-    private static void sink(Comparable[] pq, int currentSpot, int lastSpotInHeap) { // k最终的值是1 n值一直都是pq.length
+    // 对当前位置上的元素执行下沉操作 - 维持堆的性质
+    /*
+        为什么相比于 MaxPQFromWebsite， 这里需要把 pq 与 lastSpotInHeap作为参数传进来？
+        因为这里我们不是在实现一个数据结构，而是在实现排序算法
+            所以，类中并没有（也不应该有） itemAmount这样的实例变量
+            为了获取到 堆中元素数量的信息，就需要通过方法参数传入
+
+            同理，当前类中也没有 itemHeap这个实例变量。所以同样需要作为方法参数传入
+     */
+    private static void sink(Comparable[] pq, int currentSpot, int lastSpotInHeap) {
         while (2*currentSpot <= lastSpotInHeap) { // 循环终结条件：当前位置的子节点的位置 已经到了 数组的边界位置 - 在此位置之后，执行交换是没有意义的 因为已经没有可用的子节点了
             int biggerChildSpot = 2*currentSpot;
             if (biggerChildSpot < lastSpotInHeap && less(pq, biggerChildSpot, biggerChildSpot+1)) biggerChildSpot++; // 传入的是spot的值，而比较时需要使用index
@@ -112,12 +131,28 @@ public class HeapFromWebsite {
      * Helper functions for comparisons and swaps.
      * Indices are "off-by-one" to support 1-based indexing.
      ***************************************************************************/
-    // spotInHeap = indexInArray + 1
+    // 比较堆中 位置i 与 位置j上的堆元素
+    /*
+        与 MaxPQFromWebsite 中的less相比，为什么这里传入的参数会-1？
+        答：与 MaxPQFromWebsite 不同，当前类中并没有使用 额外的itemHeap数组空间。
+        由于只有 原始数组的空间可用，所以这里：
+            使用原始数组中的元素来创建起堆。
+            array[0] -> heap(1)
+            ...
+
+            array[x] -> heap(x+1)
+            spotInArray = spotInHeap - 1
+        逻辑上，我们要比较 堆元素。实现上：我们比较的是数组元素 —— 区分堆元素（逻辑结构） 与 数组元素（实际结构）
+     */
     private static boolean less(Comparable[] pq, int i, int j) { // parameters are spotInHeap
-        // using the indexInArray
+        // 实现手段： 比较 数组元素
         return pq[i-1].compareTo(pq[j-1]) < 0;
     }
 
+    // 交换堆中位置i 与 位置j上的堆元素
+    /*
+        以上同理，逻辑上，我们想要交换 堆元素。实现上： 我们交换的是数组元素
+     */
     private static void exch(Object[] pq, int i, int j) {
         Object swap = pq[i-1];
         pq[i-1] = pq[j-1];
@@ -127,7 +162,7 @@ public class HeapFromWebsite {
     // print array to standard output
     private static void show(Comparable[] a) {
         for (int i = 0; i < a.length; i++) {
-            StdOut.println(a[i]); // 从位置0开始，逐个打印每个位置上的元素
+            StdOut.println(a[i]);
         }
     }
 
