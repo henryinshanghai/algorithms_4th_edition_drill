@@ -8,79 +8,77 @@ import edu.princeton.cs.algs4.StdOut;
  * 特征：在原始数组上面倒腾就行，不需要额外的空间
  */
 public class HeapSort_drill01 {
-    // 不需要任何实例变量    说明：一旦自定义类中需要实例变量，这就需要一定的内存空间。所以最好让使用者传入，原地修改
+    /* 对Client传入的数组进行原地排序，因此不需要任何实例变量 */
 
-    public static void sort(Comparable[] pq) {
-        int n = pq.length;
+    /* 对client传入的数组进行原地排序 */
+    public static void sort(Comparable[] arrayToSort) {
+        int itemAmount = arrayToSort.length;
 
-        /*
-            phrase1 构建堆
-            手段：使用sink()操作来实现
-         */
-        for (int i = n/2; i >=1 ; i--) {
-            sink(pq, i, n);
+        // phrase1 从底往上地构建堆
+        for (int currentRootSpot = itemAmount / 2; currentRootSpot >= 1; currentRootSpot--) {
+            sink(arrayToSort, currentRootSpot, itemAmount);
         }
 
+        // phase2: 从最大元素开始，逐个排定元素
         /*
-            phase2: 下沉排序
-            手段：同样使用sink()操作来实现
+            1 把最大堆的堆顶元素 交换到 末尾 - 排定最大元素；
+            2 重新生成最大堆(排除掉既有的最大元素)；
+            重复步骤1, 2 直到所有元素被排定
          */
-        while (n > 1) {
-            exch(pq, 1, n--); //方法中对参数进行了--操作，所以这里可以使用n--而不用担心下标越界
-            sink(pq, 1, n);
+        while (itemAmount > 1) {
+            exch(arrayToSort, 1, itemAmount--);
+            // todo sink(1)的操作，能够使堆有序吗？
+            sink(arrayToSort, 1, itemAmount);
         }
     }
 
     /**
-     * 对指定数组的指定位置上的节点执行“下沉”操作
-     * 说明：这里之所以需要n作为参数，是因为没有把它维护成一个实例变量
-     * @param pq
-     * @param i
-     * @param n
+     * 对当前堆中的指定节点执行 "下沉操作"
+     * 说明：这里之所以需要 arrayToSort, n作为参数，是因为没有把它维护成一个实例变量
+     *
+     * @param arrayToSort
+     * @param currentSpotInHeap
+     * @param lastSpotInHeap
      */
-    private static void sink(Comparable[] pq, int i, int n) { // 当前节点的值小于子节点中较大者
-        while (2*i+1 <= n) { // 2*i+1 <= n
-            int j = 2 * i;
-            if (less(pq, j, j+1)) j = j + 1;
+    private static void sink(Comparable[] arrayToSort, int currentSpotInHeap, int lastSpotInHeap) { // 当前节点的值小于子节点中较大者
+        while (2 * currentSpotInHeap + 1 <= lastSpotInHeap) { // 2*currentSpotInHeap+1 <= lastSpotInHeap
+            int biggerChildSpot = 2 * currentSpotInHeap;
+            if (less(arrayToSort, biggerChildSpot, biggerChildSpot + 1)) biggerChildSpot = biggerChildSpot + 1;
 
-            if (!less(pq, i, j)) break;
+            if (!less(arrayToSort, currentSpotInHeap, biggerChildSpot)) break;
 
-            // 交换
-            exch(pq, i, j);
+            // 交换 堆中两个位置上的元素
+            exch(arrayToSort, currentSpotInHeap, biggerChildSpot);
 
-            // 更新
-            i = j;
+            // 更新 当前的位置
+            currentSpotInHeap = biggerChildSpot;
         }
     }
 
-    private static void exch(Comparable[] pq, int i, int j) {
-        Comparable temp = pq[i - 1];
-        pq[i - 1] = pq[j - 1];
-        pq[j - 1] = temp;
+    // 交换堆中位置i 与 位置j上的堆元素
+    private static void exch(Comparable[] arrayToSort, int spotIInHeap, int spotJInHeap) {
+        Comparable temp = arrayToSort[spotIInHeap - 1];
+        arrayToSort[spotIInHeap - 1] = arrayToSort[spotJInHeap - 1];
+        arrayToSort[spotJInHeap - 1] = temp;
     }
 
+    // 比较堆中位置i 与 位置j上的堆元素
     @SuppressWarnings("unchecked")
-    private static boolean less(Comparable[] pq, int i, int j) {
-        return pq[i - 1].compareTo(pq[j - 1]) < 0;
+    private static boolean less(Comparable[] arrayToSort, int spotIInHeap, int spotJInHeap) {
+        // array[x] -> heap(x+1)
+        // spotInArray = spotInHeap - 1
+        return arrayToSort[spotIInHeap - 1].compareTo(arrayToSort[spotJInHeap - 1]) < 0;
     }
 
     public static void main(String[] args) {
         String[] a = StdIn.readAllStrings();
         HeapSort_drill01.sort(a);
-
         show(a);
     }
 
     private static void show(String[] a) {
         for (int i = 0; i < a.length; i++) {
-            StdOut.println(a[i]);
+            StdOut.print(a[i] + " ");
         }
     }
 }
-/*
-这里使用n = pq.length; 导致了调用时的很多不确定性
-
-1 传入参数时，n可以大一些，因为方法内部会对参数进行-1操作
-
-为什么要进行减一操作？因为直接使用pq.length作为N时，会比之前的N（元素个数）大1————第0个位置我们时不存储元素的
- */
