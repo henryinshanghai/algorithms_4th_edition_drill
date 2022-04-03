@@ -29,31 +29,37 @@ import edu.princeton.cs.algs4.StdRandom;
 public class KendallTauFromWebsite_02 {
 
     // return Kendall tau distance between two permutations（排列）
-    public static long distance(int[] a, int[] b) {
-        if (a.length != b.length) {
+    public static long distance(int[] arrA, int[] arrB) {
+        if (arrA.length != arrB.length) {
             throw new IllegalArgumentException("Array dimensions disagree");
         }
-        int n = a.length;
+        int itemAmount = arrA.length;
 
-        int[] ainv = new int[n];
-        for (int i = 0; i < n; i++)
-            // 1 ainv[]数组元素的初始化操作
-            ainv[a[i]] = i; // 创建ainv[]数    qAA组   作用：存储指定数据在a数组中的索引;（ainv[数值] = 数值在a数组中的索引）
+        // 作用：记录arrA中的元素 在arrA中的位置
+        int[] spotOfItemInA = new int[itemAmount];
+        for (int spot = 0; spot < itemAmount; spot++) {
+            // 1 spotOfItemInA[]数组元素的初始化操作
+            int itemInA = arrA[spot];
+            spotOfItemInA[itemInA] = spot;
+        }
 
-        Integer[] bnew = new Integer[n]; // 创建一个bnew[]数组 并对数组元素进行初始化
-        for (int i = 0; i < n; i++)
-            // 2 ainv[]数组元素的访问操作 + bnew[]元素的初始化操作
-            bnew[i] = ainv[b[i]]; // 1 访问到b[]中的数值在ainv[]中对应存储的值（位置 = ainv[数值]; aka 数据b[i]在a[]中的索引值） 2 把访问到的结果绑定到bnew[]数组的元素上
+        // 作用：f(index) = spotOfItemInB_in_spotOfItemInA
+        Integer[] correspondingIndexInArrA = new Integer[itemAmount]; // 创建一个bnew[]数组 并对数组元素进行初始化
+        for (int indexOfArrB = 0; indexOfArrB < itemAmount; indexOfArrB++){
+            int itemInB = arrB[indexOfArrB];
+            // 2 作用：记录arrB中的元素 在arrA中的位置
+            correspondingIndexInArrA[indexOfArrB] = spotOfItemInA[itemInB]; // 1 访问到b[]中的数值在ainv[]中对应存储的值（位置 = spotOfItemInA[数值]; aka 数据b[indexOfArrB]在a[]中的索引值） 2 把访问到的结果绑定到bnew[]数组的元素上
+        }
 
-        // 返回数组中倒置的数量
-        return Inversions.count(bnew);
+        // 问题转化： Kendall tau distance(arrA, arrB) = correspondingIndexInArrA数组中倒置的个数
+        return Inversions.count(correspondingIndexInArrA);
     }
 
 
-    // return a random permutation of size n  返回大小为n的随机排列
-    public static int[] permutation(int n) {
-        int[] a = new int[n];
-        for (int i = 0; i < n; i++)
+    // return a random permutation of size itemAmount  返回大小为n的随机排列
+    public static int[] permutation(int itemAmount) {
+        int[] a = new int[itemAmount];
+        for (int i = 0; i < itemAmount; i++)
             a[i] = i;
         StdRandom.shuffle(a);
         return a;
@@ -62,13 +68,14 @@ public class KendallTauFromWebsite_02 {
 
     public static void main(String[] args) {
 
-        // two random permutation of size n
+        // two random permutation of size n - 这样不好判断 计算的距离是不是对的
 //        int n = Integer.parseInt(args[0]);
 //        int[] a = KendallTauFromWebsite_02.permutation(n);
 //        int[] b = KendallTauFromWebsite_02.permutation(n);
 
-        int[] a = {5, 0, 4, 1, 2, 3};
-        int[] b = {4, 2, 3, 0, 5, 1};
+        //  与
+        int[] a = {0, 3, 1, 6, 2, 5, 4};
+        int[] b = {1, 0, 3, 6, 4, 2, 5};
 
 
         // print initial permutation(排列)
