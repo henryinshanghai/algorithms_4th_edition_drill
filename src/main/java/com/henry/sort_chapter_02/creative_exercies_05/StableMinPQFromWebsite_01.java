@@ -24,83 +24,91 @@ import edu.princeton.cs.algs4.StdOut;
  *
  *  手段：1 使用一个time[]数组来记录元素被插入到队列时的时间标识；
  *  2 在greater()方法中，当两个元素的值相等时，再去比较两个元素插入队列的时间标识；
- *  3 在exch()方法中，交换pq[]中的两个元素后，time[]中元素对应的时间戳也需要交换
+ *  3 在exch()方法中，交换pq[]中的两个元素后，timestampArr[]中元素对应的时间戳也需要交换
  *  4 同理insert()、delMin()也都需要做一些处理
  ******************************************************************************/
 
-public class StableMinPQFromWebsite_01<Key extends Comparable<Key>> {
+public class StableMinPQFromWebsite_01<Item extends Comparable<Item>> {
     // 实例变量
-    private Key[]  pq;                   // store element at indices 1 to N  使用索引[1-N]来存储元素
-    private long[] time;                 // timestamp 时间戳
-    private int n;                       // number of elements on priority queue 优先队列中的元素数
-    private long timestamp = 1;          // timestamp for when item was inserted 元素被插入时的时间戳
+    private Item[] itemHeap;                   // 使用索引[1-N]来存储元素
+    private long[] timestampArr;                 // 记录 item被插入优先队列中的时刻
+    private int itemAmount;
+    private long timestamp = 1;          // 元素被插入队列的时间戳
 
-    // create an empty priority queue with given initial capacity
+    // client传入初始容量，创建 优先队列对象
+    // 特征：数组的大小 = 队列的容量 + 1
     public StableMinPQFromWebsite_01(int initCapacity) {
-        pq = (Key[]) new Comparable[initCapacity + 1];
-        time = new long[initCapacity + 1];
-        n = 0;
+        itemHeap = (Item[]) new Comparable[initCapacity + 1];
+        timestampArr = new long[initCapacity + 1];
+        itemAmount = 0;
     }
 
-    // create an empty priority queue
+    // client不需要要传入任何参数，创建 优先队列对象
     public StableMinPQFromWebsite_01() {
+        // 委托 当前类中的方法
         this(1);
     }
 
 
-    // Is the priority queue empty?
+    // 队列是否已经空了？
     public boolean isEmpty() {
-        return n == 0;
+        return itemAmount == 0;
     }
 
-    // Return the number of elements on the priority queue.
+    // 队列中元素的数量
     public int size() {
-        return n;
+        return itemAmount;
     }
 
-    //  Return the smallest key on the priority queue.
-    public Key min() {
+    //  返回优选队列中的最小元素 - itemHeap[1]
+    public Item min() {
         if (isEmpty()) throw new RuntimeException("Priority queue underflow");
-        return pq[1];
+        return itemHeap[1];
     }
 
     // helper function to double the size of the heap array
     private void resize(int capacity) {
-        assert capacity > n;
-        Key[]  tempPQ   = (Key[]) new Comparable[capacity];
+        assert capacity > itemAmount;
+        Item[] tempPQ = (Item[]) new Comparable[capacity];
         long[] tempTime = new long[capacity];
-        for (int i = 1; i <= n; i++)
-            tempPQ[i] = pq[i];
-        for (int i = 1; i <= n; i++)
-            tempTime[i] = time[i];
-        pq   = tempPQ;
-        time = tempTime;
+        for (int i = 1; i <= itemAmount; i++)
+            tempPQ[i] = itemHeap[i];
+        for (int i = 1; i <= itemAmount; i++)
+            tempTime[i] = timestampArr[i];
+        itemHeap = tempPQ;
+        timestampArr = tempTime;
     }
 
-    // add a new key to the priority queue
-    public void insert(Key x) {
-        // double size of array if necessary
-        if (n == pq.length - 1) resize(2 * pq.length);
+    // 向优先队列中添加一个新元素
+    public void insert(Item newItem) {
+        // 需要的话 为优先队列扩容
+        if (itemAmount == itemHeap.length - 1) resize(2 * itemHeap.length);
 
-        // add x, and percolate it up to maintain heap invariant
-        n++;
-        pq[n] = x;
-        time[n] = ++timestamp;
-        swim(n);
+        // add newItem, and percolate it up to maintain heap invariant
+        itemAmount++;
+        itemHeap[itemAmount] = newItem; // 插入元素
+        timestampArr[itemAmount] = ++timestamp;
+
+        swim(itemAmount); // 恢复堆有序
         assert isMinHeap();
     }
 
-    // Delete and return the smallest key on the priority queue.
-    public Key delMin() {
-        if (n == 0) throw new RuntimeException("Priority queue underflow");
-        exch(1, n);
-        Key min = pq[n--];
+    // 删除并返回 队列中的最小元素
+    public Item delMin() {
+        if (itemAmount == 0) throw new RuntimeException("Priority queue underflow");
+        exch(1, itemAmount);
+        // 获取到 队列中的最小元素
+        Item minItem = itemHeap[itemAmount--];
+
+        // 恢复堆有序
         sink(1);
-        pq[n+1] = null;         // avoid loitering and help with garbage collection
-        time[n+1] = 0;
-        if ((n > 0) && (n == (pq.length - 1) / 4)) resize(pq.length  / 2);
+        itemHeap[itemAmount + 1] = null;         // 防止对象游离 - 帮助垃圾回收
+        timestampArr[itemAmount + 1] = 0;
+
+        // 判断是否需要扩容
+        if ((itemAmount > 0) && (itemAmount == (itemHeap.length - 1) / 4)) resize(itemHeap.length / 2);
         assert isMinHeap();
-        return min;
+        return minItem;
     }
 
 
@@ -108,20 +116,24 @@ public class StableMinPQFromWebsite_01<Key extends Comparable<Key>> {
      * Helper functions to restore the heap invariant.
      ***************************************************************************/
 
-    private void swim(int k) {
-        while (k > 1 && greater(k/2, k)) {
-            exch(k, k/2);
-            k = k/2;
+    private void swim(int spotInHeap) {
+        while (spotInHeap > 1 && greater(spotInHeap / 2, spotInHeap)) {
+            // 交换 当前的堆元素 与其父元素
+            exch(spotInHeap, spotInHeap / 2);
+            // 更新当前位置
+            spotInHeap = spotInHeap / 2;
         }
     }
 
-    private void sink(int k) {
-        while (2*k <= n) {
-            int j = 2*k;
-            if (j < n && greater(j, j+1)) j++;
-            if (!greater(k, j)) break;
-            exch(k, j);
-            k = j;
+    private void sink(int spotInHeap) {
+        while (2 * spotInHeap <= itemAmount) { // 循环条件： 当前元素的子元素位置仍旧在 数组范围内
+            int biggerChildSpot = 2 * spotInHeap;
+            if (biggerChildSpot < itemAmount && greater(biggerChildSpot, biggerChildSpot + 1))
+                biggerChildSpot++;
+
+            if (!greater(spotInHeap, biggerChildSpot)) break;
+            exch(spotInHeap, biggerChildSpot);
+            spotInHeap = biggerChildSpot;
         }
     }
 
@@ -129,36 +141,47 @@ public class StableMinPQFromWebsite_01<Key extends Comparable<Key>> {
      * Helper functions for compares and swaps.
      ***************************************************************************/
     private boolean greater(int i, int j) {
-        int cmp = pq[i].compareTo(pq[j]);
+        int cmp = itemHeap[i].compareTo(itemHeap[j]);
         if (cmp > 0) return true;
         if (cmp < 0) return false;
-        return time[i] > time[j];
+
+        // 如果出现 堆元素相等的情况，就比较 item被插入时的时间戳
+        return timestampArr[i] > timestampArr[j];
     }
 
     private void exch(int i, int j) {
-        Key temp = pq[i];
-        pq[i] = pq[j];
-        pq[j] = temp;
-        long tempTime = time[i];
-        time[i] = time[j];
-        time[j] = tempTime;
+        Item temp = itemHeap[i];
+        itemHeap[i] = itemHeap[j];
+        itemHeap[j] = temp;
+
+        // 维护time[]
+        long tempTime = timestampArr[i];
+        timestampArr[i] = timestampArr[j];
+        timestampArr[j] = tempTime;
     }
 
-    // is pq[1..N] a min heap?
+    // itemHeap[1..N]是一个最小堆吗?
     private boolean isMinHeap() {
+        // 为什么这里 不先对数组元素的特性做出判断？
+        // 手段：递归判断 堆的性质
         return isMinHeap(1);
     }
 
-    // is subtree of pq[1..n] rooted at k a min heap?
-    private boolean isMinHeap(int k) {
-        if (k > n) return true;
-        int left = 2*k, right = 2*k + 1;
-        if (left  <= n && greater(k, left))  return false;
-        if (right <= n && greater(k, right)) return false;
-        return isMinHeap(left) && isMinHeap(right);
+    // itemHeap[1..itemAmount]中以 位置k上的元素作为根节点的子树 是不是一个最小堆?
+    private boolean isMinHeap(int spotOfRoot) {
+        if (spotOfRoot > itemAmount) return true;
+        // 判断当前节点 与 其左右子节点的大小情况
+        int leftChildSpot = 2 * spotOfRoot,
+            rightChildSpot = 2 * spotOfRoot + 1;
+        if (leftChildSpot <= itemAmount && greater(spotOfRoot, leftChildSpot)) return false;
+        if (rightChildSpot <= itemAmount && greater(spotOfRoot, rightChildSpot)) return false;
+
+        // 在满足 节点大小规则的情况下，判断：左右子树是不是也是最小堆
+        return isMinHeap(leftChildSpot) && isMinHeap(rightChildSpot);
     }
 
 
+    // 自定义一个元组类型 - 实例：(a, b)
     private static final class Tuple implements Comparable<Tuple> {
         private String name;
         private int id;
@@ -188,12 +211,12 @@ public class StableMinPQFromWebsite_01<Key extends Comparable<Key>> {
                 + "it was the season of darkness it was the spring of hope it was the "
                 + "winter of despair";
         String[] strings = text.split(" ");
-        for (int i = 0; i < strings.length; i++) {
-            pq.insert(new Tuple(strings[i], i));
+        for (int cursor = 0; cursor < strings.length; cursor++) {
+            pq.insert(new Tuple(strings[cursor], cursor));
         }
 
 
-        // delete and print each key
+        // 删除&打印元素 - 从最小元素开始打印元组元素 (item, cursor_of_item)
         while (!pq.isEmpty()) {
             StdOut.println(pq.delMin());
         }

@@ -91,7 +91,7 @@ public class MaxPQ_heap_round2_drill03_simply<Key extends Comparable<Key>> {
                 1 when it has somewhere to sink;
                 2 when its bigger child is bigger than itself;
          */
-        while (currentSpot * 2 <= itemAmount) {
+        while (currentSpot * 2 + 1 <= itemAmount) {
             // find the bigger child
             int biggerChildSpot = currentSpot * 2;
             if(biggerChildSpot < itemAmount && less(biggerChildSpot, biggerChildSpot + 1)) {
