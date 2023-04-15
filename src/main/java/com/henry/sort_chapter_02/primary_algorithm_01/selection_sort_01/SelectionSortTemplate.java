@@ -4,7 +4,7 @@ import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.StdOut;
 
 /*
-选择排序算法描述：逐一排定数组中的元素 ———— 找到/选择到未排定区间中的最小元素，并排定它
+选择排序算法描述：逐一排定数组中的元素 ———— 找到/选择到“未排定区间”中的最小元素，并“排定”它
 
 有意义的变量名：
         定锚指针 - anchorCursor
@@ -12,35 +12,42 @@ import edu.princeton.cs.algs4.StdOut;
         指向最小元素的指针 - cursorToMinItem
         数组元素数量 - itemAmount
 
+验证：选择排序执行过程中，每次游标指针指到数组的最后一个元素时，紧接着就会排定当前回合的最小元素。
+
+术语定义：
+“未排定区间”：已排定元素后的其他元素所组成的区间；
+“排定”：把元素放置到与其大小相符的正确的位置；
+
+算法步骤：
+#1 找到未排定区间中的最小元素；
+    手段：使用当前元素 与 当前最小元素（由cursorToMinItem指向）进行比较，更新cursorToMinItem使其指向最小元素；
+#2 排定“最小元素”；
+    手段：交换 “定锚指针”所指向的元素（记录当前回合要排定的位置） 与 “最小元素指针”所指向的元素（记录当前回合要排定的元素）。
+
+特征：使用扑克牌模拟选择排序过程时，无法有效模拟比较的过程。只能模拟交换的过程
  */
-public class SelectionSort_01 {
+public class SelectionSortTemplate {
 
     /**
-     * 对数组中的元素进行排序
+     * 对数组中的元素进行排定 - 以此来实现排序
      * @param a
      */
     public static void sort(Comparable[] a){
-        // 参考具体的算法实现
         int itemAmount = a.length;
         for (int anchorCursor = 0; anchorCursor < itemAmount; anchorCursor++) {
-            // 手段：并将之与当前元素进行交换
-            // 特征：每次遍历，都会有一个元素被放到了正确的位置
-            /*
-                手段：
-                    1 遍历未排定区间中的所有元素；
-                    2 判断有没有比“当前最小值”更小的元素
-                    3 如果有的话，更新最小值所在的位置min
-             */
-            int cursorToMinItem = anchorCursor; // 记录最小值的位置
+
+            // #1 找到 “未排定区间”中的最小元素 - 确保cursorToMinItem指针指向的是最小元素
+            int cursorToMinItem = anchorCursor; // 初始化 “最小元素指针”
             for (int dynamicCursor = anchorCursor+1; dynamicCursor < itemAmount; dynamicCursor++) {
                 if (less(a[dynamicCursor], a[cursorToMinItem])){
                     cursorToMinItem = dynamicCursor;
                 }
             }
 
-            exch(a, anchorCursor, cursorToMinItem); // 把 最小值元素 与 当前元素 换个位置
+            // #2 排定“最小元素” - 定锚指针（待排定位置）, 最小元素指针（待排定元素）
+            exch(a, anchorCursor, cursorToMinItem);
 
-            // 断言 从a[0]到a[anchorCursor]区间内的所有元素都已经是有序的
+            // 断言 从[0, anchorCursor] 区间内的所有元素都已经是有序的
             assert isSorted(a, 0, anchorCursor);
         }
 
@@ -49,7 +56,6 @@ public class SelectionSort_01 {
     }
 
     /* Check if array is sorted - 对于调试来说非常有用，以为它提供了验证阶段性预期的方法 */
-
     // 1 判断整个数组是不是已经有序了
     private static boolean isSorted(Comparable[] a) {
         return isSorted(a, 0, a.length - 1);
