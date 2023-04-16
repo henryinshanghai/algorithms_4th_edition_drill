@@ -1,9 +1,8 @@
 package com.henry.sort_chapter_02.primary_algorithm_01;
 
-import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.StdOut;
 
-public class Example {
+public class SortExampleTemplate {
     /**
      * 对数组中的元素进行排序
      * @param a
