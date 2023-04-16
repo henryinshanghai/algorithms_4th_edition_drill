@@ -23,10 +23,10 @@ import edu.princeton.cs.algs4.*;
 
 import java.util.Arrays;
 
-public class SortCompare {
+public class CompareSortAlgorithms {
 
     public static double time(String alg, Double[] a) { // 参数：算法名称、被排序的数组
-        Stopwatch sw = new Stopwatch();
+        Stopwatch sw = new Stopwatch(); // StopWatch - 专用于计算执行耗时的类
         if      (alg.equals("Insertion"))       Insertion.sort(a); // 这些个实现都封装在algs4.jar中
         else if (alg.equals("InsertionX"))      InsertionX.sort(a);
         else if (alg.equals("BinaryInsertion")) BinaryInsertion.sort(a);
@@ -76,7 +76,7 @@ public class SortCompare {
         String alg1 = args[0]; // 算法1：插入排序算法
         String alg2 = args[1]; // 算法2：选择排序算法
         int n = Integer.parseInt(args[2]); // 数组的长度
-        int trials = Integer.parseInt(args[3]); // 多次排序取平均值
+        int trials = Integer.parseInt(args[3]); // 排序执行的次数
         double time1, time2;
         if (args.length == 5 && args[4].equals("sorted")) {
             time1 = timeSortedInput(alg1, n, trials);   // Total for alg1. 
