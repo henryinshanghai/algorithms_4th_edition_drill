@@ -1,5 +1,8 @@
 package com.henry.sort_chapter_02.merge_sort_algorithm_02.marge_bottom_to_up_03;
 
+// #1 partition array via 'itemAmountOfSubGroup = 1';
+// #2 iterate items from beginning to the end, sort items by pairs;
+// #3 double the itemAmountOfSubGroup, then repeat #2;
 public class MergeSortBottomUpDrill {
     private static Comparable[] aux;
 
@@ -9,8 +12,9 @@ public class MergeSortBottomUpDrill {
 
         // update current Pair to the end
         for (int itemAmountOfSubGroup = 1; itemAmountOfSubGroup < itemAmount; itemAmountOfSubGroup = itemAmountOfSubGroup * 2) {
-            // merge current Pair
+            // sort items by pairs;
             for (int leftBarCursor = 0; leftBarCursor < itemAmount - itemAmountOfSubGroup; leftBarCursor += (itemAmountOfSubGroup * 2)) {
+                // merge current Pair
                 merge(a, leftBarCursor, leftBarCursor + itemAmountOfSubGroup - 1,
                         Math.min(((leftBarCursor + itemAmountOfSubGroup * 2) - 1), itemAmount - 1));
             }
