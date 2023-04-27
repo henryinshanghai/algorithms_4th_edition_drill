@@ -47,26 +47,29 @@ public class TopMFromWebsite {
     public static void main(String[] args) {
         // 从命令行参数中 读取M的值
         int biggestMth = Integer.parseInt(args[0]);
+        // 创建出一个 MinPQ数据结构的实例
         MinPQ<Transaction> collectionForBiggestMItems = new MinPQ<Transaction>(biggestMth+1); // this is the key point~
 
+
         while (StdIn.hasNextLine()) {
-            // 从标准输入的下一行中 创建一个item，并把它添加到 最大元素集合中
+            // 读取标准输入的下一行的数据
             String line = StdIn.readLine();
+            // 从读取的数据中创建出 transaction对象
             Transaction transaction = new Transaction(line);
+            // 把它添加到 最大元素集合中
             collectionForBiggestMItems.insert(transaction);
 
-            // 如果集合中被添加了 最大的M+1个元素，就把其中最小的元素移除
+            // 如果集合中被添加了 “M+1”个元素，则：把其中最小的元素移除
             if (collectionForBiggestMItems.size() > biggestMth)
                 collectionForBiggestMItems.delMin();
         }   // 循环结束后，最大的M个元素就被存放在 collectionForBiggestMItems 中了
 
 
         // 从 collectionForBiggestMItems 中取出元素打印 - 需要按序取出
+        // 手段：使用一个栈结构 来 实现 “取出元素打印”
         Stack<Transaction> stack = new Stack<Transaction>();
         // collectionForBiggestMItems是支持迭代的集合
-        /*
-            特征：这需要在 数据类型中实现自己的迭代器 - 它会决定迭代的方式。
-         */
+        // 数据类型中需要实现自己的迭代器 - 它会决定迭代的方式
         for (Transaction transaction : collectionForBiggestMItems)
             stack.push(transaction);
 
