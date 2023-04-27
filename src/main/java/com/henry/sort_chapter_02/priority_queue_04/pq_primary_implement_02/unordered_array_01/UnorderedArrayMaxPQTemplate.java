@@ -4,7 +4,7 @@ import edu.princeton.cs.algs4.StdOut;
 
 /*
     算法描述：
-        使用无序数组 来实现 一个优先队列；（能够插入元素 + 删除队列中的最大值）
+        使用无序数组 来实现 一个优先队列；（#1 能够插入元素； #2 删除队列中的最大值）
 
     底层数据结构：数组
     泛型： 继承自Comparable的Key
@@ -14,19 +14,24 @@ import edu.princeton.cs.algs4.StdOut;
         - 向此 集合类型中添加元素
         - 从此 集合类型中删除集合中的最大元素
     特征：
-        由于要找到最大元素，所以要求集合中的元素能够支持比较操作 -
+        由于要找到最大元素，所以要求集合中的元素能够 “支持比较操作”；
         手段1：元素本身是 Comparable类型的；
         手段2：一个继承自Comparable的泛型类型 - 有什么作用?
             不使用泛型的话，元素之间的比较就会报错 Why？
             因为同样实现了 Comparable接口的元素类型，它们各自定义的compareTo()可能并不一致
+
+    类型参数 - 作为“某种具体类型的象征性占位符号”
+    特征：实际的参数必须是引用类型；
+    应用： Java会使用类型参数 来 检查类型不匹配的错误；
  */
-public class UnorderedArrayMaxPQ_drill01<Key extends Comparable<Key>> { // 类型参数
+public class UnorderedArrayMaxPQTemplate<Key extends Comparable<Key>> { // 类型参数 - 作为“某种具体类型的象征性占位符号”
 
     private Key[] itemArray;
     private int itemAmount;
 
     // 构造方法 - 用例创建实例的方式
-    public UnorderedArrayMaxPQ_drill01(int Max) {
+    public UnorderedArrayMaxPQTemplate(int Max) {
+        // 需要进行强制类型转换 - 因为Java中不允许直接创建泛型数组
         itemArray = (Key[])new Comparable[Max];
         // 不要少了 实例变量的初始化步骤
         itemAmount = 0;
@@ -65,7 +70,7 @@ public class UnorderedArrayMaxPQ_drill01<Key extends Comparable<Key>> { // 类�
         Key maxItem = itemArray[--itemAmount];
 
         // 物理删除 最大元素？
-        itemArray[itemAmount + 1] = null;
+        itemArray[itemAmount] = null;
 
         return maxItem;
     }
@@ -85,18 +90,22 @@ public class UnorderedArrayMaxPQ_drill01<Key extends Comparable<Key>> { // 类�
      * Test routine. 测试用例
      ***************************************************************************/
     public static void main(String[] args) {
-        UnorderedArrayMaxPQ_drill01<String> pq = new UnorderedArrayMaxPQ_drill01<String>(10);
+        UnorderedArrayMaxPQTemplate<String> maxPQ = new UnorderedArrayMaxPQTemplate<String>(10);
 
-        pq.insert("Do");
-        pq.insert("Or");
-        pq.insert("Do Not");
-        pq.insert("There's");
-        pq.insert("No");
-        pq.insert("Try");
+        maxPQ.insert("Alicia");
+        maxPQ.insert("Ben");
+        maxPQ.insert("David");
+        maxPQ.insert("Eva");
+        maxPQ.insert("Floria");
+        maxPQ.insert("Grace");
+        maxPQ.insert("Joker");
+        maxPQ.insert("Leo");
+        maxPQ.insert("Monica");
 
-        System.out.println(pq.size());
 
-        while (!pq.isEmpty())
-            StdOut.println(pq.delMax());
+        System.out.println(maxPQ.size());
+
+        while (!maxPQ.isEmpty())
+            StdOut.println(maxPQ.delMax());
     }
 }

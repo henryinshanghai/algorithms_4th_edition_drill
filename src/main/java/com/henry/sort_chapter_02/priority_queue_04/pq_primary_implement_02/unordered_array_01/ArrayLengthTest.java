@@ -1,5 +1,6 @@
 package com.henry.sort_chapter_02.priority_queue_04.pq_primary_implement_02.unordered_array_01;
 
+// 验证：数组的length属性 获取到的是 数组的初始化容量大小
 public class ArrayLengthTest {
 
     public static int what_is_length_of_array(String[] strArr) {
@@ -15,4 +16,4 @@ public class ArrayLengthTest {
 
         System.out.println(what_is_length_of_array(strArr)); // 结果为10 aka 数组初始化的容量大小
     }
-} // length属性获取到的是 数组的初始化容量大小
+}
