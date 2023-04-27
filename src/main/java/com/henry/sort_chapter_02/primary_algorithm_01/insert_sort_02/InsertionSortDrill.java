@@ -2,6 +2,7 @@ package com.henry.sort_chapter_02.primary_algorithm_01.insert_sort_02;
 
 import edu.princeton.cs.algs4.In;
 
+// for current item, insert it into the 'sorted zone'.
 public class InsertionSortDrill {
 
     public static void sort(Comparable[] a) {
