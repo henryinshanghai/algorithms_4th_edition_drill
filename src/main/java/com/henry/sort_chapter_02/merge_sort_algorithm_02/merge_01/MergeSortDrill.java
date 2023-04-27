@@ -1,5 +1,7 @@
 package com.henry.sort_chapter_02.merge_sort_algorithm_02.merge_01;
 
+// #1 sort leftHalfZone, rightHalfZone;
+// #2 using leftHalfCursor, rightHalfCursor to compare item in left and right half of aux, then use the smaller one to fill original array.
 public class MergeSortDrill {
     private static Comparable[] aux;
 
@@ -18,6 +20,7 @@ public class MergeSortDrill {
         merge(a, leftBar, middle, rightBar);
     }
 
+    // merge the sorted subArray in closed scope.
     private static void merge(Comparable[] a, int leftBar, int middle, int rightBar) {
         for (int cursor = leftBar; cursor <= rightBar; cursor++) {
             aux[cursor] = a[cursor];
