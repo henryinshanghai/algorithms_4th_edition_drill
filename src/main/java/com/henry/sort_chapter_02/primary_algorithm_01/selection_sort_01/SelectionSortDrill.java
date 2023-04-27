@@ -2,6 +2,7 @@ package com.henry.sort_chapter_02.primary_algorithm_01.selection_sort_01;
 
 import edu.princeton.cs.algs4.In;
 
+// for current spot, select minItem from rest items to fill it out.
 public class SelectionSortDrill {
 
     public static void sort(Comparable[] a) {
