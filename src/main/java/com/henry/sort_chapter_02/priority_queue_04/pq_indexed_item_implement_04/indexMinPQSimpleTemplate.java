@@ -11,9 +11,9 @@ public class indexMinPQSimpleTemplate<Element extends Comparable<Element>> {
     private int capacity;
 
     public indexMinPQSimpleTemplate(int initCapacity) {
-        indexToElementArray = (Element[]) new Comparable[initCapacity];
-        spotToIndexArray = new int[initCapacity];
-        indexToSpotArray = new int[initCapacity];
+        indexToElementArray = (Element[]) new Comparable[initCapacity + 1];
+        spotToIndexArray = new int[initCapacity + 1];
+        indexToSpotArray = new int[initCapacity + 1];
 
         for (int index = 0; index < indexToSpotArray.length; index++) {
             indexToSpotArray[index] = -1;
