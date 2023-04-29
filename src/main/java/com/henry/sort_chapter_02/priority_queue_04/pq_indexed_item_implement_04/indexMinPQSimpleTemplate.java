@@ -25,7 +25,7 @@ public class indexMinPQSimpleTemplate<Element extends Comparable<Element>> {
         elementAmount++;
 
         // 插入元素后，先维护三个数组
-        indexToElementArray[elementAmount] = element;
+        indexToElementArray[index] = element;
         spotToIndexArray[elementAmount] = index;
         indexToSpotArray[index] = elementAmount;
 
