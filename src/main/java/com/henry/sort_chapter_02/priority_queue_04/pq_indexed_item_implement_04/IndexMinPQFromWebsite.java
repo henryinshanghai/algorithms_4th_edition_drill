@@ -35,26 +35,14 @@ import java.util.NoSuchElementException;
  * @author Robert Sedgewick
  * @author Kevin Wayne
  */
-public class indexMinPQFromWebsite<Element extends Comparable<Element>> implements Iterable<Integer> {
+public class IndexMinPQFromWebsite<Element extends Comparable<Element>> implements Iterable<Integer> {
     private int capacity;        // maximum number of elements on PQ
     private int elementAmount;           // number of elements on PQ
 
     // 难点：逻辑结构 与 物理结构不再严格对应 - 逻辑结构是一个堆，但是没有任何单一个数组是堆
     // 对于使用者而言，会使用 index -> element的方式把 元素以指定索引插入堆中。
     // 对于底层存储的数据结构，会使用 spot -> index -> element的方式来存储“index 与 element”信息
-    /*
-        为什么 这里要使用 “堆元素的索引” 来作为堆呢？而 简单堆实现中 就可以直接使用 “堆元素本身” 来作为堆呢？
-        分析：使用数组来实现堆时， 需要数组元素能够“连续排列”；
-        对于 简单的堆，因为 堆元素的位置spot 总是连续排列的(1, 2, 3...)。所以 可以用spot 作为数组下标，堆元素的值 作为数组元素；
-        对于 索引优先队列：
-            我们需要计入 “堆元素的索引信息”；
-            这时有两种方案可以选择：
-            - 1 spot -> index + index -> item
-            - 2 spot -> item + item -> index
-
-            对于Client来说，他更想要的API是： 使用一个index 来 获取到元素。所以这里选择使用方案1（index -> item）
-            在选定了方案1的情况下，堆的实现就必须是： spot -> index了
-     */
+    // 相比于 简单优先队列的信息存储方式 spot -> element, 这里添加了 index
     // 用来记录 spot -> index的关联信息  f(spot_in_heap/array) = index
     private int[] spotToIndexArray; // 🐖 只有spot才具有连续性，但spotToIndexArray本身并不是一个“堆”
 
@@ -72,7 +60,7 @@ public class indexMinPQFromWebsite<Element extends Comparable<Element>> implemen
      * @param capacity 声明 优先队列中的元素 所能添加索引的范围是 [0, capacity - 1]
      * @throws IllegalArgumentException if {@code capacity < 0}
      */
-    public indexMinPQFromWebsite(int capacity) {
+    public IndexMinPQFromWebsite(int capacity) {
         if (capacity < 0) throw new IllegalArgumentException();
         this.capacity = capacity;
         elementAmount = 0;
@@ -404,12 +392,12 @@ public class indexMinPQFromWebsite<Element extends Comparable<Element>> implemen
 
     private class HeapIterator implements Iterator<Integer> {
         // create a new pq
-        private indexMinPQFromWebsite<Element> copy;
+        private IndexMinPQFromWebsite<Element> copy;
 
         // add all elements to copy of heap
         // takes linear time since already in heap order so no keys move
         public HeapIterator() {
-            copy = new indexMinPQFromWebsite<Element>(spotToIndexArray.length - 1);
+            copy = new IndexMinPQFromWebsite<Element>(spotToIndexArray.length - 1);
             for (int i = 1; i <= elementAmount; i++)
                 copy.insert(spotToIndexArray[i], indexToElementArray[spotToIndexArray[i]]);
         }
@@ -439,7 +427,7 @@ public class indexMinPQFromWebsite<Element extends Comparable<Element>> implemen
         String[] strings = {"it", "was", "the", "best", "of", "times", "it", "was", "the", "worst"};
 
         // 初始化索引优先队列
-        indexMinPQFromWebsite<String> pq = new indexMinPQFromWebsite<String>(strings.length); // 10
+        IndexMinPQFromWebsite<String> pq = new IndexMinPQFromWebsite<String>(strings.length); // 10
 
         // 遍历字符串数组，并逐个插入数组元素到 索引优先队列中
         for (int i = 0; i < strings.length; i++) {

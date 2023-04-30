@@ -2,7 +2,7 @@ package com.henry.sort_chapter_02.priority_queue_04.pq_indexed_item_implement_04
 
 import edu.princeton.cs.algs4.StdOut;
 
-public class indexMinPQSimpleTemplate<Element extends Comparable<Element>> {
+public class IndexMinPQSimpleTemplate<Element extends Comparable<Element>> {
 
     private Element[] indexToElementArray;
     private int[] spotToIndexArray;
@@ -10,7 +10,7 @@ public class indexMinPQSimpleTemplate<Element extends Comparable<Element>> {
     private int elementAmount;
     private int capacity;
 
-    public indexMinPQSimpleTemplate(int initCapacity) {
+    public IndexMinPQSimpleTemplate(int initCapacity) {
         indexToElementArray = (Element[]) new Comparable[initCapacity + 1];
         spotToIndexArray = new int[initCapacity + 1];
         indexToSpotArray = new int[initCapacity + 1];
@@ -100,7 +100,7 @@ public class indexMinPQSimpleTemplate<Element extends Comparable<Element>> {
         String[] strings = {"it", "was", "the", "best", "of", "times", "it", "was", "the", "worst"};
 
         // 初始化索引优先队列
-        indexMinPQSimpleTemplate<String> pq = new indexMinPQSimpleTemplate<String>(strings.length); // 10
+        IndexMinPQSimpleTemplate<String> pq = new IndexMinPQSimpleTemplate<String>(strings.length); // 10
 
         // 遍历字符串数组，并逐个插入数组元素到 索引优先队列中
         for (int i = 0; i < strings.length; i++) {
