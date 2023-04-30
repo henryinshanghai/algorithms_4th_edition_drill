@@ -8,7 +8,7 @@ import java.util.NoSuchElementException;
 
 /*
 相关术语： spot in heap;
-有意义的变量名：由元素组成的堆 itemHeap;
+有意义的变量名：由元素组成的堆 spotToItemArray;
 泛型参数：一个可比较的类型
 特征：暂时不支持迭代的操作
 
@@ -39,7 +39,7 @@ import java.util.NoSuchElementException;
     #2 最大堆的数值约束 - 当前位置元素的数值约束、子节点位置的数值约束
  */
 public class HeapMaxPQSimpleTemplate<Item extends Comparable<Item>> {
-    private Item[] itemHeap; // 泛型数组 - 用于表示堆
+    private Item[] spotToItemArray; // 泛型数组 - 用于表示堆
     private int itemAmount; // 堆中元素的数量
     private Comparator customComparator;  // 自定义的比较器 - 用于支持更加灵活的构造方法
 
@@ -52,12 +52,12 @@ public class HeapMaxPQSimpleTemplate<Item extends Comparable<Item>> {
 
     // 指定容量的队列
     public HeapMaxPQSimpleTemplate(int capacity) {
-        itemHeap = (Item[]) new Comparable[capacity + 1];
+        spotToItemArray = (Item[]) new Comparable[capacity + 1];
         itemAmount = 0;
     }
 
     public HeapMaxPQSimpleTemplate(int initCapacity, Comparator<Item> comparator) {
-        itemHeap = (Item[])new Comparable[initCapacity + 1];
+        spotToItemArray = (Item[])new Comparable[initCapacity + 1];
         this.customComparator = comparator;
         itemAmount = 0;
     }
@@ -70,9 +70,9 @@ public class HeapMaxPQSimpleTemplate<Item extends Comparable<Item>> {
     public HeapMaxPQSimpleTemplate(Item[] itemArray) {
         itemAmount = itemArray.length;
 
-        itemHeap = (Item[])new Comparable[itemArray.length + 1]; // Object[]
+        spotToItemArray = (Item[])new Comparable[itemArray.length + 1]; // Object[]
         for (int i = 0; i < itemAmount; i++) {
-            itemHeap[i + 1] = itemArray[i];
+            spotToItemArray[i + 1] = itemArray[i];
         }
 
         // 构造出一个堆 - 手段：使用sink()方法 排定一半的元素
@@ -94,16 +94,16 @@ public class HeapMaxPQSimpleTemplate<Item extends Comparable<Item>> {
         // #1 结构约束 - 完全二叉树 对应到数组的约束：堆区间内不能为null, 堆区间外必须为null
         // 堆区间的元素
         for (int cursor = 1; cursor <= itemAmount; cursor++) {
-            if(itemHeap[cursor] == null) return false;
+            if(spotToItemArray[cursor] == null) return false;
         }
 
         // 堆区间外的数组元素
-        for (int cursor = itemAmount + 1; cursor < itemHeap.length; cursor++) {
-            if (itemHeap[cursor] != null) return false;
+        for (int cursor = itemAmount + 1; cursor < spotToItemArray.length; cursor++) {
+            if (spotToItemArray[cursor] != null) return false;
         }
 
         // 第一个数组元素
-        if (itemHeap[0] != null) return false;
+        if (spotToItemArray[0] != null) return false;
 
         // #2 堆的数值约束：判断以index=1的位置上的元素作为根节点的树 是不是一个堆
         return isMaxHeapSorted(1);
@@ -140,10 +140,10 @@ public class HeapMaxPQSimpleTemplate<Item extends Comparable<Item>> {
     public void insert(Item newItem) {
         // #1 在插入元素之前，先查看是否需要对数组进行扩容
         // 如果 元素数量 = 数组容量 - 1，说明堆已经满员了，则：需要扩容
-        if(itemAmount == itemHeap.length - 1) resize(itemHeap.length * 2);
+        if(itemAmount == spotToItemArray.length - 1) resize(spotToItemArray.length * 2);
 
         // #2 把元素添加到堆数组的末尾
-        itemHeap[++itemAmount] = newItem; // itemAmount=队列中的元素个数 需要的索引是N+1 使用++N能够一步到位
+        spotToItemArray[++itemAmount] = newItem; // itemAmount=队列中的元素个数 需要的索引是N+1 使用++N能够一步到位
 
         // #3 维护堆数组的“堆有序”特性
         // 手段：对 最后一个位置上的元素执行上浮操作
@@ -158,11 +158,11 @@ public class HeapMaxPQSimpleTemplate<Item extends Comparable<Item>> {
 
         // #2 把原始数组中的元素 拷贝到新数组的对应位置上
         for (int cursor = 1; cursor <= itemAmount; cursor++) {
-            newItemHeap[cursor] = itemHeap[cursor];
+            newItemHeap[cursor] = spotToItemArray[cursor];
         }
 
-        // #3 把 itemHeap 指向新的数组
-        itemHeap = newItemHeap;
+        // #3 把 spotToItemArray 指向新的数组
+        spotToItemArray = newItemHeap;
     }
 
     // 从优先队列中删除最大的元素
@@ -170,14 +170,14 @@ public class HeapMaxPQSimpleTemplate<Item extends Comparable<Item>> {
         if (isEmpty()) throw new NoSuchElementException("Priority queue underflow");
 
         // #1 先获取到最大元素
-        Item maxItem = itemHeap[1];
+        Item maxItem = spotToItemArray[1];
 
 
         // #2 把最大元素交换到 堆数组的末尾
         // 手段：交换 位置为1的元素 与 最后一个位置上的元素
         exch(1, itemAmount--);
         // #3 物理删除掉最后一个位置上的元素
-        itemHeap[itemAmount + 1] = null;
+        spotToItemArray[itemAmount + 1] = null;
         // #4 对顶点位置的元素 执行下沉操作 来 恢复数组的“堆有序”
         sink(1);
 
@@ -231,9 +231,9 @@ public class HeapMaxPQSimpleTemplate<Item extends Comparable<Item>> {
      * @param k
      */
     private void exch(int i, int k) {
-        Item temp = itemHeap[i];
-        itemHeap[i] = itemHeap[k];
-        itemHeap[k] = temp;
+        Item temp = spotToItemArray[i];
+        spotToItemArray[i] = spotToItemArray[k];
+        spotToItemArray[k] = temp;
     }
 
     /**
@@ -243,7 +243,7 @@ public class HeapMaxPQSimpleTemplate<Item extends Comparable<Item>> {
      * @return
      */
     private boolean less(int i, int k) {
-        return itemHeap[i].compareTo(itemHeap[k]) < 0;
+        return spotToItemArray[i].compareTo(spotToItemArray[k]) < 0;
     }
 
     public static void main(String[] args) {
@@ -257,6 +257,6 @@ public class HeapMaxPQSimpleTemplate<Item extends Comparable<Item>> {
                 // #3 如果 当前字符是- 并且优先队列不为空，则：删除优先队列的最大元素(最大key)
             else if (!pq.isEmpty()) StdOut.print(pq.delMax() + " ");
         }
-        StdOut.println("(" + pq.size() + " left on itemHeap)");
+        StdOut.println("(" + pq.size() + " left on spotToItemArray)");
     }
 }
