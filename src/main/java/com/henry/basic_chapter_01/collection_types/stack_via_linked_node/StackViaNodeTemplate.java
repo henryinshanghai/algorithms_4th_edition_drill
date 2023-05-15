@@ -26,7 +26,7 @@ public class StackViaNodeTemplate<Item> implements Iterable<Item> {
     }
 
     // 底层使用的数据结构 - 链表
-    private Node startNode;
+    private Node topNode;
     private int itemAmount;
 
 
@@ -36,7 +36,7 @@ public class StackViaNodeTemplate<Item> implements Iterable<Item> {
     }
 
     public boolean isEmpty() {
-        return startNode == null;
+        return topNode == null;
     }
 
     public int size() {
@@ -45,21 +45,21 @@ public class StackViaNodeTemplate<Item> implements Iterable<Item> {
 
     public void push(Item item) {
         // 记录当前链表中的起始节点
-        Node previousStartNode = startNode;
+        Node previousTopNode = topNode;
 
-        // 创建新的结点，并使 “链表的起始节点 startNode”指向它
-        startNode = new Node();
-        startNode.item = item;
-        startNode.nextNode = previousStartNode;
+        // 创建新的结点，并使 “链表的起始节点 topNode”指向它
+        topNode = new Node();
+        topNode.item = item;
+        topNode.nextNode = previousTopNode;
 
         itemAmount++;
     }
 
     public Item pop() {
-        Item item = startNode.item;
+        Item item = topNode.item;
 
-        // 使 “链表的起始节点 startNode” 指向它的下一个节点
-        startNode = startNode.nextNode;
+        // 使 “链表的起始节点 topNode” 指向它的下一个节点
+        topNode = topNode.nextNode;
         itemAmount--;
 
         return item;
@@ -73,7 +73,7 @@ public class StackViaNodeTemplate<Item> implements Iterable<Item> {
     private class MyStackIterator implements Iterator<Item> {
 
         // 为了使 迭代的操作 不会干扰 链表上的原始指针，这里添加一个 原始链表的副本 来 作为实例变量
-        private Node currentNode = startNode;
+        private Node currentNode = topNode;
 
         @Override
         public boolean hasNext() { // 是否存在下一个节点： 手段：当前节点是否为null
