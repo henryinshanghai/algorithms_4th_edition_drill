@@ -8,5 +8,5 @@
 类定义：
 private class Node {
     Item item;
-    Node next; // 递归数据结构，在定义中包含自己
+    Node nextNode; // 递归数据结构，在定义中包含自己
 }

@@ -1,0 +1,5 @@
+quick union:
+“相互连通的节点” 通过 “链接” 会组装出一棵什么样的树？
+答：这个取决于 union()的操作；
+在 union()的方法中，建立了 groupIdOfNodeP -> groupIdOfNodeQ的映射关系。
+因此，如果节点pair
