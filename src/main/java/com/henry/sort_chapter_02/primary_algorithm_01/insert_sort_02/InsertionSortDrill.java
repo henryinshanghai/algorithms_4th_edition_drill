@@ -8,11 +8,11 @@ public class InsertionSortDrill {
     public static void sort(Comparable[] a) {
         int itemAmount = a.length;
 
-        for (int cursorOfItemToInsert = 1; cursorOfItemToInsert < itemAmount; cursorOfItemToInsert++) {
+        for (int anchorOfItemToInsert = 1; anchorOfItemToInsert < itemAmount; anchorOfItemToInsert++) {
 
             // 检测布尔表达式的值。如果为 true，循环体被执行。如果为false，循环终止
-            for (int backwardsCursor = cursorOfItemToInsert;
-                 backwardsCursor > 0 && less(a[backwardsCursor], a[backwardsCursor - 1]) ; backwardsCursor--) {
+            for (int backwardsCursor = anchorOfItemToInsert;
+                 backwardsCursor > 0 && less(a[backwardsCursor], a[backwardsCursor - 1]); backwardsCursor--) {
                 exch(a, backwardsCursor, backwardsCursor - 1);
             }
         }
@@ -33,6 +33,7 @@ public class InsertionSortDrill {
             System.out.print(a[cursor] + " ");
         }
     }
+
     public static void main(String[] args) {
         String[] a = In.readStrings();
 

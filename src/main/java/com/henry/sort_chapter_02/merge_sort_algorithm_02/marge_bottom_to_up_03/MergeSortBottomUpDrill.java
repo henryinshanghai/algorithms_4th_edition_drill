@@ -11,12 +11,12 @@ public class MergeSortBottomUpDrill {
         aux = new Comparable[itemAmount];
 
         // update current Pair to the end
-        for (int itemAmountOfSubGroup = 1; itemAmountOfSubGroup < itemAmount; itemAmountOfSubGroup = itemAmountOfSubGroup * 2) {
+        for (int subGroupSize = 1; subGroupSize < itemAmount; subGroupSize = subGroupSize * 2) {
             // sort items by pairs;
-            for (int leftBarCursor = 0; leftBarCursor < itemAmount - itemAmountOfSubGroup; leftBarCursor += (itemAmountOfSubGroup * 2)) {
+            for (int leftBarCursor = 0; leftBarCursor < itemAmount - subGroupSize; leftBarCursor += (subGroupSize * 2)) {
                 // merge current Pair
-                merge(a, leftBarCursor, leftBarCursor + itemAmountOfSubGroup - 1,
-                        Math.min(((leftBarCursor + itemAmountOfSubGroup * 2) - 1), itemAmount - 1));
+                merge(a, leftBarCursor, leftBarCursor + subGroupSize - 1,
+                        Math.min(((leftBarCursor + subGroupSize * 2) - 1), itemAmount - 1));
             }
         }
     }

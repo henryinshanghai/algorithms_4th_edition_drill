@@ -41,25 +41,26 @@ import edu.princeton.cs.algs4.StdOut;
 public class InsertSortTemplate {
     /**
      * 对数组中的元素进行排序
+     *
      * @param a
      */
-    public static void sort(Comparable[] a){
+    public static void sort(Comparable[] a) {
         int itemAmount = a.length;
 
-        for (int cursorOfItemToInsert = 1; cursorOfItemToInsert < itemAmount; cursorOfItemToInsert++) {
+        for (int anchorOfItemToInsert = 1; anchorOfItemToInsert < itemAmount; anchorOfItemToInsert++) {
             // #2 把有序区域后面的一个元素（无序区的第一个元素） 插入到 有序区合适的位置
             /*
                 手段：比较（游标指针指向的元素 与 它的前一个元素） & 交换（如果当前元素更小，就执行交换）
                 如果有必要（less & exch），则：比较的操作要向前推进(j--)
                 如果没必要（less不成立），则：比较操作终止（for循环）
              */
-            for (int backwardsCursor = cursorOfItemToInsert;
-                 backwardsCursor > 0 && less(a[backwardsCursor], a[backwardsCursor-1]); backwardsCursor--) {
-                exch(a, backwardsCursor, backwardsCursor-1);
+            for (int backwardsCursor = anchorOfItemToInsert;
+                 backwardsCursor > 0 && less(a[backwardsCursor], a[backwardsCursor - 1]); backwardsCursor--) {
+                exch(a, backwardsCursor, backwardsCursor - 1);
             }
 
             // 断言 当前的有序区域是元素有序的
-            assert isSorted(a, 0, cursorOfItemToInsert);
+            assert isSorted(a, 0, anchorOfItemToInsert);
         }
 
         // 断言 整个数组已经是有序的了
@@ -68,13 +69,13 @@ public class InsertSortTemplate {
 
     private static boolean isSorted(Comparable[] a, int leftBar, int rightBar) {
         for (int cursor = leftBar + 1; cursor <= rightBar; cursor++) {
-            if(less(a[cursor], a[cursor - 1])) return false;
+            if (less(a[cursor], a[cursor - 1])) return false;
         }
 
         return true;
     }
 
-    public static boolean isSorted(Comparable[] a){
+    public static boolean isSorted(Comparable[] a) {
         return isSorted(a, 0, a.length - 1);
     }
 
@@ -85,6 +86,7 @@ public class InsertSortTemplate {
 
     /**
      * 交换i、j这两个位置的元素
+     *
      * @param a
      * @param i
      * @param j
@@ -95,7 +97,7 @@ public class InsertSortTemplate {
         a[j] = t;
     }
 
-    private static void show(Comparable[] a){
+    private static void show(Comparable[] a) {
         // 在单行中打印数组
         for (int i = 0; i < a.length; i++) {
             StdOut.print(a[i] + " ");

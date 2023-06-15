@@ -21,7 +21,7 @@ import edu.princeton.cs.algs4.StdOut;
         #1 按照一个公式，生成一个比较大的N值（小于并接近itemAmount） 用于分割原始数组为子数组
         #2 按照当前 itemAmountOfSubGroup 分组后，得到“分隔有序的元素序列”
             手段：从 startPointOfDisorder 开始到原始数组的最后一个元素为止，对每个元素，把它插入到“其对应的序列”
-        #3 把当前“待插入的元素”插入到其所对应的序列中；aka 把 a[i] 插入到 a[i-h], a[i-2*h]...中
+        #3 把当前“待插入的元素”插入到其所对应的序列中；aka 把 a[i] 插入到 a[i-toMoveStepsToEndGridWithoutObstacles], a[i-2*toMoveStepsToEndGridWithoutObstacles]...中
             手段：插入排序；
         #4 缩小 itemAmountOfSubGroup，来 最终得到 “完全排序的数组”。
 
@@ -53,11 +53,10 @@ public class ShellSortTemplate {
             // #2 按照当前itemAmountOfSubGroup分组后，得到“分隔有序的元素序列”
             // 手段：从 startPointOfDisorder 开始到原始数组的最后一个元素为止，对每个元素，把它插入到“其对应的序列”
             int startPointOfDisorder = itemAmountOfSubGroup;
-            for (int cursorOfItemToInsert = startPointOfDisorder;
-                 cursorOfItemToInsert < itemAmount; cursorOfItemToInsert++) { // 内循环的次数
-                // #3 把a[cursorOfItemToInsert]插入到a[cursorOfItemToInsert-itemAmountOfSubGroup],a[cursorOfItemToInsert-2*itemAmountOfSubGroup],a[cursorOfItemToInsert-3*itemAmountOfSubGroup]...之中
+            for (int anchorOfItemToInsert = startPointOfDisorder; anchorOfItemToInsert < itemAmount; anchorOfItemToInsert++) { // 内循环的次数
+                // #3 把a[anchorOfItemToInsert]插入到a[anchorOfItemToInsert-itemAmountOfSubGroup],a[anchorOfItemToInsert-2*itemAmountOfSubGroup],a[anchorOfItemToInsert-3*itemAmountOfSubGroup]...之中
                 // 手段：插入排序
-                for (int backwardsCursor = cursorOfItemToInsert;
+                for (int backwardsCursor = anchorOfItemToInsert;
                      backwardsCursor >= startPointOfDisorder && less(a[backwardsCursor], a[backwardsCursor - itemAmountOfSubGroup]);
                      backwardsCursor -= itemAmountOfSubGroup) {
                     exch(a, backwardsCursor, backwardsCursor - itemAmountOfSubGroup);

@@ -18,8 +18,8 @@ public class ShellSortDrill {
         while (itemAmountOfSubGroup >= 1) {
             int startPointOfDisorder = itemAmountOfSubGroup;
 
-            for (int currentItemToInsert = startPointOfDisorder; currentItemToInsert < itemAmount; currentItemToInsert++) {
-                for (int backwardsCursor = currentItemToInsert; backwardsCursor >= itemAmountOfSubGroup && less(a, backwardsCursor, backwardsCursor - itemAmountOfSubGroup) ; backwardsCursor-=itemAmountOfSubGroup) {
+            for (int anchorOfItemToInsert = startPointOfDisorder; anchorOfItemToInsert < itemAmount; anchorOfItemToInsert++) {
+                for (int backwardsCursor = anchorOfItemToInsert; backwardsCursor >= itemAmountOfSubGroup && less(a, backwardsCursor, backwardsCursor - itemAmountOfSubGroup); backwardsCursor -= itemAmountOfSubGroup) {
                     exch(a, backwardsCursor, backwardsCursor - itemAmountOfSubGroup);
                 }
             }

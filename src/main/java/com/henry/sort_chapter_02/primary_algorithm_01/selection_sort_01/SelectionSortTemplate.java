@@ -30,25 +30,26 @@ public class SelectionSortTemplate {
 
     /**
      * 对数组中的元素进行排定 - 以此来实现排序
+     *
      * @param a
      */
-    public static void sort(Comparable[] a){
+    public static void sort(Comparable[] a) {
         int itemAmount = a.length;
-        for (int anchorCursor = 0; anchorCursor < itemAmount; anchorCursor++) {
+        for (int currentSpotToArrange = 0; currentSpotToArrange < itemAmount; currentSpotToArrange++) {
 
             // #1 找到 “未排定区间”中的最小元素 - 确保cursorToMinItem指针指向的是最小元素
-            int cursorToMinItem = anchorCursor; // 初始化 “最小元素指针”
-            for (int dynamicCursor = anchorCursor+1; dynamicCursor < itemAmount; dynamicCursor++) {
-                if (less(a[dynamicCursor], a[cursorToMinItem])){
+            int cursorToMinItem = currentSpotToArrange; // 初始化 “最小元素指针”
+            for (int dynamicCursor = currentSpotToArrange + 1; dynamicCursor < itemAmount; dynamicCursor++) {
+                if (less(a[dynamicCursor], a[cursorToMinItem])) {
                     cursorToMinItem = dynamicCursor;
                 }
             }
 
             // #2 排定“最小元素” - 定锚指针（待排定位置）, 最小元素指针（待排定元素）
-            exch(a, anchorCursor, cursorToMinItem);
+            exch(a, currentSpotToArrange, cursorToMinItem);
 
-            // 断言 从[0, anchorCursor] 区间内的所有元素都已经是有序的
-            assert isSorted(a, 0, anchorCursor);
+            // 断言 从[0, currentSpotToArrange] 区间内的所有元素都已经是有序的
+            assert isSorted(a, 0, currentSpotToArrange);
         }
 
         // 断言 整个数组是有序的
@@ -65,7 +66,7 @@ public class SelectionSortTemplate {
     private static boolean isSorted(Comparable[] a, int lo, int hi) {
         for (int i = lo + 1; i <= hi; i++)
             // 当前元素 是否大于 它的前一个元素
-            if (less(a[i], a[i-1])) return false;
+            if (less(a[i], a[i - 1])) return false;
         return true;
     }
 
@@ -77,6 +78,7 @@ public class SelectionSortTemplate {
     /**
      * 交换i、j这两个位置的元素
      * 手段： 借助中间元素
+     *
      * @param a
      * @param i
      * @param j
@@ -87,7 +89,7 @@ public class SelectionSortTemplate {
         a[j] = t;
     }
 
-    private static void show(Comparable[] a){
+    private static void show(Comparable[] a) {
         // 在单行中打印数组
         for (int i = 0; i < a.length; i++) {
             StdOut.print(a[i] + " ");

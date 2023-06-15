@@ -43,13 +43,13 @@ public class IndexMinPQFromWebsite<Element extends Comparable<Element>> implemen
     // 对于使用者而言，会使用 index -> element的方式把 元素以指定索引插入堆中。
     // 对于底层存储的数据结构，会使用 spot -> index -> element的方式来存储“index 与 element”信息
     // 相比于 简单优先队列的信息存储方式 spot -> element, 这里添加了 index
-    // 用来记录 spot -> index的关联信息  f(spot_in_heap/array) = index
+    // 用来记录 spot -> index的关联信息  totalExpectStepsRouteViaCurrentGrid(spot_in_heap/array) = index
     private int[] spotToIndexArray; // 🐖 只有spot才具有连续性，但spotToIndexArray本身并不是一个“堆”
 
-    // 用来记录 index -> element的关联信息 f(index/priority) = element_value
+    // 用来记录 index -> element的关联信息 totalExpectStepsRouteViaCurrentGrid(index/priority) = element_value
     private Element[] indexToElementArray;
 
-    // 用来记录 index -> spot的关联信息  f(index) = spot_in_heap/array
+    // 用来记录 index -> spot的关联信息  totalExpectStepsRouteViaCurrentGrid(index) = spot_in_heap/array
     private int[] indexToSpotArray;        // 作用： 辅助数组，用于快速找到 特定index “在逻辑堆中的位置spot”
 
 
@@ -142,7 +142,7 @@ public class IndexMinPQFromWebsite<Element extends Comparable<Element>> implemen
      * @return an index associated with a minimum key
      * @throws NoSuchElementException if this priority queue is empty
      */
-    public int minIndex() {
+    public int indexOfMinItem() {
         if (elementAmount == 0) throw new NoSuchElementException("Priority queue underflow");
         // 表示优先队列的逻辑堆中 spot=1的元素 就是最小元素，对应的索引 = spotToIndexArray[1]
         return spotToIndexArray[1];
@@ -166,7 +166,7 @@ public class IndexMinPQFromWebsite<Element extends Comparable<Element>> implemen
      * @return an index associated with a minimum key
      * @throws NoSuchElementException if this priority queue is empty
      */
-    public int delMin() {
+    public int delMinItem() {
         if (elementAmount == 0) throw new NoSuchElementException("Priority queue underflow");
 
         // 获取到 堆中最小元素的索引
@@ -203,7 +203,7 @@ public class IndexMinPQFromWebsite<Element extends Comparable<Element>> implemen
      * @throws IllegalArgumentException unless {@code 0 <= i < maxN}
      * @throws NoSuchElementException   no key is associated with index {@code i}
      */
-    public Element ElementOf(int index) {
+    public Element elementAssociateWith(int index) {
         // 索引是否有效 & 索引是否存在
         validateIndex(index);
         if (!contains(index)) throw new NoSuchElementException("index is not in the priority queue");
@@ -412,7 +412,7 @@ public class IndexMinPQFromWebsite<Element extends Comparable<Element>> implemen
 
         public Integer next() {
             if (!hasNext()) throw new NoSuchElementException();
-            return copy.delMin();
+            return copy.delMinItem();
         }
     }
 
@@ -436,7 +436,7 @@ public class IndexMinPQFromWebsite<Element extends Comparable<Element>> implemen
 
         // 删除并打印每一个值
         while (!pq.isEmpty()) {
-            int indexOfMinItem = pq.delMin();
+            int indexOfMinItem = pq.delMinItem();
             StdOut.println(indexOfMinItem + " " + strings[indexOfMinItem]);
         }
         StdOut.println();

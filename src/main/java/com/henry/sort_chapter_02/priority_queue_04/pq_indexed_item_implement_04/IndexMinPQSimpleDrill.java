@@ -88,7 +88,8 @@ public class IndexMinPQSimpleDrill<Item extends Comparable<Item>> {
     }
 
     public static void main(String[] args) {
-        String[] a = {"it", "is", "only", "with", "the", "heart", "that", "one", "can", "see", "rightly"};
+//        String[] a = {"it", "is", "only", "with", "the", "heart", "that", "one", "can", "see", "rightly"};
+        String[] a = {"to", "be", "or", "not", "to", "be", "there's", "no", "try"};
 
         IndexMinPQSimpleDrill<String> indexMinPQ = new IndexMinPQSimpleDrill<>(11);
 

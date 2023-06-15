@@ -46,13 +46,13 @@ public class MergeSortBottomUpTemplate {
         aux = new Comparable[itemAmount];
 
         // #3 更新（倍增）N，重复#1、#2，直到（子组的元素数量 >= 原始数组的元素数量）得到“完全排序的数组”
-        for (int itemAmountOfSubGroup = 1; itemAmountOfSubGroup < itemAmount; itemAmountOfSubGroup = itemAmountOfSubGroup * 2) {
-            // #2 按照当前 itemAmountOfSubGroup 分组后，对子数组执行两两归并；
+        for (int subGroupSize = 1; subGroupSize < itemAmount; subGroupSize = subGroupSize * 2) {
+            // #2 按照当前 subGroupSize 分组后，对得到的子数组 从左到右 执行两两归并；
             // 手段：先对当前Pair执行归并操作，再更新指针，对新的Pair执行归并操作。直到 原始数组中的最后一个Pair
-            for (int leftBarCursor = 0; leftBarCursor < itemAmount - itemAmountOfSubGroup; leftBarCursor += (itemAmountOfSubGroup * 2)) {
+            for (int leftBarCursor = 0; leftBarCursor < itemAmount - subGroupSize; leftBarCursor += (subGroupSize * 2)) {
                 // 随着currentPair被不断更新，rightBarCursor可能会超出原始数组的边界。因此这里使用min()
-                merge(a, leftBarCursor, leftBarCursor + itemAmountOfSubGroup - 1,
-                        Math.min((leftBarCursor + itemAmountOfSubGroup*2) - 1, itemAmount - 1));
+                merge(a, leftBarCursor, leftBarCursor + subGroupSize - 1,
+                        Math.min((leftBarCursor + subGroupSize*2) - 1, itemAmount - 1));
             }
         }
     }

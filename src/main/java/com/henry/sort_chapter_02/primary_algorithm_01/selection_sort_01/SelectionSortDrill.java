@@ -8,16 +8,16 @@ public class SelectionSortDrill {
     public static void sort(Comparable[] a) {
         int itemAmount = a.length;
 
-        for (int currentCursor = 0; currentCursor < itemAmount; currentCursor++) {
-            int cursorToMinItem = currentCursor;
+        for (int currentSpotToArrange = 0; currentSpotToArrange < itemAmount; currentSpotToArrange++) {
+            int cursorToMinItem = currentSpotToArrange;
 
-            for (int dynamicCursor = currentCursor+1; dynamicCursor < itemAmount; dynamicCursor++) {
+            for (int dynamicCursor = currentSpotToArrange+1; dynamicCursor < itemAmount; dynamicCursor++) {
                 if (less(a[dynamicCursor], a[cursorToMinItem])) {
                     cursorToMinItem = dynamicCursor;
                 }
             }
 
-            exch(a, currentCursor, cursorToMinItem);
+            exch(a, currentSpotToArrange, cursorToMinItem);
         }
     }
 

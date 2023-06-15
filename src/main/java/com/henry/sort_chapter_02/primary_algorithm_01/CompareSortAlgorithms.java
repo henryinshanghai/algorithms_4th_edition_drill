@@ -11,7 +11,7 @@ package com.henry.sort_chapter_02.primary_algorithm_01; /***********************
  *    Insertion is 1.7 times faster than Selection
  *
  *  Note: this program is designed to compare two sorting algorithms with
- *  roughly the same order of growth, e,g., insertion sort vs. selection
+ *  roughly the same order of growth, e,movedStepsFromStartGrid., insertion sort vs. selection
  *  sort or mergesort vs. quicksort. Otherwise, various system effects
  *  (such as just-in-time compiliation) may have a significant effect.
  *  One alternative is to execute with "java -Xint", which forces the JVM
