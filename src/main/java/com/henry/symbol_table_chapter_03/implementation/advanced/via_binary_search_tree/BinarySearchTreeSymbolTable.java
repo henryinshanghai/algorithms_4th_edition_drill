@@ -1,4 +1,5 @@
-package com.henry.symbol_table_chapter_03.implementation.advanced.via_binary_search_tree; /******************************************************************************
+package com.henry.symbol_table_chapter_03.implementation.advanced.via_binary_search_tree;
+/******************************************************************************
  *  Compilation:  javac BinarySearchTreeSymbolTable.java
  *  Execution:    java BinarySearchTreeSymbolTable
  *  Dependencies: StdIn.java StdOut.java Queue.java
@@ -368,7 +369,7 @@ public class BinarySearchTreeSymbolTable<Key extends Comparable<Key>, Value> {
         Node foundNode = floor(currentNode.rightSubTree, passedKey);
         // 如果在右子树中 查找到了 小于等于传入key的结点，则：返回查找到的结果
         if (foundNode != null) return foundNode;
-        // 否则，说明在右子树中 不存在“小于等于key的结点”，则：返回当前二叉树的根结点（因为它就是 小于等于key的最大结点）
+            // 否则，说明在右子树中 不存在“小于等于key的结点”，则：返回当前二叉树的根结点（因为它就是 小于等于key的最大结点）
         else return currentNode;
     }
 
@@ -391,9 +392,9 @@ public class BinarySearchTreeSymbolTable<Key extends Comparable<Key>, Value> {
     /**
      * 返回符号表中 大于等于传入key的最小key
      *
+     * @param passedKey
      * @throws NoSuchElementException   if there is no such key
      * @throws IllegalArgumentException if {@code key} is {@code null}
-     * @param passedKey
      */
     public Key ceiling(Key passedKey) {
         if (passedKey == null) throw new IllegalArgumentException("argument to ceiling() is null");
@@ -453,8 +454,9 @@ public class BinarySearchTreeSymbolTable<Key extends Comparable<Key>, Value> {
 
     /**
      * 返回 符号表中 所有严格小于 传入的key的键的数量
-     * @throws IllegalArgumentException if {@code key} is {@code null}
+     *
      * @param passedKey
+     * @throws IllegalArgumentException if {@code key} is {@code null}
      */
     public int rank(Key passedKey) {
         if (passedKey == null) throw new IllegalArgumentException("argument to rank() is null");
@@ -472,19 +474,20 @@ public class BinarySearchTreeSymbolTable<Key extends Comparable<Key>, Value> {
 
     /**
      * 以Iterable的方式 来 返回符号表中所有的key所组成的集合
-     *
+     * <p>
      * 为了遍历 st符号表中所有的key，可以使用foreach标记语法： for(Key key : st.keys()) {...}
+     *
      * @return all keys in the symbol table
      */
     public Iterable<Key> keys() {
-        if (isEmpty()) return new Queue<Key>();
+        if (isEmpty()) return new Queue<>();
         return keys(min(), max());
     }
 
     /**
      * 以 Iterable的方式 来 返回符号表中所有在指定范围内的key 组成的集合。
      *
-     * @param leftBarKey minimum endpoint 左边界（包含）
+     * @param leftBarKey  minimum endpoint 左边界（包含）
      * @param rightBarKey maximum endpoint 右边界（包含）
      * @throws IllegalArgumentException if either {@code lo} or {@code hi}
      *                                  is {@code null}
@@ -493,12 +496,13 @@ public class BinarySearchTreeSymbolTable<Key extends Comparable<Key>, Value> {
         if (leftBarKey == null) throw new IllegalArgumentException("first argument to keys() is null");
         if (rightBarKey == null) throw new IllegalArgumentException("second argument to keys() is null");
 
-        Queue<Key> queue = new Queue<Key>();
+        Queue<Key> queue = new Queue<>();
         keys(rootNode, queue, leftBarKey, rightBarKey);
         return queue;
     }
 
     // 使用一个队列 来 收集二叉树中在 [leftBarKey, rightBarKey]区间之间的所有的key
+    // 收集顺序：左 - 根 - 右
     private void keys(Node currentNode, Queue<Key> queueToCollect, Key leftBarKey, Key rightBarKey) {
         if (currentNode == null) return;
 
@@ -521,7 +525,7 @@ public class BinarySearchTreeSymbolTable<Key extends Comparable<Key>, Value> {
     /**
      * 返回符号表中，在指定区间/范围内的所有的key的数量
      *
-     * @param leftBarKey minimum endpoint 左边界（包含）
+     * @param leftBarKey  minimum endpoint 左边界（包含）
      * @param rightBarKey maximum endpoint 右边界（包含）
      * @throws IllegalArgumentException if either {@code lo} or {@code hi}
      *                                  is {@code null}
@@ -551,11 +555,12 @@ public class BinarySearchTreeSymbolTable<Key extends Comparable<Key>, Value> {
 
     /**
      * 出于调试目的，返回 符号表所使用的二叉查找树的 层序遍历产生的key序列
+     *
      * @return the keys in the BinarySearchTreeSymbolTable in level order traversal（层序遍历）
      */
     public Iterable<Key> levelOrder() {
-        Queue<Key> keys = new Queue<Key>();
-        Queue<Node> nodeQueue = new Queue<Node>();
+        Queue<Key> keys = new Queue<>();
+        Queue<Node> nodeQueue = new Queue<>();
         nodeQueue.enqueue(rootNode);
 
         while (!nodeQueue.isEmpty()) {
@@ -573,68 +578,77 @@ public class BinarySearchTreeSymbolTable<Key extends Comparable<Key>, Value> {
      *  检查 符号表数据结构的完整性
      ***************************************************************************/
     private boolean check() {
-        // todo over here!!! 2023/06/17
-        if (!isBSTFromWebsite()) StdOut.println("Not in symmetric order");
+        if (!isBST()) StdOut.println("Not in symmetric order");
         if (!isSizeConsistent()) StdOut.println("Subtree counts not consistent");
         if (!isRankConsistent()) StdOut.println("Ranks not consistent");
-        return isBSTFromWebsite() && isSizeConsistent() && isRankConsistent();
+        return isBST() && isSizeConsistent() && isRankConsistent();
     }
 
-    // does this binary tree satisfy symmetric order?
-    // Note: this test also ensures that data structure is a binary tree since order is strict
-    private boolean isBSTFromWebsite() {
-        return isBSTFromWebsite(rootNode, null, null);
+    // 这个二叉树是否满足 对称顺序(symmetric order)?
+    // 由于顺序是严格大的，因此 这个test也能够保证数据结构是一个 二叉树
+    private boolean isBST() {
+        return isBST(rootNode, null, null);
     }
 
-    // is the tree rooted at x a BinarySearchTreeSymbolTable with all keys strictly between min and max
-    // (if min or max is null, treat as empty constraint)
-    // Credit: Bob Dondero's elegant solution
-    private boolean isBSTFromWebsite(Node x, Key min, Key max) {
-        if (x == null) return true;
-        if (min != null && x.key.compareTo(min) <= 0) return false;
-        if (max != null && x.key.compareTo(max) >= 0) return false;
-        return isBSTFromWebsite(x.leftSubTree, min, x.key) && isBSTFromWebsite(x.rightSubTree, x.key, max);
+    // 判断 以currentNode作为根结点的树 是不是一个 (所有的key都严格在[min, max]之间)的BST?
+    // 如果min、max为null，则：将它们视为空约束 也就是Optional的约束
+    // 荣誉：Bob Dondero 优雅的解决方案
+    private boolean isBST(Node currentNode, Key minKey, Key maxKey) {
+        if (currentNode == null) return true;
+        if (minKey != null && currentNode.key.compareTo(minKey) <= 0) return false;
+        if (maxKey != null && currentNode.key.compareTo(maxKey) >= 0) return false;
+        return isBST(currentNode.leftSubTree, minKey, currentNode.key)
+                && isBST(currentNode.rightSubTree, currentNode.key, maxKey);
     }
 
     // are the itsNodesAmount fields correct?
+    // size字段是否正确？
     private boolean isSizeConsistent() {
         return isSizeConsistent(rootNode);
     }
 
-    private boolean isSizeConsistent(Node x) {
-        if (x == null) return true;
-        if (x.itsNodesAmount != size(x.leftSubTree) + size(x.rightSubTree) + 1) return false;
-        return isSizeConsistent(x.leftSubTree) && isSizeConsistent(x.rightSubTree);
+    private boolean isSizeConsistent(Node currentNode) {
+        // 空结点也是一棵二叉搜索树
+        if (currentNode == null) return true;
+        // 对于非空的二叉搜索树，要求恒等式一直成立 - size(rootNode) = size(leftTree) + size(rightTree) + 1
+        if (currentNode.itsNodesAmount != size(currentNode.leftSubTree) + size(currentNode.rightSubTree) + 1)
+            return false;
+        // 左右子树各自本身也满足相同的条件（递归）
+        return isSizeConsistent(currentNode.leftSubTree) && isSizeConsistent(currentNode.rightSubTree);
     }
 
     // check that ranks are consistent
+    // 检查排名是否正确
     private boolean isRankConsistent() {
-        for (int i = 0; i < size(); i++)
-            if (i != rank(select(i))) return false;
-        for (Key key : keys())
-            if (key.compareTo(select(rank(key))) != 0) return false;
+        for (int currentRank = 0; currentRank < size(); currentRank++)
+            if (currentRank != rank(select(currentRank))) return false;
+        for (Key currentKey : keys())
+            if (currentKey.compareTo(select(rank(currentKey))) != 0) return false;
         return true;
     }
 
 
     /**
-     * Unit tests the {@code BinarySearchTreeSymbolTable} data type.
-     *
+     * BinarySearchTreeSymbolTable 数据类型的单元测试
      * @param args the command-line arguments
      */
     public static void main(String[] args) {
-        BinarySearchTreeSymbolTable<String, Integer> st = new BinarySearchTreeSymbolTable<String, Integer>();
-        for (int i = 0; !StdIn.isEmpty(); i++) {
-            String key = StdIn.readString();
-            st.put(key, i);
+        BinarySearchTreeSymbolTable<String, Integer> symbolTable
+                = new BinarySearchTreeSymbolTable<>();
+
+        for (int currentSpot = 0; !StdIn.isEmpty(); currentSpot++) {
+            String currentKey = StdIn.readString();
+            symbolTable.put(currentKey, currentSpot);
         }
 
-//        for (String s : st.levelOrder())
-//            StdOut.println(s + " " + st.get(s));
+        // 对符号表底层的二叉查找树中的结点 做层序遍历（当前层：自左向右 不同层：自上而下）
+        for (String currentNodeKey : symbolTable.levelOrder())
+            StdOut.println(currentNodeKey + " " + symbolTable.get(currentNodeKey));
 
         StdOut.println();
 
-        for (String s : st.keys())
-            StdOut.println(s + " " + st.get(s));
+        // 遍历符号表中的所有key - key的顺序：BST结点中的左 - 根 - 右
+        for (String currentKey : symbolTable.keys())
+            StdOut.println(currentKey + " " + symbolTable.get(currentKey));
     }
 }
