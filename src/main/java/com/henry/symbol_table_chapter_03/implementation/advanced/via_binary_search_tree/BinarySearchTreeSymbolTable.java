@@ -60,9 +60,8 @@ import java.util.NoSuchElementException;
  * The keys method takes &Theta;(<em>n</em>) time in the worst case.
  * Construction takes &Theta;(1) time.
  * <p>
- * For alternative implementations of the symbol table API, see {@link ST},
- * {@link BinarySearchST}, {@link SequentialSearchST}, {@link RedBlackBSTFromWebsite},
- * {@link SeparateChainingHashST}, and {@link LinearProbingHashST},
+ * For alternative implementations of the symbol table API,
+ * see 符号表, 二叉查找符号表, 有序查找符号表, 红黑树符号表, 单独链条哈希符号表, 线性探测哈希符号表
  * For additional documentation, see
  * <a href="https://algs4.cs.princeton.edu/32bst">Section 3.2</a> of
  * <i>Algorithms, 4th Edition</i> by Robert Sedgewick and Kevin Wayne.
@@ -444,7 +443,7 @@ public class BinarySearchTreeSymbolTable<Key extends Comparable<Key>, Value> {
     // 前提条件：排名在合法的范围
     private Key select(Node currentNode, int passedRank) {
         // 如果查找过程结束于空结点，说明 在二叉树中没有找到 传入的rank，则：返回null(约定)
-        // todo how could this happen?
+        // 这个应该属于是防御性编程 - 如果传入的passedRank本身是合法的，则：应该总能找到对应的结点
         if (currentNode == null) return null;
         int leftTreeSize = size(currentNode.leftSubTree);
         if (leftTreeSize > passedRank) return select(currentNode.leftSubTree, passedRank);
@@ -535,7 +534,7 @@ public class BinarySearchTreeSymbolTable<Key extends Comparable<Key>, Value> {
         if (rightBarKey == null) throw new IllegalArgumentException("second argument to size() is null");
 
         if (leftBarKey.compareTo(rightBarKey) > 0) return 0;
-        // 如果符号表中存在 与右边界相同的key，则：数量+1 todo why so?
+        // 如果符号表中存在 与右边界相同的key，则：数量+1 todo why so? 缺少一个简洁合理的解释
         if (contains(rightBarKey)) return rank(rightBarKey) - rank(leftBarKey) + 1;
         else return rank(rightBarKey) - rank(leftBarKey);
     }
@@ -645,7 +644,7 @@ public class BinarySearchTreeSymbolTable<Key extends Comparable<Key>, Value> {
         for (String currentNodeKey : symbolTable.levelOrder())
             StdOut.println(currentNodeKey + " " + symbolTable.get(currentNodeKey));
 
-        StdOut.println();
+        StdOut.println("~~~");
 
         // 遍历符号表中的所有key - key的顺序：BST结点中的左 - 根 - 右
         for (String currentKey : symbolTable.keys())
