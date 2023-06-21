@@ -4,8 +4,8 @@ import edu.princeton.cs.algs4.Queue;
 import edu.princeton.cs.algs4.StdOut;
 
 /******************************************************************************
- *  Compilation:  javac RedBlackTreeSymbolTable.java
- *  Execution:    java RedBlackTreeSymbolTable < input.txt
+ *  Compilation:  javac RedBlackTreeLiteSymbolTable.java
+ *  Execution:    java RedBlackTreeLiteSymbolTable < input.txt
  *  Dependencies: StdIn.java StdOut.java  
  *  Data files:   https://algs4.cs.princeton.edu/33balanced/tinyST.txt  
  *
@@ -19,7 +19,7 @@ import edu.princeton.cs.algs4.StdOut;
  *  % more tinyST.txt
  *  S E A R C H E X A M P L E
  *
- *  % java RedBlackTreeSymbolTable < tinyST.txt
+ *  % java RedBlackTreeLiteSymbolTable < tinyST.txt
  *  A 8
  *  C 4
  *  E 12
@@ -33,20 +33,20 @@ import edu.princeton.cs.algs4.StdOut;
  *
  ******************************************************************************/
 
-public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
+public class RedBlackTreeLiteSymbolTable<Key extends Comparable<Key>, Value> {
 
     private static final boolean RED = true;
-    private static final boolean BLACK = false;
+    private static final boolean BLACK = false; // 表示结点颜色的常量
 
-    private Node rootNode;     // rootNode of the BST
-    private int pairsAmount;         // number of key-value pairs in BST
+    private Node rootNode;     // 二叉查找树中的根结点
+    private int pairsAmount;         // 二叉查找树中的键值对数量
 
     // BST helper node data type
     private class Node {
-        private Key key;           // key
-        private Value value;         // associated data
-        private Node leftSubNode, rightSubNode;  // links to leftSubNode and rightSubNode subtrees
-        private boolean color;     // 指向当前结点的链接的颜色 - color of parent link
+        private Key key;           // 结点中的键
+        private Value value;         // 结点中 键所关联的值
+        private Node leftSubNode, rightSubNode;  // 当前结点的左子结点、右子结点
+        private boolean color;     // 结点的颜色（指向当前结点的链接的颜色）
 
         public Node(Key key, Value value, boolean color) {
             this.key = key;
@@ -60,29 +60,35 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
      **************************************************************************
      * @param passedKey*/
 
-    // return value associated with the given key, or null if no such key exists
+    // 返回传入的键 所关联的值, 如果传入的键不存在的话，则：返回null
     public Value get(Key passedKey) {
         return get(rootNode, passedKey);
     }
 
     public Value get(Node currentNode, Key passedKey) {
         while (currentNode != null) {
+            // 比较 传入的键 与 根结点中的键
             int result = passedKey.compareTo(currentNode.key);
+            // 如果更小，则：使用左子结点 来 更新当前节点
             if (result < 0) currentNode = currentNode.leftSubNode;
+            // 如果更大，则：使用右子结点 来 更新当前节点
             else if (result > 0) currentNode = currentNode.rightSubNode;
+            // 如果相等，则：返回根结点中 的值
             else return currentNode.value;
         }
+
+        // 循环如果结束，说明查找结束于空结点 aka BST中没有找到传入的键。这种情况下返回null
         return null;
     }
 
-    // is there a key-value pair in the symbol table with the given key?
-    public boolean contains(Key key) {
-        return get(key) != null;
+    // 在符号表中 是否存在 与传入的key相等的键（&值）
+    public boolean contains(Key passedKey) {
+        return get(passedKey) != null;
     }
 
 
     /***************************************************************************
-     *  Red-black tree insertion.
+     *  红黑树的插入算法.
      **************************************************************************
      * @param passedKey
      * @param associatedValue*/
@@ -90,25 +96,31 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
     public void put(Key passedKey, Value associatedValue) {
         // 查找key 找到则更新其值，否则为它创建一个节点
         rootNode = insert(rootNode, passedKey, associatedValue);
+
+        // 约定：红黑树中根结点总是黑色的 - 为了遵守 红色左链接 <-> 3-结点的约定
         rootNode.color = BLACK;
         assert check();
     }
 
     private Node insert(Node currentNode, Key passedKey, Value associatedValue) {
-        // 标准的插入操作，和父节点之间使用红链接相连
+        // 如果查找操作结束于一个空结点 说明BST中不存在 与passedKey相等的键(&值)，则：将传入的键值作为新结点添加到树的底部
+        // 🐖 插入新结点时，使用红链接 将之和父节点之间相连
         if (currentNode == null) {
-            pairsAmount++; // 这里对树中的键值对个数进行了更新
-            return new Node(passedKey, associatedValue, RED);
+            pairsAmount++;
+            return new Node(passedKey, associatedValue, RED); // 插入的结点总是红色的
         }
 
         int result = passedKey.compareTo(currentNode.key);
-        if (result < 0) currentNode.leftSubNode = insert(currentNode.leftSubNode, passedKey, associatedValue);
-        else if (result > 0) currentNode.rightSubNode = insert(currentNode.rightSubNode, passedKey, associatedValue);
-        else currentNode.value = associatedValue;
+        if (result < 0)
+            currentNode.leftSubNode = insert(currentNode.leftSubNode, passedKey, associatedValue); // 在左子树中插入
+        else if (result > 0)
+            currentNode.rightSubNode = insert(currentNode.rightSubNode, passedKey, associatedValue); // 在右子树中插入
+        else
+            currentNode.value = associatedValue; // 更新结点的value
 
-        // 原理：参考 recap_03 line31
-        // 实现手段 - 在递归调用之后添加这些代码：在查找路径中的每一个结点（从下往上）上，经过局部变换(左旋转、右旋转、颜色变换) 来 维护“红黑树的平衡性”
-        // 红黑树中插入新结点归约后的3中情形👇
+        // 插入结点后，使用局部变换操作BST，使之成为一棵“平衡的红黑树”     原理：参考 recap_03 line31
+        // 实现手段：在递归调用之后添加这些代码：在查找路径中的每一个结点（从下往上）上，经过局部变换(左旋转、右旋转、颜色变换) 来 维护“红黑树的平衡性”
+        // 红黑树中插入新结点后，归约得到的3种情形👇
         if (isRed(currentNode.rightSubNode) && !isRed(currentNode.leftSubNode)) // #1 右子结点为红色，而左子结点为黑色
             currentNode = rotateLeft(currentNode); // 对当前结点左旋转
         if (isRed(currentNode.leftSubNode) && isRed(currentNode.leftSubNode.leftSubNode)) // #2 左子结点为红色，左子结点的左子结点也为红色，
@@ -144,18 +156,26 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
     // rotate leftSubNode
     private Node rotateLeft(Node currentNode) {
         assert (currentNode != null) && isRed(currentNode.rightSubNode);
-        Node replacerNode = currentNode.rightSubNode;  // 获取右子树x
-        currentNode.rightSubNode = replacerNode.leftSubNode; // 获取x的左子树，并绑定为当前节点的右子树
-        replacerNode.leftSubNode = currentNode; // 把当前节点作为x的左子树
-        replacerNode.color = currentNode.color; // 更新x的颜色（用当前节点的颜色）
-        currentNode.color = RED; // 更新当前节点的颜色为红色
+        /* 左旋转的操作统共需要5步来完成 👇 */
+        /* 结构上的变更 */
+        Node replacerNode = currentNode.rightSubNode;  // #1 获取当前结点的右子结点，作为“替换结点”
+        currentNode.rightSubNode = replacerNode.leftSubNode; // #2 获取“替换结点”的左子树，并绑定为当前节点的右子树
+        replacerNode.leftSubNode = currentNode; // #3 把“当前节点”绑定为“替换节点”的左子树
+
+        /* 颜色上的变更 */
+        replacerNode.color = currentNode.color; // #4 更新“替换节点”的颜色 为 当前节点的颜色
+        currentNode.color = RED; // #5 更新“当前节点的颜色（指向当前结点的链接的颜色）”为红色 - 合法的红色左链接
+
         return replacerNode; // 返回更新后的树的根节点
     }
 
-    // precondition: two children are red, node is black
-    // postcondition: two children are black, node is red
+    // 前提条件： 两个子节点是红色的，父结点是黑色的
+    // 后置条件：方法执行后，两个子节点是黑色的，父结点是红色的
     private void flipColors(Node currentNode) {
+        // 防御性编程？ 先断言前置条件成立
         assert !isRed(currentNode) && isRed(currentNode.leftSubNode) && isRed(currentNode.rightSubNode);
+
+        // 手动改变到预期的状态
         currentNode.color = RED;
         currentNode.leftSubNode.color = BLACK;
         currentNode.rightSubNode.color = BLACK;
@@ -292,40 +312,43 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
 
 
     /***************************************************************************
-     *  Test client. TODO: understand this unit test.
+     *  Test client.
      ***************************************************************************/
     public static void main(String[] args) {
 
-        String test = "S E A R C H E X A M P L E";
-        String[] keys = test.split(" ");
-        RedBlackTreeSymbolTable<String, Integer> st = new RedBlackTreeSymbolTable<String, Integer>();
-        for (int i = 0; i < keys.length; i++)
-            st.put(keys[i], i);
+        String letterSequence = "S E A R C H E X A M P L E";
+        String[] letterArray = letterSequence.split(" ");
 
-        StdOut.println("size = " + st.size());
-        StdOut.println("min  = " + st.minKey());
-        StdOut.println("max  = " + st.maxKey());
+        RedBlackTreeLiteSymbolTable<String, Integer> letterToSpotSymbolTable
+                = new RedBlackTreeLiteSymbolTable<String, Integer>();
+
+        for (int spot = 0; spot < letterArray.length; spot++)
+            letterToSpotSymbolTable.put(letterArray[spot], spot);
+
+        StdOut.println("size = " + letterToSpotSymbolTable.size());
+        StdOut.println("min  = " + letterToSpotSymbolTable.minKey());
+        StdOut.println("max  = " + letterToSpotSymbolTable.maxKey());
         StdOut.println();
 
-
-        // print keys in order using allKeys()
-        StdOut.println("Testing keys()");
+        // print letterArray in order using allKeys()
+        StdOut.println("Testing keys() API");
         StdOut.println("--------------------------------");
-        for (String s : st.keys())
-            StdOut.println(s + " " + st.get(s));
+        for (String letter : letterToSpotSymbolTable.keys())
+            StdOut.println(letter + " " + letterToSpotSymbolTable.get(letter));
         StdOut.println();
 
-        // insert N elements in order if one command-line argument supplied
-//        if (args.length == 0) return;
-//        int pairsAmount = Integer.parseInt(args[0]);
-//        RedBlackTreeSymbolTable<Integer, Integer> st2 = new RedBlackTreeSymbolTable<Integer, Integer>();
-//        for (int i = 0; i < pairsAmount; i++) {
-//            st2.put(i, i);
-//            int toMoveStepsToEndGridWithoutObstacles = st2.height();
-//            StdOut.println("i = " + i + ", height = " + toMoveStepsToEndGridWithoutObstacles + ", size = " + st2.size());
-//        }
-//
-//
-//        StdOut.println("size = " + st2.size());
+        // 如果提供了一个命令行参数，则：按照顺序插入N个元素
+        if (args.length == 0) return;
+        int pairsAmount = Integer.parseInt(args[0]);
+        RedBlackTreeLiteSymbolTable<Integer, Integer> symbolTable
+                = new RedBlackTreeLiteSymbolTable<Integer, Integer>();
+
+        for (int currentSpot = 0; currentSpot < pairsAmount; currentSpot++) {
+            symbolTable.put(currentSpot, currentSpot);
+            int redBlackTreesHeight = symbolTable.height();
+            StdOut.println("currentSpot = " + currentSpot + ", height = " + redBlackTreesHeight + ", size = " + symbolTable.size());
+        }
+
+        StdOut.println("size = " + symbolTable.size());
     }
 }
