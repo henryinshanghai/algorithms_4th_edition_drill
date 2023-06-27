@@ -13,7 +13,7 @@ import edu.princeton.cs.algs4.StdOut;
  *  This is the 2-3 version.
  *
  *  This implementation implements only put, get, and contains.
- *  See RedBlackBST.java for a full implementation including delete.
+ *  See RedBlackTreeSymbolTable.java for a full implementation including delete.
  *
  *
  *  % more tinyST.txt
