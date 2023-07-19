@@ -160,7 +160,7 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
         return get(rootNode, passedKey);
     }
 
-    // value associated with the given key in subtree rooted at x; null if no such key
+    // 使用循环的方式 在树中查找传入的key
     private Value get(Node currentNode, Key passedKey) {
         while (currentNode != null) {
             int result = passedKey.compareTo(currentNode.key);
@@ -173,7 +173,7 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
 
     /**
      * Does this symbol table contain the given key?
-     *
+     * 符号表中是否包含有 传入的key?
      * @param passedKey the key
      * @return {@code true} if this symbol table contains {@code key} and
      * {@code false} otherwise
@@ -192,33 +192,46 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
      * value with the new value if the symbol table already contains the specified key.
      * Deletes the specified key (and its associated value) from this symbol table
      * if the specified value is {@code null}.
-     *
+     * 向符号表中插入指定的键值对
+     * 如果符号表中存在有传入的键，则：覆写其所对应的值
+     * 如果传入的值是null，则：删除指定的键（及 与之关联的value）
      * @param passedKey       the key
      * @param associatedValue the value
      * @throws IllegalArgumentException if {@code key} is {@code null}
      */
     public void put(Key passedKey, Value associatedValue) {
-        if (passedKey == null) throw new IllegalArgumentException("first argument to put() is null");
+        if (passedKey == null)
+            throw new IllegalArgumentException("first argument to put() is null");
+
+        // 如果传入的value是null，则：执行删除
         if (associatedValue == null) {
             delete(passedKey);
             return;
         }
 
+        // 向指定的树（初始是rootNode）中，添加键值对
         rootNode = put(rootNode, passedKey, associatedValue);
+
+        // 把根结点的颜色 设置回黑色
         rootNode.color = BLACK;
         // assert check();
     }
 
-    // insert the key-value pair in the subtree rooted at toMoveStepsToEndGridWithoutObstacles
+    // 向 根节点为currentNode的树中，插入键值对
     private Node put(Node currentNode, Key passedKey, Value associatedValue) {
+        /* 递归终结条件：对传入key的查找终止于一个null结点（说明不存在这样的结点），则：需要创建一个新结点，并插入到树中 */
         if (currentNode == null) return new Node(passedKey, associatedValue, RED, 1);
 
-        int cmp = passedKey.compareTo(currentNode.key);
-        if (cmp < 0) currentNode.leftSubNode = put(currentNode.leftSubNode, passedKey, associatedValue);
-        else if (cmp > 0) currentNode.rightSubNode = put(currentNode.rightSubNode, passedKey, associatedValue);
-        else currentNode.value = associatedValue;
+        /* 根据传入的key 与 当前树的根结点key之间的大小关系，决定具体的行为 👇 */
+        int result = passedKey.compareTo(currentNode.key);
+        if (result < 0) // 如果更小，则：递归地在左子树中执行插入操作
+            currentNode.leftSubNode = put(currentNode.leftSubNode, passedKey, associatedValue);
+        else if (result > 0) // 如果更大，则：递归地在右子树中执行插入操作
+            currentNode.rightSubNode = put(currentNode.rightSubNode, passedKey, associatedValue);
+        else // 如果相等，则：更新当前结点的value
+            currentNode.value = associatedValue;
 
-        // fix-up any rightSubNode-leaning links
+        // 在插入结点（红节点）后，处理树中可能出现的breach - #1 红色的右链接（手段：左旋转当前结点）； #2 连续的红色链接（右旋转当前结点 | 翻转颜色）；
         if (isRed(currentNode.rightSubNode) && !isRed(currentNode.leftSubNode)) currentNode = rotateLeft(currentNode);
         if (isRed(currentNode.leftSubNode) && isRed(currentNode.leftSubNode.leftSubNode)) currentNode = rotateRight(currentNode);
         if (isRed(currentNode.leftSubNode) && isRed(currentNode.rightSubNode)) flipColors(currentNode);
@@ -232,29 +245,19 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
      ***************************************************************************/
 
     /**
-     * Removes the smallest key and associated value from the symbol table.
-     *
-     * @throws NoSuchElementException if the symbol table is empty
-     *                                通过保持与文本中给出的转换的对应关系来实现RedBlackBST.java的deleteMin（）操作；
-     *                                作用：1 以使树的左脊向下移动；
-     *                                2 同时保持不变————即当前节点不是2节点。
-     *                                Implement the deleteMin() operation for RedBlackTreeSymbolTable.java
-     *                                by maintaining the correspondence with the transformations given in the text
-     *                                for moving down the leftSubNode spine of the tree
-     *                                while maintaining the invariant that the current node is not a 2-node.
+     * 从符号表中删除最小键（及其所关联的值）
+     * 通过保持与文本中给出的转换的对应关系来实现RedBlackBST.java的deleteMin（）操作；
+     * 作用：1 以使树的左脊向下移动；
+     *      2 同时保持树的不变性————即当前节点不是2节点。
      */
     public void deleteMin() {
         if (isEmpty()) throw new NoSuchElementException("BST underflow");
 
-        // if both children of rootNode are black, set rootNode to red
-        // 如果根节点的两个子节点都是黑色，就设置根节点的颜色为红色
         if (!isRed(rootNode.leftSubNode) && !isRed(rootNode.rightSubNode))
             rootNode.color = RED;
 
-        // 把“删除最小节点后的树” 重新绑定给 root
         rootNode = deleteMin(rootNode);
 
-        // 把根结点的颜色强制设置为黑色
         if (!isEmpty()) rootNode.color = BLACK;
         // assert check();
     }
@@ -263,88 +266,128 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
     // delete the key-value pair with the minimum key rooted at toMoveStepsToEndGridWithoutObstacles
 
     /**
-     * 通过保持与文本描述中给出的转换的对应关系来实现RedBlackBST.java的deleteMin（）操作，以使树的左脊向下移动，同时保持不变，即当前节点不是2节点。
+     * 通过保持与文本描述中给出的转换的对应关系来实现RedBlackBST.java的deleteMin（）操作，以使树的左脊向下移动，
+     * 同时保持不变性 - 即当前节点不是2节点。
      * 递归方法作用：从树中删除最小键的键值对，并返回更新后的树
      *
      * @param currentNode
      * @return
      */
     private Node deleteMin(Node currentNode) {
-        // 查找最小键的过程会递归地沿着当前树的左链接进行，最终会遇到一个子链接为null的叶子结点👇
-        // todo why null?
-        /*
-            这与2-3树的生成方式有关 - 当有两个键值对时，就会构造出一个3-节点？？？
-            把一棵 “仅由一个3-节点组成的2-3树” 转化为一个红黑树（根节点 + 左子节点）
-            因此，如果根节点的左子节点为null，说明当前2-3树中就只有一个节点，则：这个节点就是最小节点
-            删除之后，就只有一棵空树了 所以return null
-         */
         if (currentNode.leftSubNode == null)
             return null;
 
-        // Ⅰ 递归前，沿着左链接对当前节点进行处理————确保当前节点不是一个2-节点（这样就不会从2-节点中删除键值对）
-        // 如果左子树不是红色的（左子结点是一个2-结点） & 左子树的左子树也不是红色的（左子结点的左子结点也是一个2-结点）
-        // 则：对当前结点执行 moveRedLeft()
         if (!isRed(currentNode.leftSubNode) && !isRed(currentNode.leftSubNode.leftSubNode))
             currentNode = moveRedLeft(currentNode);
 
-        // Ⅱ 执行删除操作，并把 “删除了最小节点后的左子树” 重新绑定到“当前结点”上
-        // 🐖 经过Ⅰ的调整后，我们可以确保 删除动作发生在一个 不是2-结点的结点中
         currentNode.leftSubNode = deleteMin(currentNode.leftSubNode);
 
-        // Ⅲ 回溯时，对树进行平衡操作
         return balance(currentNode);
     }
 
+    // 恢复红黑树的不变性 🐖 这是一套固定流程
+    private Node balance(Node currentNode) {
+        // assert (toMoveStepsToEndGridWithoutObstacles != null);
+
+        // 需要被修复的三种情况：#1 红色右链接（左旋转）; #2 连续的红色左链接(右旋转); #3 红色的左右子结点（反转颜色）
+        if (isRed(currentNode.rightSubNode))
+            currentNode = rotateLeft(currentNode); // 红色右链接
+        if (isRed(currentNode.leftSubNode) && isRed(currentNode.leftSubNode.leftSubNode))
+            currentNode = rotateRight(currentNode); // 两个连续的红色左链接
+        if (isRed(currentNode.leftSubNode) && isRed(currentNode.rightSubNode))
+            flipColors(currentNode); // 同一个节点连接左右红链接
+
+        currentNode.itsNodesAmount = size(currentNode.leftSubNode) + size(currentNode.rightSubNode) + 1;
+        return currentNode;
+    }
+
+    // 把当前结点上的红链接 沿着查询路径向下移动
+    // 或者，把红链接从右孙子 移动到左孙子
+    private Node moveRedLeft(Node currentNode) {
+        flipColors(currentNode);
+
+        if (isRed(currentNode.rightSubNode.leftSubNode)) {
+            currentNode.rightSubNode = rotateRight(currentNode.rightSubNode);
+            currentNode = rotateLeft(currentNode);
+            flipColors(currentNode); // 从结果上看，相当于把 右孙子的红链接移动到左孙子上（从sibling借红链接）
+        }
+
+        // 返回 “按需移动红链接”后的当前节点
+        return currentNode;
+    }
 
     /**
-     * Removes the largest key and associated value from the symbol table.
-     *
-     * @throws NoSuchElementException if the symbol table is empty
-     *                                <p>
-     *                                Implement the deleteMax() operation for RedBlackTreeSymbolTable.java.
-     *                                Note that the transformations involved
-     *                                differ slightly from those in the previous exercise
-     *                                because red links are leftSubNode-leaning.
-     *                                请注意，涉及的转换与上一个练习中的转换略有不同，因为红色链接向左倾斜。
+     * 移除符号表中的最大key 及其所关联的value
+     * 请注意，涉及的转换与上一个练习中的转换略有不同，因为红色链接向左倾斜。
      */
     public void deleteMax() {
         if (isEmpty()) throw new NoSuchElementException("BST underflow");
 
-        // if both children of rootNode are black, set rootNode to red
+        // 如果查询路径上的第一个链接不是红链接（根结点的左右子节点都是黑色的），则：
+        // 把根结点改变成为一个红节点 - 后继才能把这个红链接往下推
         if (!isRed(rootNode.leftSubNode) && !isRed(rootNode.rightSubNode))
             rootNode.color = RED;
 
         rootNode = deleteMax(rootNode);
+
+        // 删除完成后，把根结点强制设置为黑色（红黑树的定义）
         if (!isEmpty()) rootNode.color = BLACK;
         // assert check();
     }
 
-    // delete the key-value pair with the maximum key rooted at toMoveStepsToEndGridWithoutObstacles
-    private Node deleteMax(Node h) {
-        // Ⅰ 递归调用之前做一些事情    作用：避免当前节点是一个2-节点
-        if (isRed(h.leftSubNode)) // 1 左子树为红节点   这说明右子树是一个黑节点（2-节点）  这不是预期的，所以需要更新当前树来避免查找路径上的2-节点
-            // 作用：更新当前节点    手段：使一个左倾的链接转向右倾
-            // 更新后，在查找路径上得到一个3-节点
-            h = rotateRight(h);
+    // 删除符号表中的最大键 及 其所关联的value
+    // 整体的不变性 - 当前结点不是2-结点  手段：通过结点的左链接 来 判断结点是不是2-结点
+    // 具体的不变性 - 在查询路径中，保证 当前节点 或者 当前节点的右子结点为红色
+    private Node deleteMax(Node currentNode) {
+        // Ⅰ 递归调用之前做一些事情
+        /* 在查询路径中，引入一个红节点👇 */
+        // 手段：如果当前节点的左子结点是红节点，则 右旋转当前结点 来 得到红色的右链接
+        if (isRed(currentNode.leftSubNode))
+            currentNode = rotateRight(currentNode);
 
-        if (h.rightSubNode == null) // 2 右子树为空     这说明树中就只有一个节点
-            // 作用：？？？   手段：返回null       如果右子树为空，则根据性质5 左子树中只能有两种情况：1 左子树为空 2 左子树中只包含红节点（这种情况已经在第一个if()中处理，它会得到一个包含右节点的树 所以2不存在）
-            // 当右子树为null时，说明树中就只有一个节点
+        // 查询最大key的过程会沿着树的右脊递归下去，直到遇到最大结点
+        if (currentNode.rightSubNode == null)
+            // 删除最大结点（红节点/叶子节点） 手段：返回null
             return null;
 
-        if (!isRed(h.rightSubNode) && !isRed(h.rightSubNode.leftSubNode)) // 右子树为黑节点&右子树的左子树为黑节点     判断查找路径上的当前节点是否为2-节点 这里的h.rightSubNode.left是因为红链接是左倾的
-            // 更新当前节点   作用：避免当前节点（的右子节点）是一个2-节点
-            h = moveRedRight(h);
+        // 判断查询路径上当前节点的右子结点为2-结点...
+        // 手段：#1 获取到当前节点的右子结点 currentNode.rightSubNode; #2 判断其左链接是不是为红色（3-结点与4-结点的左链接都是红色的）
+        // 如果是，则：在查询路径中引入红链接，使之不再是一个2-结点
+        if (!isRed(currentNode.rightSubNode) && !isRed(currentNode.rightSubNode.leftSubNode))
+            // 使用 moveRedRight() 来 把红链接沿着查找路径往下推
+            currentNode = moveRedRight(currentNode);
 
-        h.rightSubNode = deleteMax(h.rightSubNode);
+        // Ⅱ 执行删除操作，并把 “删除了最大节点后的右子树” 重新绑定到“当前结点”上
+        // 🐖 经过Ⅰ的调整后，我们可以确保 删除动作发生在一个 不是2-结点的结点中
+        currentNode.rightSubNode = deleteMax(currentNode.rightSubNode);
 
-        return balance(h);
+        // 删除结点后，在向上的过程中，修复红色右链接 & 4-结点
+        return balance(currentNode);
+    }
+
+    // 使一个左倾的链接变成右倾 - 右旋转左链接
+    private Node rotateRight(Node currentNode) {
+        assert (currentNode != null) && isRed(currentNode.leftSubNode);
+
+        // #1 结构上的变更
+        Node replacerNode = currentNode.leftSubNode; // 找到替换结点（aka 当前节点的左子结点）
+        currentNode.leftSubNode = replacerNode.rightSubNode; // 用替换结点的右子树 来 作为当前结点的左子树
+        replacerNode.rightSubNode = currentNode; // 使用当前节点 来 作为替换节点的右子树
+
+        // #2 颜色上的变更
+        replacerNode.color = currentNode.color;
+        currentNode.color = RED; // 旋转后，当前节点仍旧是一个红节点
+
+        // #3 子树中结点数量的变更（替换节点&当前结点）
+        replacerNode.itsNodesAmount = currentNode.itsNodesAmount; // “替换结点”子树中的结点数量 与 “当前结点”中的结点数量相同
+        currentNode.itsNodesAmount = size(currentNode.leftSubNode) + size(currentNode.rightSubNode) + 1;
+
+        // 返回替换节点
+        return replacerNode;
     }
 
     /**
-     * Removes the specified key and its associated value from this symbol table
-     * (if the key is in this symbol table).
-     *
+     * 从符号表中删除传入的key 及 其所关联的value
      * @param passedKey the key
      * @throws IllegalArgumentException if {@code key} is {@code null}
      */
@@ -352,12 +395,15 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
         if (passedKey == null) throw new IllegalArgumentException("argument to delete() is null");
         if (!contains(passedKey)) return;
 
-        // if both children of rootNode are black, set rootNode to red
-        // 如果root节点的两个子节点都是黑色，就设置根节点为红色
+        // 根据需要（下一级结点没有红节点），在查询路径中，手动引入一个红节点
+        // 手段：把根结点设置为红色
         if (!isRed(rootNode.leftSubNode) && !isRed(rootNode.rightSubNode))
             rootNode.color = RED;
 
+        // 从当前树中删除传入的key, 并把删除后的结果绑定回到 当前结点上
         rootNode = delete(rootNode, passedKey);
+
+        // 强制把根结点的颜色设置为黑色
         if (!isEmpty()) rootNode.color = BLACK;
         // assert check();
     }
@@ -368,40 +414,41 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
     private Node delete(Node currentNode, Key passedKey) {
         // assert get(toMoveStepsToEndGridWithoutObstacles, key) != null;
 
-        if (passedKey.compareTo(currentNode.key) < 0) { // 预期删除的节点在左子树中
-            // 更新当前节点 确保它不是2-节点
-            if (!isRed(currentNode.leftSubNode) && !isRed(currentNode.leftSubNode.leftSubNode)) // 如何判断一个节点是不是2-节点呢？
+        if (passedKey.compareTo(currentNode.key) < 0) { // 如果预期删除的节点在左子树中，则：
+            // 如果需要，则：为当前查询路径引入红链接
+            if (!isRed(currentNode.leftSubNode) && !isRed(currentNode.leftSubNode.leftSubNode))
                 currentNode = moveRedLeft(currentNode);
-            // 从左子树中删除预期节点
+            // 递归地左子树中删除预期节点， 并把删除结点后的树 重新绑定回到 左子树上
             currentNode.leftSubNode = delete(currentNode.leftSubNode, passedKey);
-        } else { // 预期删除的节点在右子树中  任务：避免当前节点是一个2-节点
-            // condition1 左节点为红色
+        } else { // 如果预期删除的结点不在左子树中，则：
+            // 把红色的左链接推到右边 手段：右旋转当前节点
             if (isRed(currentNode.leftSubNode))
-                currentNode = rotateRight(currentNode); // 把左子节点作为新的根节点，旧的根节点会进入到右子树中
+                currentNode = rotateRight(currentNode);
 
-            // condition2 根节点即为预期删除的节点，并且右节点为空
+            // 如果在叶子节点处找到了与传入key相同的结点，则：直接删除结点 返回null
             if (passedKey.compareTo(currentNode.key) == 0 && (currentNode.rightSubNode == null))
                 return null; // 为什么返回空？ can not make sense
 
-            // condition3 右子节点为2-节点 并且右子节点的左子节点也是2-节点
-            if (!isRed(currentNode.rightSubNode) && !isRed(currentNode.rightSubNode.leftSubNode)) // this seems like the former condition in deleteMin()
-                // 执行相应操作，避免当前节点为2-节点
+            // 如果在查询路径上缺少红链接，则：把红链接移动到查询路径中
+            if (!isRed(currentNode.rightSubNode) && !isRed(currentNode.rightSubNode.leftSubNode))
                 currentNode = moveRedRight(currentNode);
 
-            // condition4 如果根节点刚好是预期删除的节点
+            // 如果当前节点就是待删除的结点，则：
             if (passedKey.compareTo(currentNode.key) == 0) { // this is like delete in BST
-                // 先覆盖预期删除的节点 使用它的successor
-                Node successorNode = minKey(currentNode.rightSubNode);
+                // 找到当前节点右子树中的最小结点，作为 后继结点
+                Node successorNode = NodeWithMinKey(currentNode.rightSubNode);
+                // 使用后继结点 来 更新当前节点
                 currentNode.key = successorNode.key;
                 currentNode.value = successorNode.value;
-                // toMoveStepsToEndGridWithoutObstacles.value = get(toMoveStepsToEndGridWithoutObstacles.rightSubNode, min(toMoveStepsToEndGridWithoutObstacles.rightSubNode).key);
-                // toMoveStepsToEndGridWithoutObstacles.key = min(toMoveStepsToEndGridWithoutObstacles.rightSubNode).key;
-                currentNode.rightSubNode = deleteMin(currentNode.rightSubNode); // 再使用删除节点后的树更新右子树
+                // 从右子树中删除后继结点， 并 把删除结点后的子树 重新绑定到 当前节点的右子树上
+                currentNode.rightSubNode = deleteMin(currentNode.rightSubNode); // 至此，删除任意结点完成
             }
 
-            // 如果不是上面的任何一种情况 直接更新右子树 THIS is make no sense too. why there is so many if?
+            // 在右子树中继续递归 move down(right)
             else currentNode.rightSubNode = delete(currentNode.rightSubNode, passedKey);
         }
+
+        // 修复引入的红色右链接 + 4-结点
         return balance(currentNode);
     }
 
@@ -411,26 +458,7 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
      * @param currentNode
      * @return*/
 
-    // make a leftSubNode-leaning link lean to the rightSubNode
-    // 使一个左倾的链接变成右倾 - 右旋转左链接
-    private Node rotateRight(Node currentNode) {
-        assert (currentNode != null) && isRed(currentNode.leftSubNode);
 
-        // #1 结构上的变更
-        Node replacerNode = currentNode.leftSubNode; // 找到替换结点
-        currentNode.leftSubNode = replacerNode.rightSubNode; // 用替换结点的右子树 来 作为当前结点的左子树
-        replacerNode.rightSubNode = currentNode; // 使用当前节点 来 作为替换节点的右子树
-
-        // #2 颜色上的变更
-        replacerNode.color = currentNode.color;
-        currentNode.color = RED; // 旋转后，得到的仍旧是一个红链接
-
-        // #3 子树中结点数量的变更
-        replacerNode.itsNodesAmount = currentNode.itsNodesAmount; // “替换结点”子树中的结点数量 与 “当前结点”中的结点数量相同
-        currentNode.itsNodesAmount = size(currentNode.leftSubNode) + size(currentNode.rightSubNode) + 1;
-
-        return replacerNode;
-    }
 
     // 使一个右倾的链接变成左倾
     private Node rotateLeft(Node currentNode) {
@@ -460,51 +488,30 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
         currentNode.rightSubNode.color = !currentNode.rightSubNode.color;
     }
 
-    // todo 这部分的代码和过程书上讲得非常不清楚，只靠自己没办法add them up. 明天用公司的网络在youtube上搜一下“红黑树的删除最小键的算法”
-    // 假设 当前结点是红色的（3-结点的一部分）& 当前节点的左节点、当前节点左节点的左节点都是黑色的（必然有一个是2-结点），则：
-    // #1 要么把 “当前节点的左节点”变红（成为一个3-结点 但是破坏了红黑树约束）
-    // #2 要么 把“当前节点的左节点”的任意一个子节点 变红（成为3-结点的一部分）
-    private Node moveRedLeft(Node currentNode) {
-        flipColors(currentNode);
-
-        if (isRed(currentNode.rightSubNode.leftSubNode)) {
-            currentNode.rightSubNode = rotateRight(currentNode.rightSubNode);
-            currentNode = rotateLeft(currentNode);
-            flipColors(currentNode);
-        }
-
-        return currentNode;
-    }
-
-    // 假设 当前结点是红节点，而 它的右子结点 与 右子结点的左子结点 都是黑节点（2-结点）,则：
-    // 把 当前结点的右子结点 或者 右子结点的某个子节点 变成红色
+    // 把当前节点的红链接 沿着查找路径 向下移动 👇
+    // 或者，把红链接 从左孙子 移动到右孙子
     private Node moveRedRight(Node currentNode) {
-        // Ⅰ 翻转当前结点的链接颜色
+        // 默认操作：翻转当前节点的颜色
+        // 🐖 由于当前节点必然是（红+黑*2）的，因此翻转颜色 会把当前节点的红色，转换到子节点上
+        // 从2-3-4树的角度来看，是得到了一个4-结点
         flipColors(currentNode);
 
-        // Ⅱ 如果 “当前节点的左子节点”的左子节点为红色，则：
+        // 判断 “当前节点的左子结点（查询路径上结点的sibling结点）” 是不是一个非2-结点
+        // 手段：#1 获取“当前节点的左子结点”; #2 判断其左链接(左子结点)是不是红色 - 如果是，则为3-结点或4-结点。如果不是，则为2-结点
+        // 如果 是一个非2-结点, 则：从2-3-4树的角度来说，我们需要从sibling node中借一个结点
+        // 借的手段：通过右旋转把 根结点移动到右脊上
         if (isRed(currentNode.leftSubNode.leftSubNode)) {
+            // #1 右旋转当前结点(产生连续的红色链接);
             currentNode = rotateRight(currentNode);
-            flipColors(currentNode);
+            // #2 翻转当前结点的颜色
+            flipColors(currentNode); // 从结果上看（产生了一个右链接 在2-3-4树中，等同于一个3-结点），相当于把左孙子的红链接移动到右孙子上（从sibling借红链接）
         }
 
+        // 返回 “按需移动红链接”后的当前节点
         return currentNode;
     }
 
-    // restore red-black tree invariant
-    // 恢复红黑树的不变性 这是一套固定流程
-    private Node balance(Node currentNode) {
-        // assert (toMoveStepsToEndGridWithoutObstacles != null);
 
-        // 需要颜色平衡的三种情况
-        if (isRed(currentNode.rightSubNode)) currentNode = rotateLeft(currentNode); // 红色右链接
-        if (isRed(currentNode.leftSubNode) && isRed(currentNode.leftSubNode.leftSubNode))
-            currentNode = rotateRight(currentNode); // 两个连续的红色左链接
-        if (isRed(currentNode.leftSubNode) && isRed(currentNode.rightSubNode)) flipColors(currentNode); // 同一个节点连接左右红链接
-
-        currentNode.itsNodesAmount = size(currentNode.leftSubNode) + size(currentNode.rightSubNode) + 1;
-        return currentNode;
-    }
 
 
     /***************************************************************************
@@ -537,14 +544,14 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
      */
     public Key minKey() {
         if (isEmpty()) throw new NoSuchElementException("calls min() with empty symbol table");
-        return minKey(rootNode).key;
+        return NodeWithMinKey(rootNode).key;
     }
 
     // the smallest key in subtree rooted at x; null if no such key
-    private Node minKey(Node currentNode) {
+    private Node NodeWithMinKey(Node currentNode) {
         // assert x != null;
         if (currentNode.leftSubNode == null) return currentNode;
-        else return minKey(currentNode.leftSubNode);
+        else return NodeWithMinKey(currentNode.leftSubNode);
     }
 
     /**
