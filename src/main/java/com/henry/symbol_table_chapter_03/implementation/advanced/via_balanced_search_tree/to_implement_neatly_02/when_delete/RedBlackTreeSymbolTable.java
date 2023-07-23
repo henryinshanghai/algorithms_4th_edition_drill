@@ -245,6 +245,57 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
      ***************************************************************************/
 
     /**
+     * 移除符号表中的最大key 及其所关联的value
+     * 请注意，涉及的转换与上一个练习中的转换略有不同，因为红色链接向左倾斜。
+     * 不变性：向下查询的过程中，当前结点总是红色的
+     */
+    public void deleteMax() {
+        if (isEmpty()) throw new NoSuchElementException("BST underflow");
+
+        // 如果查询路径上的第一个链接不是红链接（根结点的左右子节点都是黑色的），说明根结点是一个2-结点。则：
+        // 把根结点改变成为一个红节点 - 后继才能把这个红链接往下推
+        if (!isRed(rootNode.leftSubNode) && !isRed(rootNode.rightSubNode))
+            rootNode.color = RED;
+
+        rootNode = deleteMax(rootNode);
+
+        // 删除完成后，把根结点强制设置为黑色（红黑树的定义）
+        if (!isEmpty()) rootNode.color = BLACK;
+        // assert check();
+    }
+
+    // 删除符号表中的最大键 及 其所关联的value
+    // 整体的不变性 - 当前结点不是2-结点  手段：在左倾红黑树中，可以通过结点的左链接是否为红色 来 判断结点是不是2-结点
+    // 具体的不变性 - 在查询路径中，保证 当前节点 或者 当前节点的右子结点为红色
+    private Node deleteMax(Node currentNode) {
+        // Ⅰ 递归调用之前做一些事情
+        /* 在查询路径中，引入一个红节点👇 */
+        // 手段：如果当前节点的左子结点是红节点(2-3-4树中的3-结点)，则 右旋转当前结点 来 得到红色的右链接（2-3-4树中的3-结点）
+        if (isRed(currentNode.leftSubNode))
+            currentNode = rotateRight(currentNode);
+
+        // 查询最大key的过程会沿着树的右脊递归下去，直到遇到最大结点
+        if (currentNode.rightSubNode == null)
+            // 删除最大结点（红节点/叶子节点） 手段：返回null
+            return null;
+
+        // 判断查询路径上下一个结点(当前节点的右子结点) 是否为2-3-4树中的2-结点...
+        // 手段：#1 获取到当前节点的右子结点 currentNode.rightSubNode，判断指向结点的链接是否为红色(2-3-4树中的3-结点②的右链接就是红色的);
+        // #2 判断其左链接是不是为红色（2-3-4树中的3-结点①与4-结点的左链接都是红色的）
+        // 如果不是，说明查询路径中出现了2-结点。则：在查询路径中引入红链接，使之不再是一个2-结点
+        if (!isRed(currentNode.rightSubNode) && !isRed(currentNode.rightSubNode.leftSubNode))
+            // 使用 moveRedRight() 来 把红链接沿着查找路径往下推
+            currentNode = moveRedRight(currentNode);
+
+        // Ⅱ 执行删除操作，并把 “删除了最大节点后的右子树” 重新绑定到“当前结点”上
+        // 🐖 经过Ⅰ的调整后，我们可以确保 删除动作发生在一个 不是2-结点的结点中
+        currentNode.rightSubNode = deleteMax(currentNode.rightSubNode);
+
+        // 删除结点后，在向上的过程中，修复红色右链接 & 4-结点
+        return fixMightBreaches(currentNode);
+    }
+
+    /**
      * 从符号表中删除最小键（及其所关联的值）
      * 通过保持与文本中给出的转换的对应关系来实现RedBlackBST.java的deleteMin（）操作；
      * 作用：1 以使树的左脊向下移动；
@@ -253,7 +304,9 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
     public void deleteMin() {
         if (isEmpty()) throw new NoSuchElementException("BST underflow");
 
-        if (!isRed(rootNode.leftSubNode) && !isRed(rootNode.rightSubNode))
+        // 如果查询路径上的第一个链接不是红链接（根结点的左右子节点都是黑色的），说明根结点是一个2-结点。则：
+        // 把根结点改变成为一个红节点 - 后继才能把这个红链接往下推
+        if (rootNodeIsA2Node())
             rootNode.color = RED;
 
         rootNode = deleteMin(rootNode);
@@ -262,31 +315,53 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
         // assert check();
     }
 
-    // 在h树中删除最小键的key-value对
-    // delete the key-value pair with the minimum key rooted at toMoveStepsToEndGridWithoutObstacles
+    private boolean rootNodeIsA2Node() {
+        return !isRed(rootNode.leftSubNode) && !isRed(rootNode.rightSubNode);
+    }
 
-    /**
-     * 通过保持与文本描述中给出的转换的对应关系来实现RedBlackBST.java的deleteMin（）操作，以使树的左脊向下移动，
-     * 同时保持不变性 - 即当前节点不是2节点。
-     * 递归方法作用：从树中删除最小键的键值对，并返回更新后的树
-     *
-     * @param currentNode
-     * @return
-     */
+    // 删除当前符号表中的最小键&与其关联的值
+    // 整体的不变性 - 即当前节点不是2节点
+    // 具体的不变性 - 在查询路径中，保持当前节点为红色 或者 当前节点的左子结点为红色
     private Node deleteMin(Node currentNode) {
-        if (currentNode.leftSubNode == null)
-            return null;
+        // 查询最小key的过程会沿着树的左脊递归下去，直到遇到最小结点
+        if (reachToBottom(currentNode))
+            return performDeletion();
 
-        if (!isRed(currentNode.leftSubNode) && !isRed(currentNode.leftSubNode.leftSubNode))
-            currentNode = moveRedLeft(currentNode);
+        // 在沿着树向下递归查找的过程中，判断查询路径上的下一个节点（当前节点的左子结点）是不是一个2-结点
+        if (incomingNodeIsA2Node(currentNode))
+            // 在查询路径中引入红链接，使之不再是一个2-结点
+            currentNode = introduceRedLinkInPath(currentNode);
 
+        // 在确保路径中的当前节点不是2-结点之后，在左子树中递归地执行删除操作
         currentNode.leftSubNode = deleteMin(currentNode.leftSubNode);
 
-        return balance(currentNode);
+        // 对执行了删除操作后的树恢复平衡，得到符合所有约束的树（aka 红黑树）
+        return fixMightBreaches(currentNode);
+    }
+
+
+    // 判断当前节点的下一个结点是不是2-结点
+    private boolean incomingNodeIsA2Node(Node currentNode) {
+        // 手段：#1 获取到当查询路径上的下一个结点 currentNode.leftSubNode；
+        Node incomingNode = currentNode.leftSubNode;
+        // #2 判断指向该结点的链接是否为红色(2-3-4树中的3-结点①的左链接就是红色的);
+        // #3 判断其左链接是不是为红色（2-3-4树中的3-结点①与4-结点的左链接都是红色的）
+        // 如果都不是。则：说明查询路径中出现了2-结点
+        return !isRed(incomingNode) && !isRed(incomingNode.leftSubNode);
+    }
+
+    // 删除掉最小结点（红节点/叶子节点/3-结点or4-结点的一个内部节点）
+    private Node performDeletion() {
+        // 手段：返回null / 使用null关联到父结点上
+        return null;
+    }
+
+    private boolean reachToBottom(Node currentNode) {
+        return currentNode.leftSubNode == null;
     }
 
     // 恢复红黑树的不变性 🐖 这是一套固定流程
-    private Node balance(Node currentNode) {
+    private Node fixMightBreaches(Node currentNode) {
         // assert (toMoveStepsToEndGridWithoutObstacles != null);
 
         // 需要被修复的三种情况：#1 红色右链接（左旋转）; #2 连续的红色左链接(右旋转); #3 红色的左右子结点（反转颜色）
@@ -303,66 +378,71 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
 
     // 把当前结点上的红链接 沿着查询路径向下移动
     // 或者，把红链接从右孙子 移动到左孙子
-    private Node moveRedLeft(Node currentNode) {
-        flipColors(currentNode);
+    private Node introduceRedLinkInPath(Node currentNode) { // moveRedLeft
+        // 🐖 由于所维护的不变性，因此当前节点必然是红节点。
+        defaultApproach(currentNode);
 
-        if (isRed(currentNode.rightSubNode.leftSubNode)) {
-            currentNode.rightSubNode = rotateRight(currentNode.rightSubNode);
-            currentNode = rotateLeft(currentNode);
-            flipColors(currentNode); // 从结果上看，相当于把 右孙子的红链接移动到左孙子上（从sibling借红链接）
+        // 判断查询路径上下一个结点的sibling结点 是不是一个 非2-结点
+        if (siblingNodeIsNot2Node(currentNode)) {
+            // 如果 是一个非2-结点, 则：为了维护“查询路径上的当前结点不是2-结点的不变性”
+            // 从2-3-4树的角度来说，我们需要从sibling node中借一个结点
+            // 手段：把红链接移动到左脊上
+            currentNode = moveRedLinkToLeft(currentNode);
         }
 
         // 返回 “按需移动红链接”后的当前节点
         return currentNode;
     }
 
-    /**
-     * 移除符号表中的最大key 及其所关联的value
-     * 请注意，涉及的转换与上一个练习中的转换略有不同，因为红色链接向左倾斜。
-     */
-    public void deleteMax() {
-        if (isEmpty()) throw new NoSuchElementException("BST underflow");
-
-        // 如果查询路径上的第一个链接不是红链接（根结点的左右子节点都是黑色的），则：
-        // 把根结点改变成为一个红节点 - 后继才能把这个红链接往下推
-        if (!isRed(rootNode.leftSubNode) && !isRed(rootNode.rightSubNode))
-            rootNode.color = RED;
-
-        rootNode = deleteMax(rootNode);
-
-        // 删除完成后，把根结点强制设置为黑色（红黑树的定义）
-        if (!isEmpty()) rootNode.color = BLACK;
-        // assert check();
+    // 判断查询路径上当前节点的下一个节点的sibling node是不是一个非2-结点
+    private boolean siblingNodeIsNot2Node(Node currentNode) {
+        // #1 获取到sibling node（currentNode.rightSubNode）;
+        Node siblingNode = currentNode.rightSubNode;
+        // #2 判断sibling结点 是不是一个非2-结点；
+        // 手段：查看它的左链接是否为红色？ 如果是，则：为非2-结点。否则，为2-结点
+        return isRed(siblingNode.leftSubNode);
     }
 
-    // 删除符号表中的最大键 及 其所关联的value
-    // 整体的不变性 - 当前结点不是2-结点  手段：通过结点的左链接 来 判断结点是不是2-结点
-    // 具体的不变性 - 在查询路径中，保证 当前节点 或者 当前节点的右子结点为红色
-    private Node deleteMax(Node currentNode) {
-        // Ⅰ 递归调用之前做一些事情
-        /* 在查询路径中，引入一个红节点👇 */
-        // 手段：如果当前节点的左子结点是红节点，则 右旋转当前结点 来 得到红色的右链接
-        if (isRed(currentNode.leftSubNode))
+    private void defaultApproach(Node currentNode) {
+        // 翻转当前节点的颜色：从2-3-4树的角度来看，是 与sibling结点相结合，得到了一个4-结点
+        // 作用：维护了 "查询路径上当前节点不是2-结点" 的不变性
+        flipColors(currentNode);
+    }
+
+    // 把当前子树 右脊中的红链接 移动到 左脊上
+    private Node moveRedLinkToLeft(Node currentNode) {
+        // #1 右旋转当前结点的右子结点(在右脊上产生连续的红色链接);
+        currentNode.rightSubNode = rotateRight(currentNode.rightSubNode);
+        // #2 左旋转当前节点（在左脊上产生连续的红色链接）;
+        currentNode = rotateLeft(currentNode);
+        // #3 翻转当前节点的颜色（只保留左脊上第二层的红链接）
+        flipColors(currentNode); // 从结果上看，相当于把 右孙子的红链接移动到左孙子上（从sibling借红链接）
+
+        return currentNode;
+    }
+
+
+    // 把当前节点的红链接 沿着查找路径 向下移动 👇
+    // 或者，把红链接 从左孙子 移动到右孙子
+    private Node moveRedRight(Node currentNode) {
+        // 默认操作：翻转当前节点的颜色
+        // 🐖 由于所维护的不变性，因此当前节点必然是红节点。
+        // 翻转当前节点的颜色：从2-3-4树的角度来看，是 与sibling结点相结合，得到了一个4-结点 从而 维护了 当前节点不是2-结点的不变性
+        flipColors(currentNode);
+
+        // 判断 “当前节点的左子结点（查询路径上结点的sibling结点）” 是不是一个非2-结点
+        // 手段：#1 获取“当前节点的左子结点”; #2 判断其左链接(左子结点)是不是红色 - 如果是，则为非2-结点。如果不是，则为2-结点
+        // 如果 是一个非2-结点, 则：从2-3-4树的角度来说，我们需要从sibling node中借一个结点 来 维护当前结点不是2-结点的不变性
+        // 借的手段：通过右旋转把 根结点移动到右脊上
+        if (isRed(currentNode.leftSubNode.leftSubNode)) {
+            // #1 右旋转当前结点(产生连续的红色链接);
             currentNode = rotateRight(currentNode);
+            // #2 翻转当前结点的颜色
+            flipColors(currentNode); // 从结果上看（产生了一个右链接 在2-3-4树中，等同于一个3-结点），相当于把左孙子的红链接移动到右孙子上（从sibling借红链接）
+        }
 
-        // 查询最大key的过程会沿着树的右脊递归下去，直到遇到最大结点
-        if (currentNode.rightSubNode == null)
-            // 删除最大结点（红节点/叶子节点） 手段：返回null
-            return null;
-
-        // 判断查询路径上当前节点的右子结点为2-结点...
-        // 手段：#1 获取到当前节点的右子结点 currentNode.rightSubNode; #2 判断其左链接是不是为红色（3-结点与4-结点的左链接都是红色的）
-        // 如果是，则：在查询路径中引入红链接，使之不再是一个2-结点
-        if (!isRed(currentNode.rightSubNode) && !isRed(currentNode.rightSubNode.leftSubNode))
-            // 使用 moveRedRight() 来 把红链接沿着查找路径往下推
-            currentNode = moveRedRight(currentNode);
-
-        // Ⅱ 执行删除操作，并把 “删除了最大节点后的右子树” 重新绑定到“当前结点”上
-        // 🐖 经过Ⅰ的调整后，我们可以确保 删除动作发生在一个 不是2-结点的结点中
-        currentNode.rightSubNode = deleteMax(currentNode.rightSubNode);
-
-        // 删除结点后，在向上的过程中，修复红色右链接 & 4-结点
-        return balance(currentNode);
+        // 返回 “按需移动红链接”后的当前节点
+        return currentNode;
     }
 
     // 使一个左倾的链接变成右倾 - 右旋转左链接
@@ -417,7 +497,7 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
         if (passedKey.compareTo(currentNode.key) < 0) { // 如果预期删除的节点在左子树中，则：
             // 如果需要，则：为当前查询路径引入红链接
             if (!isRed(currentNode.leftSubNode) && !isRed(currentNode.leftSubNode.leftSubNode))
-                currentNode = moveRedLeft(currentNode);
+                currentNode = introduceRedLinkInPath(currentNode);
             // 递归地左子树中删除预期节点， 并把删除结点后的树 重新绑定回到 左子树上
             currentNode.leftSubNode = delete(currentNode.leftSubNode, passedKey);
         } else { // 如果预期删除的结点不在左子树中，则：
@@ -449,7 +529,7 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
         }
 
         // 修复引入的红色右链接 + 4-结点
-        return balance(currentNode);
+        return fixMightBreaches(currentNode);
     }
 
     /***************************************************************************
@@ -488,28 +568,7 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
         currentNode.rightSubNode.color = !currentNode.rightSubNode.color;
     }
 
-    // 把当前节点的红链接 沿着查找路径 向下移动 👇
-    // 或者，把红链接 从左孙子 移动到右孙子
-    private Node moveRedRight(Node currentNode) {
-        // 默认操作：翻转当前节点的颜色
-        // 🐖 由于当前节点必然是（红+黑*2）的，因此翻转颜色 会把当前节点的红色，转换到子节点上
-        // 从2-3-4树的角度来看，是得到了一个4-结点
-        flipColors(currentNode);
 
-        // 判断 “当前节点的左子结点（查询路径上结点的sibling结点）” 是不是一个非2-结点
-        // 手段：#1 获取“当前节点的左子结点”; #2 判断其左链接(左子结点)是不是红色 - 如果是，则为3-结点或4-结点。如果不是，则为2-结点
-        // 如果 是一个非2-结点, 则：从2-3-4树的角度来说，我们需要从sibling node中借一个结点
-        // 借的手段：通过右旋转把 根结点移动到右脊上
-        if (isRed(currentNode.leftSubNode.leftSubNode)) {
-            // #1 右旋转当前结点(产生连续的红色链接);
-            currentNode = rotateRight(currentNode);
-            // #2 翻转当前结点的颜色
-            flipColors(currentNode); // 从结果上看（产生了一个右链接 在2-3-4树中，等同于一个3-结点），相当于把左孙子的红链接移动到右孙子上（从sibling借红链接）
-        }
-
-        // 返回 “按需移动红链接”后的当前节点
-        return currentNode;
-    }
 
 
 
