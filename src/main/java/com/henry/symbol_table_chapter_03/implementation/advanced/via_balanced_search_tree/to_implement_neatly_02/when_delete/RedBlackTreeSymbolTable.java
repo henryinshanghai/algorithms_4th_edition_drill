@@ -264,6 +264,10 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
         // assert check();
     }
 
+    private boolean rootNodeIsA2Node() {
+        return !isRed(rootNode.leftSubNode) && !isRed(rootNode.rightSubNode);
+    }
+
     // 删除符号表中的最大键 及 其所关联的value
     // 整体的不变性 - 当前结点不是2-结点  手段：在左倾红黑树中，可以通过结点的左链接是否为红色 来 判断结点是不是2-结点
     // 具体的不变性 - 在查询路径中，保证 当前节点 或者 当前节点的右子结点为红色
@@ -274,30 +278,32 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
         if (isA3Node(currentNode))
             currentNode = leanRedLinkToRight(currentNode);
 
-        // 如果调用沿着右脊执行到了树的底部...
+        // 如果调用沿着右脊 递归执行到了树的底部...
         if (reachToBottomOnRightSpine(currentNode))
             // 则：删除最大结点（红节点/叶子节点）
             return performDeletion();
 
-        // 判断查询路径中的下一个结点(当前节点的右子结点) 是否为2-3-4树中的2-结点...
+        // 在沿着树的右脊向下递归查找的过程中，判断查询路径中的下一个结点(当前节点的右子结点) 是否为2-3-4树中的2-结点...
         // 如果是一个2-结点...
         if (incomingNodeIsA2NodeInRightSpine(currentNode))
             // 则：在查询路径中引入红链接，使之不再是一个2-结点
             // 手段：使用 moveRedRight() 来 把红链接沿着查找路径往下推
             currentNode = introduceRedLinkIntoMaxPath(currentNode);
 
-        // Ⅱ 执行删除操作，并把 “删除了最大节点后的右子树” 重新绑定到“当前结点”上
+        // Ⅱ 执行删除操作，并把 “删除了最大节点后的右子树” 重新绑定到“当前结点的右子树”上
         // 🐖 经过Ⅰ的调整后，我们可以确保 删除动作发生在一个 不是2-结点的结点中
         currentNode.rightSubNode = deleteMax(currentNode.rightSubNode);
 
-        // 删除结点后，在向上的过程中，修复红色右链接 & 4-结点
+        // 对执行了删除操作后的树恢复约束，得到符合左倾红黑树所有约束的树（aka 红黑树）
+        // 🐖 这是一个从叶子节点到根结点的过程
         return fixMightBreaches(currentNode);
     }
 
-    // 判断查询路径上的下一个结点是不是2-结点
+    // 判断沿着右脊的查询路径上的下一个结点 是不是2-结点
     private boolean incomingNodeIsA2NodeInRightSpine(Node currentNode) {
-        // 查询路径上的下一个结点
+        // 获取到查询路径上的下一个结点
         Node incomingNode = currentNode.rightSubNode;
+        // 判断该节点是不是一个2-结点   手段：只要它不属于3-结点（由红色的左链接所连接的两个物理结点），就可以证明它是2-结点
         return !isRed(incomingNode) && !isRed(incomingNode.leftSubNode);
     }
 
@@ -336,38 +342,36 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
         // assert check();
     }
 
-    private boolean rootNodeIsA2Node() {
-        return !isRed(rootNode.leftSubNode) && !isRed(rootNode.rightSubNode);
-    }
 
     // 删除当前符号表中的最小键&与其关联的值
     // 整体的不变性 - 即当前节点不是2节点
     // 具体的不变性 - 在查询路径中，保持当前节点为红色 或者 当前节点的左子结点为红色
     private Node deleteMin(Node currentNode) {
-        // 查询最小key的过程会沿着树的左脊递归下去，直到遇到最小结点
-        if (reachToBottom(currentNode))
+        // 如果调用沿着左脊 递归执行到了树的底部...
+        if (reachToBottomOnLeftSpine(currentNode))
             return performDeletion();
 
-        // 在沿着树向下递归查找的过程中，判断查询路径上的下一个节点（当前节点的左子结点）是不是一个2-结点
-        if (incomingNodeIsA2Node(currentNode))
+        // 在沿着树的左脊向下递归查找的过程中，判断查询路径上的下一个节点（当前节点的左子结点）是否为2-3-4树中的2-结点...
+        // 如果是一个2-结点...
+        if (incomingNodeIsA2NodeInLeftSpine(currentNode))
             // 在查询路径中引入红链接，使之不再是一个2-结点
             currentNode = introduceRedLinkInMinPath(currentNode);
 
-        // 在确保路径中的当前节点不是2-结点之后，在左子树中递归地执行删除操作
+        // 在确保路径中的当前节点不是2-结点之后
+        // 在左子树中递归地执行删除操作，并把 “删除了最小节点后的右子树” 重新绑定到“当前结点的左子树”上
         currentNode.leftSubNode = deleteMin(currentNode.leftSubNode);
 
-        // 对执行了删除操作后的树恢复平衡，得到符合所有约束的树（aka 红黑树）
+        // 对执行了删除操作后的树恢复约束，得到符合左倾红黑树所有约束的树（aka 红黑树）
+        // 🐖 这是一个从叶子节点到根结点的过程
         return fixMightBreaches(currentNode);
     }
 
 
-    // 判断当前节点的下一个结点是不是2-结点
-    private boolean incomingNodeIsA2Node(Node currentNode) {
-        // 手段：#1 获取到当查询路径上的下一个结点 currentNode.leftSubNode；
+    // 判断沿着左脊的查询路径上的下一个结点 是不是2-结点
+    private boolean incomingNodeIsA2NodeInLeftSpine(Node currentNode) {
+        // 获取到查询路径上的下一个结点
         Node incomingNode = currentNode.leftSubNode;
-        // #2 判断指向该结点的链接是否为红色(2-3-4树中的3-结点①的左链接就是红色的);
-        // #3 判断其左链接是不是为红色（2-3-4树中的3-结点①与4-结点的左链接都是红色的）
-        // 如果都不是。则：说明查询路径中出现了2-结点
+        // 判断该节点是不是一个2-结点   手段：只要它不属于3-结点（由红色的左链接所连接的两个物理结点），就可以证明它是2-结点
         return !isRed(incomingNode) && !isRed(incomingNode.leftSubNode);
     }
 
@@ -377,7 +381,8 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
         return null;
     }
 
-    private boolean reachToBottom(Node currentNode) {
+    // 沿着查询最小节点的路径到达左脊的底部
+    private boolean reachToBottomOnLeftSpine(Node currentNode) {
         return currentNode.leftSubNode == null;
     }
 
@@ -527,7 +532,7 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
 
         if (wantedNodeInLeftSpine(currentNode, passedKey)) { // 如果预期删除的节点在左子树中，则：
             // 如果需要，则：为当前查询路径引入红链接
-            if (incomingNodeIsA2Node(currentNode))
+            if (incomingNodeIsA2NodeInLeftSpine(currentNode))
                 currentNode = introduceRedLinkInMinPath(currentNode);
 
             // 递归地从左子树中删除预期节点， 并把删除结点后的树 重新绑定回到 左子树上
