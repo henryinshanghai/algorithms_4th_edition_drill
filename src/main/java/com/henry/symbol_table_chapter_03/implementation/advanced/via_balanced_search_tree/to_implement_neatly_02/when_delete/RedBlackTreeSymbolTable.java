@@ -627,11 +627,7 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
      *  Utility functions.
      ***************************************************************************/
 
-    /**
-     * Returns the height of the BST (for debugging).
-     *
-     * @return the height of the BST (a 1-node tree has height 0)
-     */
+    // 返回二叉搜索树的高度 - 1-结点构成的树高度为0
     public int height() {
         return height(rootNode);
     }
@@ -642,11 +638,11 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
     }
 
     /***************************************************************************
-     *  Ordered symbol table methods.
+     *  Ordered symbol table methods. 与有序性相关的符号表方法
      ***************************************************************************/
 
     /**
-     * Returns the smallest key in the symbol table.
+     * 返回符号表中最小的键
      *
      * @return the smallest key in the symbol table
      * @throws NoSuchElementException if the symbol table is empty
@@ -656,7 +652,7 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
         return findNodeWithMinKey(rootNode).key;
     }
 
-    // the smallest key in subtree rooted at x; null if no such key
+    // 返回当前树中的最小结点
     private Node findNodeWithMinKey(Node currentNode) {
         // assert x != null;
         if (currentNode.leftSubNode == null) return currentNode;
@@ -664,21 +660,21 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
     }
 
     /**
-     * Returns the largest key in the symbol table.
+     * 返回符号表中的最大键
      *
      * @return the largest key in the symbol table
      * @throws NoSuchElementException if the symbol table is empty
      */
     public Key maxKey() {
         if (isEmpty()) throw new NoSuchElementException("calls max() with empty symbol table");
-        return maxKey(rootNode).key;
+        return findNodeWithMaxKey(rootNode).key;
     }
 
-    // the largest key in the subtree rooted at x; null if no such key
-    private Node maxKey(Node currentNode) {
+    // 返回当前树中的最大结点
+    private Node findNodeWithMaxKey(Node currentNode) {
         // assert x != null;
         if (currentNode.rightSubNode == null) return currentNode;
-        else return maxKey(currentNode.rightSubNode);
+        else return findNodeWithMaxKey(currentNode.rightSubNode);
     }
 
 
