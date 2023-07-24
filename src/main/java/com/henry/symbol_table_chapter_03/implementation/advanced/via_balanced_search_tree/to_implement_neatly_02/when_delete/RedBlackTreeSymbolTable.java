@@ -508,7 +508,7 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
 
         // 根据需要（下一级结点没有红节点），在查询路径中，手动引入一个红节点
         // 手段：把根结点设置为红色
-        if (!isRed(rootNode.leftSubNode) && !isRed(rootNode.rightSubNode))
+        if (rootNodeIsA2Node())
             rootNode.color = RED;
 
         // 从当前树中删除传入的key, 并把删除后的结果绑定回到 当前结点上
@@ -519,43 +519,37 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
         // assert check();
     }
 
-    // delete the key-value pair with the given key rooted at toMoveStepsToEndGridWithoutObstacles
-    // 为RedBlackBST.java实现delete（）操作，将前两个练习的方法与BST的delete（）操作结合起来。
     // 如果是删除随机的节点，如何能确定查找路径呢？
     private Node delete(Node currentNode, Key passedKey) {
-        // assert get(toMoveStepsToEndGridWithoutObstacles, key) != null;
 
-        if (passedKey.compareTo(currentNode.key) < 0) { // 如果预期删除的节点在左子树中，则：
+        if (wantedNodeInLeftSpine(currentNode, passedKey)) { // 如果预期删除的节点在左子树中，则：
             // 如果需要，则：为当前查询路径引入红链接
-            if (!isRed(currentNode.leftSubNode) && !isRed(currentNode.leftSubNode.leftSubNode))
+            if (incomingNodeIsA2Node(currentNode))
                 currentNode = introduceRedLinkInMinPath(currentNode);
-            // 递归地左子树中删除预期节点， 并把删除结点后的树 重新绑定回到 左子树上
-            currentNode.leftSubNode = delete(currentNode.leftSubNode, passedKey);
-        } else { // 如果预期删除的结点不在左子树中，则：
-            // 把红色的左链接推到右边 手段：右旋转当前节点
-            if (isRed(currentNode.leftSubNode))
-                currentNode = rotateRight(currentNode);
 
-            // 如果在叶子节点处找到了与传入key相同的结点，则：直接删除结点 返回null
-            if (passedKey.compareTo(currentNode.key) == 0 && (currentNode.rightSubNode == null))
-                return null; // 为什么返回空？ can not make sense
+            // 递归地从左子树中删除预期节点， 并把删除结点后的树 重新绑定回到 左子树上
+            currentNode.leftSubNode = delete(currentNode.leftSubNode, passedKey);
+        } else { // 预期删除的结点 在右子树中 或者是 根结点
+            // 把红色的左链接推到右边 手段：右旋转当前节点
+            if (isA3Node(currentNode))
+                currentNode = leanRedLinkToRight(currentNode);
+
+            // 如果在树的叶子节点处找到预期删除的结点，
+            if (findTheWantedInRightSpine(currentNode, passedKey))
+                // 则：直接删除结点 返回null
+                return performDeletion(); // return null to delete the wanted node
 
             // 如果在查询路径上缺少红链接，则：把红链接移动到查询路径中
-            if (!isRed(currentNode.rightSubNode) && !isRed(currentNode.rightSubNode.leftSubNode))
+            if (incomingNodeIsA2NodeInRightSpine(currentNode))
                 currentNode = introduceRedLinkIntoMaxPath(currentNode);
 
-            // 如果当前节点就是待删除的结点，则：
-            if (passedKey.compareTo(currentNode.key) == 0) { // this is like delete in BST
-                // 找到当前节点右子树中的最小结点，作为 后继结点
-                Node successorNode = NodeWithMinKey(currentNode.rightSubNode);
-                // 使用后继结点 来 更新当前节点
-                currentNode.key = successorNode.key;
-                currentNode.value = successorNode.value;
-                // 从右子树中删除后继结点， 并 把删除结点后的子树 重新绑定到 当前节点的右子树上
-                currentNode.rightSubNode = deleteMin(currentNode.rightSubNode); // 至此，删除任意结点完成
+            // 如果当前节点就是待删除的结点...
+            if (findWantedNode(currentNode, passedKey)) { // this is like delete in BST
+                // 则：借助后继结点的方式 来 实现删除
+                deleteViaReplaceWithSuccessor(currentNode);
             }
 
-            // 在右子树中继续递归 move down(right)
+            // 否则，没有找到预期删除的结点。则：在右子树中继续递归 来 寻找并删除预期的结点
             else currentNode.rightSubNode = delete(currentNode.rightSubNode, passedKey);
         }
 
@@ -563,13 +557,33 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
         return fixMightBreaches(currentNode);
     }
 
+    // 在红黑树中删除任意位置的结点 - 手段：归约到“删除最小结点”的操作
+    private void deleteViaReplaceWithSuccessor(Node currentNode) {
+        // 找到当前节点右子树中的最小结点，作为 后继结点
+        Node successorNode = findNodeWithMinKey(currentNode.rightSubNode);
+        // 使用后继结点的key、value 来 更新当前节点(它的左右子链接没有变化)
+        currentNode.key = successorNode.key;
+        currentNode.value = successorNode.value;
+        // 从右子树中删除最小结点（后继结点）， 并 把删除结点后的子树 重新绑定到 当前节点的右子树上
+        currentNode.rightSubNode = deleteMin(currentNode.rightSubNode);
+    }
+
+    private boolean findTheWantedInRightSpine(Node currentNode, Key passedKey) {
+        return findWantedNode(currentNode, passedKey)
+                && reachToBottomOnRightSpine(currentNode);
+    }
+
+    private boolean findWantedNode(Node currentNode, Key passedKey) {
+        return passedKey.compareTo(currentNode.key) == 0;
+    }
+
+    private boolean wantedNodeInLeftSpine(Node currentNode, Key passedKey) {
+        return passedKey.compareTo(currentNode.key) < 0;
+    }
+
     /***************************************************************************
      *  Red-black tree helper functions.
-     **************************************************************************
-     * @param currentNode
-     * @return*/
-
-
+     **************************************************************************/
 
     // 使一个右倾的链接变成左倾
     private Node rotateLeft(Node currentNode) {
@@ -634,14 +648,14 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
      */
     public Key minKey() {
         if (isEmpty()) throw new NoSuchElementException("calls min() with empty symbol table");
-        return NodeWithMinKey(rootNode).key;
+        return findNodeWithMinKey(rootNode).key;
     }
 
     // the smallest key in subtree rooted at x; null if no such key
-    private Node NodeWithMinKey(Node currentNode) {
+    private Node findNodeWithMinKey(Node currentNode) {
         // assert x != null;
         if (currentNode.leftSubNode == null) return currentNode;
-        else return NodeWithMinKey(currentNode.leftSubNode);
+        else return findNodeWithMinKey(currentNode.leftSubNode);
     }
 
     /**
