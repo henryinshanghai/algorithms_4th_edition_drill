@@ -274,16 +274,16 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
         if (isA3Node(currentNode))
             currentNode = leanRedLinkToRight(currentNode);
 
-        // 如果调用沿着右脊执行到树的底部
+        // 如果调用沿着右脊执行到了树的底部...
         if (reachToBottomOnRightSpine(currentNode))
             // 则：删除最大结点（红节点/叶子节点）
             return performDeletion();
 
         // 判断查询路径中的下一个结点(当前节点的右子结点) 是否为2-3-4树中的2-结点...
-        // 如果是。则：
+        // 如果是一个2-结点...
         if (incomingNodeIsA2NodeInRightSpine(currentNode))
-            // 在查询路径中引入红链接，使之不再是一个2-结点
-            // 使用 moveRedRight() 来 把红链接沿着查找路径往下推
+            // 则：在查询路径中引入红链接，使之不再是一个2-结点
+            // 手段：使用 moveRedRight() 来 把红链接沿着查找路径往下推
             currentNode = introduceRedLinkIntoMaxPath(currentNode);
 
         // Ⅱ 执行删除操作，并把 “删除了最大节点后的右子树” 重新绑定到“当前结点”上
@@ -301,14 +301,17 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
         return !isRed(incomingNode) && !isRed(incomingNode.leftSubNode);
     }
 
+    // 沿着查询最大结点的路径达到右脊的底部
     private boolean reachToBottomOnRightSpine(Node currentNode) {
         return currentNode.rightSubNode == null;
     }
 
+    // 把红链接右倾
     private Node leanRedLinkToRight(Node currentNode) {
         return rotateRight(currentNode);
     }
 
+    // 判断红黑树的当前节点 在其对应的2-3树中是否为一个3-结点
     private boolean isA3Node(Node currentNode) {
         return isRed(currentNode.leftSubNode);
     }
