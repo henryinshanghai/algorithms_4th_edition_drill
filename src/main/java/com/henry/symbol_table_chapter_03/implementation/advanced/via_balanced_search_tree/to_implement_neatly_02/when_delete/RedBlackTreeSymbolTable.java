@@ -429,6 +429,7 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
         return isRed(siblingNode.leftSubNode);
     }
 
+    // 引入红链接的默认手段
     private void defaultApproach(Node currentNode) {
         // 翻转当前节点的颜色：从2-3-4树的角度来看，是 与sibling结点相结合，得到了一个4-结点
         // 作用：维护了 "查询路径上当前节点不是2-结点" 的不变性
@@ -482,27 +483,6 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
         Node siblingNode = currentNode.leftSubNode;
         // #2 判断其左链接(左子结点)是不是红色 - 如果是，则为非2-结点。如果不是，则为2-结点
         return isRed(siblingNode.leftSubNode);
-    }
-
-    // 使一个左倾的链接变成右倾 - 右旋转左链接
-    private Node rotateRight(Node currentNode) {
-        assert (currentNode != null) && isRed(currentNode.leftSubNode);
-
-        // #1 结构上的变更
-        Node replacerNode = currentNode.leftSubNode; // 找到替换结点（aka 当前节点的左子结点）
-        currentNode.leftSubNode = replacerNode.rightSubNode; // 用替换结点的右子树 来 作为当前结点的左子树
-        replacerNode.rightSubNode = currentNode; // 使用当前节点 来 作为替换节点的右子树
-
-        // #2 颜色上的变更
-        replacerNode.color = currentNode.color;
-        currentNode.color = RED; // 旋转后，当前节点仍旧是一个红节点
-
-        // #3 子树中结点数量的变更（替换节点&当前结点）
-        replacerNode.itsNodesAmount = currentNode.itsNodesAmount; // “替换结点”子树中的结点数量 与 “当前结点”中的结点数量相同
-        currentNode.itsNodesAmount = size(currentNode.leftSubNode) + size(currentNode.rightSubNode) + 1;
-
-        // 返回替换节点
-        return replacerNode;
     }
 
     /**
@@ -597,10 +577,10 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
     private Node rotateLeft(Node currentNode) {
         assert (currentNode != null) && isRed(currentNode.rightSubNode);
 
-        // #1 结构上的变更：当前节点(的右子树) & 替换节点（的左子树）
-        Node replacerNode = currentNode.rightSubNode;
-        currentNode.rightSubNode = replacerNode.leftSubNode;
-        replacerNode.leftSubNode = currentNode;
+        // #1 结构上的变更：
+        Node replacerNode = currentNode.rightSubNode; // 获取到替换结点
+        currentNode.rightSubNode = replacerNode.leftSubNode; // 更新当前节点的右子树（先断开，再连接）
+        replacerNode.leftSubNode = currentNode; // 更新替换结点的左子树（先断开，再连接）
 
         // #2 颜色上的变更：替换结点（更新为当前结点的颜色） & 当前结点（更新为红色）
         replacerNode.color = currentNode.color;
@@ -613,6 +593,27 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
         return replacerNode;
     }
 
+    // 使一个左倾的链接变成右倾 - 右旋转左链接
+    private Node rotateRight(Node currentNode) {
+        assert (currentNode != null) && isRed(currentNode.leftSubNode);
+
+        // #1 结构上的变更
+        Node replacerNode = currentNode.leftSubNode;
+        currentNode.leftSubNode = replacerNode.rightSubNode;
+        replacerNode.rightSubNode = currentNode;
+
+        // #2 颜色上的变更
+        replacerNode.color = currentNode.color;
+        currentNode.color = RED; // 旋转后，当前节点仍旧是一个红节点，只是倾斜方向变化
+
+        // #3 子树中结点数量的变更（替换节点&当前结点）
+        replacerNode.itsNodesAmount = currentNode.itsNodesAmount; // “替换结点”子树中的结点数量 与 “当前结点”中的结点数量相同
+        currentNode.itsNodesAmount = size(currentNode.leftSubNode) + size(currentNode.rightSubNode) + 1;
+
+        // 返回替换节点
+        return replacerNode;
+    }
+
     // 反转当前结点&它的左右子节点的颜色
     private void flipColors(Node currentNode) {
         // 把当前结点 & 它的左右子节点 的颜色变更为 “与当前颜色不同的另一种颜色”
@@ -620,10 +621,6 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
         currentNode.leftSubNode.color = !currentNode.leftSubNode.color;
         currentNode.rightSubNode.color = !currentNode.rightSubNode.color;
     }
-
-
-
-
 
 
     /***************************************************************************
