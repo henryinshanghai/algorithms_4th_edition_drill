@@ -688,99 +688,129 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
     public Key floor(Key passedKey) {
         if (passedKey == null) throw new IllegalArgumentException("argument to floor() is null");
         if (isEmpty()) throw new NoSuchElementException("calls floor() with empty symbol table");
+
+        // 从当前的结点树中查找满足条件的结点
         Node flooredNode = floor(rootNode, passedKey);
+
+        // 根据具体的查询结果决定返回值 或者 抛出异常
         if (flooredNode == null) throw new NoSuchElementException("argument to floor() is too small");
         else return flooredNode.key;
     }
 
     // 返回当前结点树（以当前节点作为根结点的树）中，小于等于传入key的最大key
     private Node floor(Node currentNode, Key passedKey) {
+        // 如果查询过程递归到叶子节点，说明没有找到满足条件的结点，则：返回null 表示查找未成功
         if (currentNode == null) return null;
+
         int result = passedKey.compareTo(currentNode.key);
         if (result == 0) return currentNode;
         if (result < 0) return floor(currentNode.leftSubNode, passedKey);
-        Node flooredNode = floor(currentNode.rightSubNode, passedKey);
 
-        // 如果找到了满足条件的key，则：返回其结点
+        // 如果 passedKey 大于 当前节点中的key，则有两种可能：#1 满足条件的结点再右子树中； #2 满足条件的结点就是当前节点
+        Node flooredNode = floor(currentNode.rightSubNode, passedKey);
+        // #1 如果找到了满足条件的key，则：返回其结点
         if (flooredNode != null) return flooredNode;
-        // 如果遍历了整棵树后仍旧没有找到满足条件的key，则：返回当前节点(应该是null了)
+        // #2 右子树中不存在比passedKey更小的键，因此 currentNode就是 flooredNode
         else return currentNode;
     }
 
     /**
-     * Returns the smallest key in the symbol table greater than or equal to {@code key}.
+     * 返回符号表中大于等于 passedKey的最小键
      *
-     * @param passedKey the key
-     * @return the smallest key in the symbol table greater than or equal to {@code key}
+     * @param passedKey 传入的key
+     * @return 符号表中大于等于 传入的key的最小key
      * @throws NoSuchElementException   if there is no such key
      * @throws IllegalArgumentException if {@code key} is {@code null}
      */
     public Key ceiling(Key passedKey) {
         if (passedKey == null) throw new IllegalArgumentException("argument to ceiling() is null");
         if (isEmpty()) throw new NoSuchElementException("calls ceiling() with empty symbol table");
+
+        // 从结点树中，查找到大于等于passedKey的最小结点
         Node ceiledNode = ceiling(rootNode, passedKey);
+
         if (ceiledNode == null) throw new NoSuchElementException("argument to ceiling() is too small");
         else return ceiledNode.key;
     }
 
-    // the smallest key in the subtree rooted at x greater than or equal to the given key
+    // 返回结点树中 大于等于passedKey的最小结点
     private Node ceiling(Node currentNode, Key passedKey) {
+        // 如果查询持续到了叶子节点，说明不存在满足条件的结点，则：返回null - 表示没有查询到满足条件的结点
         if (currentNode == null) return null;
+
+        // 比较passedKey 与 当前节点中的key
         int result = passedKey.compareTo(currentNode.key);
         if (result == 0) return currentNode;
         if (result > 0) return ceiling(currentNode.rightSubNode, passedKey);
 
+        // 如果passedKey小于currentNode.key，有两种情况：
         Node ceiledNode = ceiling(currentNode.leftSubNode, passedKey);
+
+        // #1 满足条件的结点在左子树中(如果存在的话);
         if (ceiledNode != null) return ceiledNode;
+        // #2 满足条件的结点是currentNode
         else return currentNode;
     }
 
     /**
-     * Return the key in the symbol table of a given {@code rank}.
-     * This key has the property that there are {@code rank} keys in
-     * the symbol table that are smaller. In other words, this key is the
-     * ({@code rank}+1)st smallest key in the symbol table.
+     * 返回符号表中指定排名(ranking)的键
+     * 特征：符号表中有 ranking个比它更小的键。
+     * 换句话说，这个key是符号表中 第 (rank+1) 小的key
      *
      * @param passedRanking the order statistic
      * @return the key in the symbol table of given {@code rank}
-     * @throws IllegalArgumentException unless {@code rank} is between 0 and
-     *                                  <em>n</em>–1
+     * @throws IllegalArgumentException unless {@code rank} is between 0 and （n-1）
      */
-    public Key select(int passedRanking) {
+    public Key selectOut(int passedRanking) {
         if (passedRanking < 0 || passedRanking >= size()) {
             throw new IllegalArgumentException("argument to select() is invalid: " + passedRanking);
         }
-        return select(rootNode, passedRanking);
+
+        // 在结点树中，找到指定排名的结点
+        return selectOut(rootNode, passedRanking);
     }
 
-    // Return key in BST rooted at x of given rank.
-    // Precondition: rank is in legal range.
-    private Key select(Node currentNode, int passedRanking) {
+    // 返回结点树中，指定排名的结点的key
+    // 先决条件：传入的排名在一个合法的范围内 - 🐖 排名从0开始 0th
+    private Key selectOut(Node currentNode, int passedRanking) {
+        // 如果查找过程递归到了叶子节点，说明查找满足条件的结点失败，则：返回null
         if (currentNode == null) return null;
+
+        // 获取左子树中的结点数量 - 原理：二叉查找树中结点的有序性
         int leftSize = size(currentNode.leftSubNode);
-        if (leftSize > passedRanking) return select(currentNode.leftSubNode, passedRanking);
-        else if (leftSize < passedRanking) return select(currentNode.rightSubNode, passedRanking - leftSize - 1);
+        // 如果 左子树中的结点数量 比起 传入的排名更大，则：满足条件的结点必然在左子树中 递归地在左子树中继续查找满足条件的结点
+        if (leftSize > passedRanking) return selectOut(currentNode.leftSubNode, passedRanking);
+        // 如果 左子树中的结点数量 比起 传入的排名小，则：满足条件的结点必然在右子树中 递归地在右子树中继续查找满足条件的结点
+        // 🐖 由于左子树与根结点都已经占据了排名，所以在右子树中需要查找的是 排名为 passedRanking - leftSize -1 的键
+        else if (leftSize < passedRanking) return selectOut(currentNode.rightSubNode, passedRanking - leftSize - 1);
         else return currentNode.key;
     }
 
     /**
-     * Return the number of keys in the symbol table strictly less than {@code key}.
-     *
+     * 返回符号表中，所有严格小于 passedKey的键的总数量
      * @param passedKey the key
      * @return the number of keys in the symbol table strictly less than {@code key}
      * @throws IllegalArgumentException if {@code key} is {@code null}
      */
     public int rankingOf(Key passedKey) {
         if (passedKey == null) throw new IllegalArgumentException("argument to rank() is null");
+
+        // 获取到在结点树中，passedKey的排名 🐖 排名从0开始 0-th
         return rankingOf(passedKey, rootNode);
     }
 
-    // number of keys less than key in the subtree rooted at x
+    // 在结点树中，小于passedKey的结点的数量
     private int rankingOf(Key passedKey, Node currentNode) {
+        // 如果没有查找到满足条件的结点，则：返回0 表示不存在这样的结点
         if (currentNode == null) return 0;
+
+        // 比较 passedKey 与 currentNode.key
         int result = passedKey.compareTo(currentNode.key);
+        // 如果 passedKey更小，说明它一定在左子树的范围中，则：在左子树中递归地查找并返回它的排名
         if (result < 0) return rankingOf(passedKey, currentNode.leftSubNode);
+        // 如果更大，说明它在右子树的范围中，则：在右子树中递归地查找并返回它的排名
         else if (result > 0) return 1 + size(currentNode.leftSubNode) + rankingOf(passedKey, currentNode.rightSubNode);
+        // 如果相等，则：左子树中结点的数量 就是 它的排名 - 排名从0-th开始
         else return size(currentNode.leftSubNode);
     }
 
@@ -789,9 +819,8 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
      ***************************************************************************/
 
     /**
-     * Returns all keys in the symbol table as an {@code Iterable}.
-     * To iterate over all of the keys in the symbol table named {@code st},
-     * use the foreach notation: {@code for (Key key : st.keys())}.
+     * 以一个Iterable的形式 来 返回符号表中所有的key
+     * 如果想要遍历st符号表中的所有的键，可以使用 foreach的标记语法  for (Key key : st.keys())
      *
      * @return all keys in the symbol table as an {@code Iterable}
      */
@@ -801,8 +830,7 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
     }
 
     /**
-     * Returns all keys in the symbol table in the given range,
-     * as an {@code Iterable}.
+     * 以Iterable的方式 来 返回符号表中指定范围（左右闭区间）内的键
      *
      * @param leftBarKey  minimum endpoint
      * @param rightBarKey maximum endpoint
@@ -818,24 +846,30 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
         Queue<Key> keysQueue = new Queue<Key>();
         // if (isEmpty() || lo.compareTo(hi) > 0) return keysQueue;
         keys(rootNode, keysQueue, leftBarKey, rightBarKey);
+
         return keysQueue;
     }
 
-    // add the keys between lo and hi in the subtree rooted at x
-    // to the queue
+    // 把结点树中，在[leftBarKey, rightBarKey]区间内的所有键 都添加到队列中
     private void keys(Node currentNode, Queue<Key> keysQueue, Key leftBarKey, Key rightBarKey) {
+        // 查询过程结果，直接return
         if (currentNode == null) return;
+
+        // 比较左边界 与 当前节点中的key
         int leftResult = leftBarKey.compareTo(currentNode.key);
+        // 比较右边界 与 当前结点中的key
         int rightResult = rightBarKey.compareTo(currentNode.key);
 
+        // 如果左边界小于根结点（说明区间覆盖左子树），则：把左子树中满足条件的key添加到队列中
         if (leftResult < 0) keys(currentNode.leftSubNode, keysQueue, leftBarKey, rightBarKey);
+        // 如果左边界小于等于根结点&右边界大于等于根结点(说明区间包含当前节点)，则：把当前结点添加到队列中
         if (leftResult <= 0 && rightResult >= 0) keysQueue.enqueue(currentNode.key);
+        // 如果右边界大于根结点(说明区间覆盖右子树)，则：把当前结点添加到队列中
         if (rightResult > 0) keys(currentNode.rightSubNode, keysQueue, leftBarKey, rightBarKey);
     }
 
     /**
-     * Returns the number of keys in the symbol table in the given range.
-     *
+     * 返回符号表中指定范围内（左右闭区间）所有键的总数量
      * @param leftBarKey  minimum endpoint
      * @param rightBarKey maximum endpoint
      * @return the number of keys in the symbol table between {@code lo}
@@ -847,41 +881,56 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
         if (leftBarKey == null) throw new IllegalArgumentException("first argument to itsNodesAmount() is null");
         if (rightBarKey == null) throw new IllegalArgumentException("second argument to itsNodesAmount() is null");
 
+        // 如果区间无效，则：返回0 表示此区间内不存在满足条件的键
         if (leftBarKey.compareTo(rightBarKey) > 0) return 0;
+        // 公式： 区间中所包含的键 = 右边界的排名 - 左边界的排名 (+1)
+        // 🐖 如果右边界在树中存在的话，则：满足条件的键的数量 + 1
         if (contains(rightBarKey)) return rankingOf(rightBarKey) - rankingOf(leftBarKey) + 1;
         else return rankingOf(rightBarKey) - rankingOf(leftBarKey);
     }
 
 
     /***************************************************************************
-     *  Check integrity of red-black tree data structure.
+     *  Check integrity of red-black tree data structure. 检查红黑树结构的完整性
      ***************************************************************************/
     private boolean checkIfRedBlackTree() {
+        // 是二叉查找树
         if (!isBST()) StdOut.println("Not in symmetric order");
+        // 当前节点树的节点数量 恒等于 左子树的节点数量 + 右子树的结点数量 + 1（递归成立）
         if (!isSizeConsistent()) StdOut.println("Subtree counts not consistent");
+        // 选择指定排名的元素，其在树中的排名 恒等于 最开始选择的排名 （循环成立）
+        // 使用指定键在树中的排名，来在树中选择相同排名的元素。 得到的必然是 最开始指定的元素（循环成立）
         if (!isRankConsistent()) StdOut.println("Ranks not consistent");
+        // 是一个严格意义上的2-3树
         if (!is23Tree()) StdOut.println("Not a 2-3 tree");
+        // 严格遵守平衡性
         if (!isRedBlackTreeBalanced()) StdOut.println("Not balanced");
+        // 红黑树既是...又是...还是...而且是...
         return isBST() && isSizeConsistent() && isRankConsistent() && is23Tree() && isRedBlackTreeBalanced();
     }
 
-    // does this binary tree satisfy symmetric order?
-    // Note: this test also ensures that data structure is a binary tree since order is strict
+    // 这个二叉树满足 对称有序性吗？
+    // 🐖 这个测试也能够保证数据结构是二叉树（因为顺序是严格的）
     private boolean isBST() {
         return isBST(rootNode, null, null);
     }
 
-    // is the tree rooted at x a BST with all keys strictly between min and max
-    // (if min or max is null, treat as empty constraint)
-    // Credit: Bob Dondero's elegant solution
-    private boolean isBST(Node x, Key min, Key max) {
-        if (x == null) return true;
-        if (min != null && x.key.compareTo(min) <= 0) return false;
-        if (max != null && x.key.compareTo(max) >= 0) return false;
-        return isBST(x.leftSubNode, min, x.key) && isBST(x.rightSubNode, x.key, max);
+    // 判断以currentNode作为根的结点树中的所有键是否严格在 [minKeyBar, maxKeyBar]之间
+    // 🐖 如果 minKeyBar 或者 maxKeyBar传入的值为null。则：视为没有约束
+    // 荣誉：Bob Dondero's elegant solution
+    private boolean isBST(Node currentNode, Key minKeyBar, Key maxKeyBar) {
+        if (currentNode == null) return true;
+
+        // 小于左边界
+        if (minKeyBar != null && currentNode.key.compareTo(minKeyBar) <= 0) return false;
+        // 大于右边界
+        if (maxKeyBar != null && currentNode.key.compareTo(maxKeyBar) >= 0) return false;
+
+        // 要求左子树 & 右子树也都是BST
+        return isBST(currentNode.leftSubNode, minKeyBar, currentNode.key) && isBST(currentNode.rightSubNode, currentNode.key, maxKeyBar);
     }
 
-    // 结点中的nodesAmount的数值 维护地是否正确?
+    // 结点中的nodesAmount的数值 维护地是否正确
     private boolean isSizeConsistent() {
         return isSizeConsistent(rootNode);
     }
@@ -893,49 +942,62 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
         return isSizeConsistent(currentNode.leftSubNode) && isSizeConsistent(currentNode.rightSubNode);
     }
 
-    // check that ranks are consistent
     // 检查 排名是否是consistent的？
     private boolean isRankConsistent() {
+        // 选择出指定排名的元素，其在树中的排名 恒等于 最开始选择的排名 （循环成立）
         for (int currentRanking = 0; currentRanking < size(); currentRanking++)
-            if (currentRanking != rankingOf(select(currentRanking))) return false;
+            if (currentRanking != rankingOf(selectOut(currentRanking))) return false;
 
+        // 使用指定键在树中的排名，来在树中选择相同排名的元素。 得到的必然是 最开始指定的元素（循环成立）
         for (Key currentKey : keys())
-            if (currentKey.compareTo(select(rankingOf(currentKey))) != 0) return false;
+            if (currentKey.compareTo(selectOut(rankingOf(currentKey))) != 0) return false;
 
+        // 通过检查
         return true;
     }
 
-    // Does the tree have no red rightSubNode links, and at most one (leftSubNode)
-    // red links in a row on any path?
+    // 判断树中是不是 #1 在任何路径中都不存在红色的右链接， 以及 #2 在任何路径中都不存在连续的(in a row)红色左链接
     private boolean is23Tree() {
         return is23Tree(rootNode);
     }
 
     private boolean is23Tree(Node currentNode) {
+        // 路径中所有的结点都通过检查，则：返回true 表示的确是一个23树
         if (currentNode == null) return true;
+
+        // 如果存在红色的右链接，则：返回false 表示没有完整对应到一个2-3树
         if (isRed(currentNode.rightSubNode)) return false;
+
+        // 如果当前节点是红色的，并且当前节点的左链接也是红色的。说明存在连续的红链接...
         if (currentNode != rootNode && isRed(currentNode) && isRed(currentNode.leftSubNode))
             return false;
 
+        // 左右子树也要递归地满足相同的约束
         return is23Tree(currentNode.leftSubNode) && is23Tree(currentNode.rightSubNode);
     }
 
-    // do all paths from rootNode to leaf have same number of black edges?
+    // 从根结点到叶子节点的所有路径中 都包含有相同数量的黑色边吗？
     private boolean isRedBlackTreeBalanced() {
         int blackLinkAmount = 0;     // number of black links on path from rootNode to min
         Node currentNode = rootNode;
+
+        // 沿着左脊，统计出左脊上所有黑链接的总数量
         while (currentNode != null) {
             if (!isRed(currentNode)) blackLinkAmount++;
             currentNode = currentNode.leftSubNode;
         }
+
         return isBalanced(rootNode, blackLinkAmount);
     }
 
-    // does every path from the rootNode to a leaf have the given number of black links?
+    // 判断是否每一个从根结点到叶子节点的路径中，都包含有相同数量的黑链接
     private boolean isBalanced(Node currentNode, int blackLinkAmount) {
+        // 当递归执行到叶子节点的时候，预期 blackLinkAmount的值为0
         if (currentNode == null) return blackLinkAmount == 0;
+        // 从根结点出发，每次遇到一个黑节点。就把 blackLinkAmount值减一
         if (!isRed(currentNode)) blackLinkAmount--;
 
+        // 在左子树与右子树中递归地 验证黑链接数量的平衡
         return isBalanced(currentNode.leftSubNode, blackLinkAmount)
                 && isBalanced(currentNode.rightSubNode, blackLinkAmount);
     }
