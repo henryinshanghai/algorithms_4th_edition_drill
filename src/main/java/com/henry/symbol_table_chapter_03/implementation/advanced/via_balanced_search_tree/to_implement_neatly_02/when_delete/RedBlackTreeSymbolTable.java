@@ -679,8 +679,7 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
 
 
     /**
-     * Returns the largest key in the symbol table less than or equal to {@code key}.
-     *
+     * 返回符号表中小于等于 传入的key的最大的key
      * @param passedKey the key
      * @return the largest key in the symbol table less than or equal to {@code key}
      * @throws NoSuchElementException   if there is no such key
@@ -694,14 +693,17 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
         else return flooredNode.key;
     }
 
-    // the largest key in the subtree rooted at x less than or equal to the given key
+    // 返回当前结点树（以当前节点作为根结点的树）中，小于等于传入key的最大key
     private Node floor(Node currentNode, Key passedKey) {
         if (currentNode == null) return null;
         int result = passedKey.compareTo(currentNode.key);
         if (result == 0) return currentNode;
         if (result < 0) return floor(currentNode.leftSubNode, passedKey);
         Node flooredNode = floor(currentNode.rightSubNode, passedKey);
+
+        // 如果找到了满足条件的key，则：返回其结点
         if (flooredNode != null) return flooredNode;
+        // 如果遍历了整棵树后仍旧没有找到满足条件的key，则：返回当前节点(应该是null了)
         else return currentNode;
     }
 
