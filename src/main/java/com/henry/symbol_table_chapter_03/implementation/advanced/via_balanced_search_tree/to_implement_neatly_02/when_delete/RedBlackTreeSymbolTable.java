@@ -1004,19 +1004,24 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
 
 
     /**
-     * Unit tests the {@code RedBlackTreeSymbolTable} data type.
-     *
-     * @param args the command-line arguments
+     * 红黑树符号表的单元测试
+     * @param args the command-line arguments 命令行参数
+     * 问题：对main()函数来说，函数体中并没有使用到args这个参数，为什么还要设置这个形式参数呢？
      */
     public static void main(String[] args) {
+        // 创建一个符号表对象（红黑树只是实现方式，符号表才是最终目的）
         RedBlackTreeSymbolTable<String, Integer> symbolTable = new RedBlackTreeSymbolTable<String, Integer>();
+
+        // 从输入流中读取字符串作为key，并在符号表中 建立起到当前索引（从0开始）的映射
         for (int currentSpot = 0; !StdIn.isEmpty(); currentSpot++) {
             String currentKey = StdIn.readString();
             symbolTable.put(currentKey, currentSpot);
         }
 
+        // 打印空行
         StdOut.println();
 
+        // 遍历并打印出符号表中的键 -> 值
         for (String currentKey : symbolTable.keys())
             StdOut.println(currentKey + " " + symbolTable.get(currentKey));
 
