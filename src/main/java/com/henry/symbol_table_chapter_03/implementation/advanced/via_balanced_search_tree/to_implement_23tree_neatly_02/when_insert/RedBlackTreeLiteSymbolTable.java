@@ -103,13 +103,14 @@ public class RedBlackTreeLiteSymbolTable<Key extends Comparable<Key>, Value> {
     }
 
     private Node insert(Node currentNode, Key passedKey, Value associatedValue) {
-        // 如果查找操作结束于一个空结点 说明BST中不存在 与passedKey相等的键(&值)，则：将传入的键值作为新结点添加到树的底部
-        // 🐖 插入新结点时，使用红链接 将之和父节点之间相连
-        if (currentNode == null) {
+        if (currentNode == null) { // 如果查找操作结束于一个空结点 说明BST中不存在 与passedKey相等的键(&值)，则...
             pairsAmount++;
+            // 将传入的键值作为新结点添加到树的底部
+            // 🐖 插入新结点时，使用红链接 将之和父节点之间相连
             return new Node(passedKey, associatedValue, RED); // 插入的结点总是红色的
         }
 
+        // 为了保证“对称有序性”，按照与根结点的比较结果，在对应的子树中递归地插入结点
         int result = passedKey.compareTo(currentNode.key);
         if (result < 0)
             currentNode.leftSubNode = insert(currentNode.leftSubNode, passedKey, associatedValue); // 在左子树中插入
@@ -118,9 +119,10 @@ public class RedBlackTreeLiteSymbolTable<Key extends Comparable<Key>, Value> {
         else
             currentNode.value = associatedValue; // 更新结点的value
 
-        // 插入结点后，使用局部变换操作BST，使之成为一棵“平衡的红黑树”     原理：参考 recap_03 line31
-        // 实现手段：在递归调用之后添加这些代码：在查找路径中的每一个结点（从下往上）上，经过局部变换(左旋转、右旋转、颜色变换) 来 维护“红黑树的平衡性”
-        // 红黑树中插入新结点后，归约得到的3种情形👇
+        // 插入结点后，维护“合法的红黑树(黑链接平衡&&红链接约束)”     原理：参考 implement_insertion_code_wise_04
+        // 手段：树中的局部变换 {左旋转、右旋转、颜色翻转}
+        // 具体实现：插入结点后，在查找路径中的每一个结点（从下往上）上，根据需要来进行适当的局部变换
+        // 🐖 红黑树中插入新结点是，5中具体情形(2-结点的插入&3-结点的插入)归约后得到如下3种情形👇
         if (isRed(currentNode.rightSubNode) && !isRed(currentNode.leftSubNode)) // #1 右子结点为红色，而左子结点为黑色
             currentNode = rotateLeft(currentNode); // 对当前结点左旋转
         if (isRed(currentNode.leftSubNode) && isRed(currentNode.leftSubNode.leftSubNode)) // #2 左子结点为红色，左子结点的左子结点也为红色，
