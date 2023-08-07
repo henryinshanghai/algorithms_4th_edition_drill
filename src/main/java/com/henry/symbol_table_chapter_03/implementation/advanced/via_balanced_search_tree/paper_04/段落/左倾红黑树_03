@@ -1,0 +1,46 @@
+Our starting point（起始点） is the Java implementation of standard BSTs shown in the gray code
+on the next page.
+
+Java aficionados（狂热者） will see that the code uses generics（泛型） to
+support, in a type-safe manner, arbitrary types（任意类型） for client keys and values.
+Otherwise, the code is standard and
+easily translated to（翻译成） other languages or
+adapted to specific applications where generic types may not be needed.
+
+In the present context（当前的上下文中）, an important feature of the implementation is that
+the implementation of insert() is recursive（递归的）:
+each recursive call takes（接收） a link as argument and returns（返回） a link,
+which is used to reset the field from which the link was taken.
+
+For standard BSTs, the argument and return value are the same
+except at the bottom of the tree（树的底部）, where this code serves to（用于/为了） insert the new node.
+
+For red-black trees, this recursive implementation helps simplify the code, as we will see.
+We could also use a recursive implementation for search() but we do not do so
+because this operation falls（刚好落在） within the inner loop（内循环） in typical applications.
+
+The basis of algorithms for implementing red-black trees is to
+add rotate and color flip operations to this code（标准二叉搜索树的实现代码）, in order to
+maintain the invariants（不变属性） that dictate（决定） balance in the tree.
+
+Most published implementations involve code
+laden with（布满） cases that are nearly identical for right and left.
+In the code in this paper, we show that the number of cases can be substantially reduced by:
+•	 requiring that 3-nodes always lean to the left (and that 4-nodes are balanced) （要求3-结点总是左倾）
+•	 doing rotations after the recursive calls, on the way up the tree. （在递归调用之后进行旋转）
+
+The lean-to-the-left（左倾约束） requirement gives a 1-1 correspondence
+between red-black（红黑树） and 2-3-4 trees（2-3-4树）
+and reduces the number of cases to consider.
+
+The rotate-on-the-way-up（在沿着树向上移动时进行旋转） strategy simplifies the code (and our understanding of it)
+by combining（联合） various cases in a natural way.
+
+Neither idea is new (the first was used by Andersson [2] and the second is used in [9])
+but in combination（结合之后） they surprisingly effective in
+reducing the amount of code required
+for several versions of the data structure.
+
+The code in black on the next page
+derives（衍生了） two classic algorithms
+by adding 3 lines of code to insert().
