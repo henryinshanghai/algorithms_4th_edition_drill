@@ -1,0 +1,47 @@
+One way to view red-black BST algorithms is
+as maintaining the following invariant properties（不变性）
+under（在...时） insertion and deletion:
+•	 No path from the root to the bottom contains two consecutive red links（路径中不存在连续的红链接）.
+•	 The number of black links on every such path is the same（所有路径中的黑链接数量都是相同的）.
+
+These invariants imply that（说明） the length of every path in a red-black tree with N nodes
+is no longer than 2 lgN .
+
+This worst case（最差情形） is realized, for example, in a tree whose nodes are all black
+except for those along a single path of alternating red and black nodes（交替出现的红黑结点）.
+
+The basic operations that balanced-tree algorithms use to
+maintain balance（维护平衡性）
+under insertion and deletion
+are known as rotations（旋转）.
+
+In the context of（具体到...而言） red-black trees, these operations are easily understood
+as the transformations（旋转操作的转换过程） needed to
+transform（形态上地变换） a 3-node whose red link leans to the left（左倾的红链接）
+to a 3-node whose red link leans to the right（右倾的红链接） and vice versa（反之亦然）.
+
+The Java code for these operations (for a Node type that we will consider later that
+contains a left link, a right link, and a color field that can be set to the value RED to
+represent（表示） the color of the incoming link) is given
+to the left（左侧） and to the right（右侧） on this page.
+
+Rotations obviously preserve（保留了） the two invariants
+stated above.[不存在连续的红色链接; 路径中的黑链接数量都是相同的]
+
+In red-black trees, we also use a simple operation
+known as a color flip（颜色翻转） (shown at the bottom of this page).
+
+In terms of 2-3-4 trees, a color flip is the essential operation（基础操作）:
+it corresponds to（对应于）
+splitting（分解） a 4-node and passing the middle node（中结点） up to the parent.
+
+A color flip obviously does not change
+the number of black links on any path from the root to the bottom,
+but it may introduce（引入） two consecutive red links higher in the tree,
+which must be corrected（修复）.
+
+
+Red-black BST（红黑二叉搜索树） algorithms differ on（在...有所不同） whether and when they do rotations and color flips,
+in order to maintain the global invariants stated at the top of this page[不存在连续的红链接; 所有路径中的黑链接数量相同].
+
+
