@@ -1,0 +1,66 @@
+#1 the left-leaning versions of 2-3 trees and top-down 2-3-4 trees
+differ in the position of one line of code.
+
+#2 all of the red-black tree algorithms that have been proposed are characterized by
+a worst case search time bounded by a small constant multiple of lg N
+in a tree of N keys,
+and the behavior observed in practice is typically that same multiple
+faster than the worst-case bound, close to the optimal lg N nodes
+examined that would be observed in a perfectly balanced tree.
+
+#3 The starting point for this paper is the balanced tree data structure that
+were developed in the 1960s and 1970s, which provide a guaranteed worst-case running time that
+is proportional to(与...成正比) log N for both operations.
+
+#4 These algorithms are based on modifying the elementary binary search tree(BST) data structure
+to guarantee that the length of every path to an external node（外部结点 aka 叶子结点）
+is proportional to logN.
+
+#5 Examples of such algorithms are 2-3 trees, 2-3-4 trees, AVL trees, and B trees.
+
+#6 This paper is largely self-contained（完备的） for people familiar with balanced-tree algorithms;
+other can find basic definitions and examples in a standard textbook such as [6], [9], [13].
+
+#7 In 7, Guibas and Sedgewick showed that all of these algorithms can be implemented with
+red-black trees, where each link in a BST is assigned a color(red or black) that
+can be used to control the balance, // 使用链接的颜色 来 控制树的平衡
+and that this framework can simplify the implementation of the various algorithms.
+🐖 红黑树是一种 添加了约束（平衡性约束等）的标准二叉查找树👆
+
+In particular, the paper describes a way to maintain
+a correspondence（对应性） between red-black trees and 2-3-4 trees,
+by interpreting red links as（把红链接解释为） internal links in 3-nodes and 4-nodes.
+
+Since red links can lean（倾向到） either way in 3-nodes
+(and, for some implementations in 4-nodes), the correspondence is not necessarily 1-1.
+
+For clarity in our code,
+we use a boolean variable (a single bit) to
+encode the color of a link（链接的颜色）
+in the node it points to（在链接所指向的结点中）,
+though Brown [5] has pointed out that we can mark nodes as red by switching their pointers,
+so that we can implement red-black trees without any extra space（额外的空间）.
+
+One of the most important feature of red-black trees is that
+they add no overhead（开销） for search, the most commonly used operation.
+
+Accordingly, red-black trees are the underlying data structure（底层数据结构） for symbol-table implementations
+within C++, Java, Python, BSD Unix, and many other systems.
+
+
+Why revisit（重新审视） such a successful data structure?
+The actual code found in many implementations is difficult to maintain（维护） and to reuse in new systems（复用）
+because it is lengthy（长度很长的）, running 100-200 lines of code in typical implementations.
+
+Full implementations are rarely found in textbooks,
+with numerous “symmetric” cases left for the student to implement.
+
+In this paper, we present an approach that
+can dramatically reduce the amount of code required.
+
+To prove the point, we present a full Java implementation,
+comprising（包含有） three short utility methods,
+#1 adding 3 lines of code to standard BST code for insert,
+#2 a 5-line method for delete the maximum,
+#3 and 30 additional lines of code for delete.
+
