@@ -1,0 +1,19 @@
+Remarkably, moving the color flip to the end（把颜色翻转移动到底部）
+in the top-down 2-3-4 tree（在自顶向下的2-3-4树中） implementation just described
+yields（产生了） an implementation for 2-3 trees.
+
+We
+#1 split any 4-node（分解4-结点） that is created by doing a color flip（由于颜色翻转所产生的4-结点）,
+passing a red link up the tree（把红色链接沿着树向上传递）, and
+#2 dealing with the effects of doing so（处理由此而产生的影响）
+in precisely the same way as we move up the tree（沿着树向上的方式）.
+
+These ideas are also effective for simplifying
+other variations of red-black trees
+that have been studied,
+which we cannot consider in this short abstract for lack of space.
+
+These include handling equal keys（处理相等的键）,
+completing the insertion in a single top-down pass（在单次top-down pass中完成insertion）,
+and completing the insertion with at most one rotation in 2-3-4 trees（在2-3-4树中以最多一次旋转来完成插入）.
+
