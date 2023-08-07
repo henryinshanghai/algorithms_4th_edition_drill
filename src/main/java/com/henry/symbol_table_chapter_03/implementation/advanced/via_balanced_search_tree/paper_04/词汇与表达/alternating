@@ -1,0 +1,13 @@
+--- rotation and color flips(翻转) ---
+invariant properties 不变的属性
+consecutive 连续的
+imply that 指出/说明
+a single path of alternating red and black nodes. 由交替的红节点与黑节点所构成的单一路径
+In the context of... 在...的语境下/场景中
+leans to the left/right 向左/右倾斜
+vice versa 反之亦然
+transformations 转换过程
+preserve the two invariants stated above 保持了如上所述的不变性
+essential operation 根本的操作
+A corresponds to B A会对应到B
+corrected 被修正
