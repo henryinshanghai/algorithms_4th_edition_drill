@@ -1,0 +1,88 @@
+Efficient implementation of the delete operation is a challenge
+in many symbol-table implementations, and red-black trees are no exception（红黑树也不例外）.
+
+Industrial-strength implementations run to over 100 lines of code,
+and text books generally describe the operation in terms of（以...方式） detailed case studies,
+eschewing（刻意避开） full implementations.
+
+Guibas and Sedgewick presented a delete implementation in [7],
+but it is not fully specified（完全指定） and
+depends on a call-by-reference approach
+not commonly found in modern code（在现代的代码中并不常见）.
+
+The most popular method in common use is based on a parent pointers（父指针） (see [6]),
+which adds substantial overhead（很大的开销） and
+does not reduce the number of cases to be handled.
+
+=== meat肉👇 ===
+
+The code on the next page is a full implementation of delete() for LLRB 2-3 trees（用左倾红黑树实现的2-3树）.
+It is based on the reverse of（逆过程）
+the approach used for insert in top-down 2-3-4 trees（自上而下的2-3-4树的插入所使用的方式）:
+we perform rotations and color flips
+on the way down the search path（沿着搜索路径往下） to
+ensure that the search does not end on a 2-node（本次搜索不会终止于一个2-结点）,
+so that we can just delete the node at the bottom.（因此我们可以直接从底部删除结点）
+
+We use the method fixUp() to
+share the code for the color flip and rotations
+following（紧跟着） the recursive calls in the insert() code.
+
+With fixUp(), we can leave right leaning red links（右倾的红链接） and unbalanced 4-nodes（未平衡的4-结点）
+along the search path（在查询路径中）, secure that
+these conditions（有问题的状况） will be fixed
+on the way up the tree（沿着树向上的过程中）.
+
+(The approach is also effective 2-3-4 trees,
+but requires an extra rotation
+when the right node off the search path
+is a 4-node.)
+
+As a warmup, consider the delete-the-minimum operation, where the goal is
+to delete the bottom node on the left spine（删除左脊上的底部节点）
+while maintaining balance（同时维护树的平衡性）.
+
+To do so, we maintain the invariant（不变性） that
+the current node or its left child is red（当前节点 或者 它的左子结点为红色）.
+
+We can do so by
+moving to the left（把xxx移动到左边）
+unless the current node is red and its left child and left grandchild are both black.
+
+In that case（当前结点为红色&它的左子结点与左子结点的左子结点都是黑色）, we can do a color flip, which restores the invariant（line44）
+but may introduce successive reds on the right（在右侧引入连续的红链接）.
+In that case（右侧出现连续的红链接）, we can correct the condition with two rotations and a color flip.
+
+These operations are implemented in the moveRedLeft() method on the next page.
+With moveRedLeft(), the recursive implementation of deleteMin() above is straightforward（直白的）.
+
+For general deletion, we also need moveRedRight(), which is similar, but simpler,
+and we need to
+rotate left-leaning red links to the right on the search path（在搜索路径上把左倾的红链接 旋转成为右倾）
+to maintain the invariant.
+
+If the node
+to be deleted is an internal node（内部节点/非叶子节点）, we replace its key and value fields
+with those in the minimum node in its right subtree（右子树中的最小节点）
+and then delete the minimum in the right subtree (or
+we could rearrange pointers to
+use the node instead of copying fields).
+
+The full implementation of delete() that derives from this discussion（由此讨论所衍生的删除操作的实现）
+is given on the facing page.
+It uses one-third to one-quarter the amount of code
+found in typical implementations.
+
+It has been demonstrated before [2, 11, 13] that
+maintaining a field in each node containing its height
+can lead to code for delete that is similarly concise,
+but that extra space is a high price to pay
+in a practical implementation.
+
+With LLRB trees, we can arrange for concise code
+having a logarithmic performance guarantee
+and using no extra space.
+
+
+
+
