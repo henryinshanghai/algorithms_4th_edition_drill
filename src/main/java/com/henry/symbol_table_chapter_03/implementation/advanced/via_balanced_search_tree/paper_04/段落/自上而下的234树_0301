@@ -1,0 +1,18 @@
+To insert a new node, we
+#1 flip colors（翻转颜色） to（来）
+split any 4-node encountered on the way down the tree（分解沿着树向下查找时遇到的4-结点）
+#2 and do rotations（进行旋转） to
+balance（使...平衡） 4-nodes (eliminate occurrences of consecutive red links on the way up the tree). （消除在沿着树向上返回过程中出现的连续红链接）
+
+This approach is natural
+because splitting 4-nodes（分解4-结点） to
+ensure that the search does not terminate on a 4-node（保证搜索过程不会终结于4-结点）
+means that（意味着）
+#1 a new node can be added by attaching it with a red link, （可以使用红链接来添加新的结点）
+#2 and balancing a 4-node amounts（平衡一个4-结点） to（相当于）
+handling the three possible ways that
+a red link could be attached to a 3-node（一个红链接被依附到3-结点上时可能的三种情况）, as shown in the diagram at right.
+
+If the red link that is passed up（被向上传递）
+happens to lean to the right in a 3-node（在3-结点中向右倾斜）,
+we correct that condition when we encounter it.
