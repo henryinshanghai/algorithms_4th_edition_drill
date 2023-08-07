@@ -1,0 +1,150 @@
+By design, the worst-case cost of a search in an LLRB tree with N nodes is 2 lg N.
+In practical applications, however, the cost of a typical search is half that value,
+not perceptibly different from
+the cost of a search in a perfectly balanced tree.
+
+Since searches are far more common
+than inserts
+in typical symbol-table applications,
+the usual first step
+in studying a symbol-table algorithm is to
+assume that a table is built from random keys (precisely, a random permutation of distinct keys)
+and then study the cost of searchers.
+
+For standard BSTs and other methods,
+mathematical models based on this assumption
+have been developed and validated with experimental results and practical experience.
+
+The development of a corresponding mathematical model
+for balanced trees is
+one of the outstanding problems
+in the analysis of algorithms.
+
+In this paper, we present experimental results that
+may help guide the development of such a model,
+using a modified form of a plot format
+suggested by Tufte [12].
+Specifically, we use
+•	 a gray dot to
+        depict the result of each experiment
+•	 a red dot to
+        depict the average value of
+        the experiments for each tree size
+•	 black line segments to
+        depict the standard deviation σ of the experiments for each tree size,
+        of length σ and spaced σ above and below the red dots。
+（σ表示求和操作）
+
+While sometimes difficult to
+distinguish individually, the gray dots help
+illustrate the extent and the dispersion of the experimental results.
+The plots at right each represent the results of 50,000 experiments,
+each involving building a 2-3 tree from a random permutation of distinct keys.
+
+== 平均路径长度 ==
+What is the cost of a typical search?
+That is the question of most interest in practice.
+
+In typical large-scale applications,
+most searches are successful and bias towards specific keys is relatively insignificant,
+so the measuring the average length to
+a node in a tree constructed from random keys
+is a reasonable estimate.
+
+As shown in our first plot, this measure
+is extremely close to the optimal value lgN − .5
+that would be found in a fully balanced tree.
+
+The plots for top-down 2-3-4 trees and other types of red-black trees
+are indistinguishable from this one.
+
+== 高度 ==
+What is the expected worst case search cost?
+This question is primarily of academic interest,
+but may shed some light on the structure of the trees.
+
+Though the dispersion is much higher than the average,
+our second plot shows that the height is close to 2 ln N,
+the same value as the average cost of a search in a BST (!).
+
+However, this precise value is pure conjecture:
+for example, experiments for standard BSTs would suggest the average height 3 lgN ,
+but the actual value of the coefficient is known to be slightly less than 3.
+
+== 分布 ==
+The first step to developing a mathematical model that
+explains these results is to
+understand the distribution of the probability pk that
+the root is of rank k,
+when a LLRB (2-3) tree is built from random keys.
+
+We know this probability to be 0 for small k and for large k, and
+we expect it to be high when k is near N/2.
+
+The figure at left shows the result of
+computing the distribution exactly for small N
+and estimating its shape for intermediate values of N.
+
+Following the format introduced in [10],
+the curves are normalized on the x axis
+and slightly separated on the y axis,
+so that convergence to a distribution can be identified.
+
+
+The irregularities in the curves are primarily (but not completely)
+due to expected variations in the experimental results.
+(These curves are the result of
+building 10000 trees for each size,
+and are smoother than
+the curves based on a smaller number of experiments).
+
+Ideally, we would like to see
+convergence at the bottom to some distribution (whose properties we can analyze) for large N.
+Though it suggests the possibility of eventual convergence to a distribution
+that can be suitable approximated, this figure also exhibits an oscillation
+that may complicate such analysis.
+
+At right is shown a Tufte plot of
+the average for this distribution for a large number of experiments.
+This figure clearly illustrates a log-oscillatory behavior
+that is often found in the analysis of algorithms,
+and also shows that
+the dispersion is significant and does not seem to be decreasing.
+
+== 红路径的长度 ==
+How many red nodes are on the search path, on the average?
+This question would seem to be the key to understanding LLRB trees.
+
+The figure below shows that this varies (even though the total is relatively smooth.)
+Close examination reveals that
+the average number of reds perpath increases slowly,
+then drops each time the root splits.
+
+One important challenge is to characterize the root split events.
+The remarkable figure at right shows that variability
+in the time of root splits creates a significant challenge in
+developing a detailed characterization of
+the average number of red nodes per path.
+
+
+It is a modified Tufte plot showing that
+this quantity oscillates between periods of low and high variance
+and increase very slowly, if at all.
+
+This behavior is the result of
+averaging the sawtooth plots
+with different root split times
+like the ones at the bottom of the previous page.
+
+It is quite remarkable that
+the quantity of primary practical interest (the average path length)
+should be so stable (as shown in our first plot
+and in the sum of the black and red path lengths
+in the plot at the bottom of the previous),
+but the underlying process should exhibit such wildly oscillatory behavior.
+
+== 鸣谢 ==
+The author wishes to thank Kevin Wayne
+for many productive discussions
+and for rekindling interest in this topic
+by encouraging work on the delete implementation.
