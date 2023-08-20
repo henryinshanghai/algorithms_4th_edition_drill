@@ -6,7 +6,7 @@
     #2 结点中包含 一个泛型的元素 与 一个 指向另一个链表的引用；
 操作特征：支持各种快捷的CRUD操作；
 类定义：
-private class Node {
-    Item item;
-    Node nextNode; // 递归数据结构，在定义中包含自己
-}
+    private class Node {
+        Item item; // 节点中的元素
+        Node nextNode; // 递归数据结构，在定义中包含自己
+    }
