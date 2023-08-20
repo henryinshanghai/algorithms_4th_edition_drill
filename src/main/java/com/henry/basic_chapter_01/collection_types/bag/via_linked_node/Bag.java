@@ -64,7 +64,7 @@ public class Bag<Item> implements Iterable<Item> { // #1 在类声明中，使�
         }
     }
 
-    private int size() {
+    public int size() {
         return itemAmount;
     }
 
