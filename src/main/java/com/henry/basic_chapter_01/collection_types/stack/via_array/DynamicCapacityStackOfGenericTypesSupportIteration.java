@@ -1,15 +1,16 @@
-package com.henry.basic_chapter_01.collection_types.stack_via_array;
+package com.henry.basic_chapter_01.collection_types.stack.via_array;
 
 import java.util.Iterator;
 
-// 实现 动态容量、能够处理泛型参数、支持迭代元素操作的栈
-// 手段：
-public class DynamicCapacityStackOfGenericTypesSupportIterationTemplate<Item> implements Iterable<Item>{
+// 目标：实现 动态容量、能够处理泛型参数、支持迭代元素操作的栈数据结构
+// 数据类型的预期特征：{#1 支持泛型类型; #2 栈的容量是能够动态变化的; #3 支持对集合中元素的迭代操作}
+// 手段：为当前数据结构实现 Iterable接口，并实现接口中所要求的各种抽象方法
+public class DynamicCapacityStackOfGenericTypesSupportIteration<Item> implements Iterable<Item>{
 
     private Item[] itemArray;
     private int itemAmount;
 
-    public DynamicCapacityStackOfGenericTypesSupportIterationTemplate(int initCapacity) {
+    public DynamicCapacityStackOfGenericTypesSupportIteration(int initCapacity) {
         itemArray = (Item[]) new Object[initCapacity];
         itemAmount = 0;
     }
@@ -51,10 +52,11 @@ public class DynamicCapacityStackOfGenericTypesSupportIterationTemplate<Item> im
         return new MyStackIterator();
     }
 
-    // 当前栈数据结构的迭代器
+    // 自定义内部类 - 当前栈数据结构的迭代器
     private class MyStackIterator implements Iterator<Item> {
 
         // 这里需要一个内部类自己的成员变量吗？ Not necessarily
+        // 原因：数组结构中的元素在物理上是连续的，因此可以高效地实现next()
 
         @Override
         public boolean hasNext() {
@@ -68,7 +70,7 @@ public class DynamicCapacityStackOfGenericTypesSupportIterationTemplate<Item> im
     }
 
     public static void main(String[] args) {
-        DynamicCapacityStackOfGenericTypesSupportIterationTemplate<String> myStringStack = new DynamicCapacityStackOfGenericTypesSupportIterationTemplate<>(10);
+        DynamicCapacityStackOfGenericTypesSupportIteration<String> myStringStack = new DynamicCapacityStackOfGenericTypesSupportIteration<>(10);
 
         myStringStack.push("Henry");
         myStringStack.push("want");
