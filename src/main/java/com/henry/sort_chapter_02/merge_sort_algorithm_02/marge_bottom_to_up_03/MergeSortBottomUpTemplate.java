@@ -46,34 +46,34 @@ public class MergeSortBottomUpTemplate {
         aux = new Comparable[itemAmount];
 
         // #3 更新（倍增）N，重复#1、#2，直到（子组的元素数量 >= 原始数组的元素数量）得到“完全排序的数组”
-        for (int subGroupSize = 1; subGroupSize < itemAmount; subGroupSize = subGroupSize * 2) {
-            // #2 按照当前 subGroupSize 分组后，对得到的子数组 从左到右 执行两两归并；
+        for (int blockSize = 1; blockSize < itemAmount; blockSize = blockSize * 2) {
+            // #2 按照当前 blockSize 分组后，对得到的子数组 从左到右 执行两两归并；
             // 手段：先对当前Pair执行归并操作，再更新指针，对新的Pair执行归并操作。直到 原始数组中的最后一个Pair
-            for (int leftBarCursor = 0; leftBarCursor < itemAmount - subGroupSize; leftBarCursor += (subGroupSize * 2)) {
+            for (int leftBarOfCurrentPair = 0; leftBarOfCurrentPair < itemAmount - blockSize; leftBarOfCurrentPair += (blockSize * 2)) {
                 // 随着currentPair被不断更新，rightBarCursor可能会超出原始数组的边界。因此这里使用min()
-                merge(a, leftBarCursor, leftBarCursor + subGroupSize - 1,
-                        Math.min((leftBarCursor + subGroupSize*2) - 1, itemAmount - 1));
+                merge(a, leftBarOfCurrentPair, leftBarOfCurrentPair + blockSize - 1,
+                        Math.min((leftBarOfCurrentPair + blockSize * 2) - 1, itemAmount - 1));
             }
         }
     }
 
     // 归并指定闭区间中的元素
     // 特征：a[leftBar, middle] 与 a[middle+1, rightBar] - 均为闭区间
-    private static void merge(Comparable[] a, int leftBar, int middle, int rightBar) {
+    private static void merge(Comparable[] a, int leftBarOfCurrentPair, int middleOfCurrentPair, int rightBarOfCurrentPair) {
         // 1
-        for (int cursor = leftBar; cursor <= rightBar; cursor++) {
+        for (int cursor = leftBarOfCurrentPair; cursor <= rightBarOfCurrentPair; cursor++) {
             aux[cursor] = a[cursor];
         }
 
         // 2
-        int leftHalfCursor = leftBar;
-        int rightHalfCursor = middle + 1;
+        int leftHalfCursor = leftBarOfCurrentPair;
+        int rightHalfCursor = middleOfCurrentPair + 1;
 
         // 3
-        for (int cursor = leftBar; cursor <= rightBar; cursor++) {
-            if(leftHalfCursor > middle) a[cursor] = aux[rightHalfCursor++];
-            else if(rightHalfCursor > rightBar) a[cursor] = aux[leftHalfCursor++];
-            else if(less(aux[leftHalfCursor], aux[rightHalfCursor])) a[cursor] = aux[leftHalfCursor++];
+        for (int cursor = leftBarOfCurrentPair; cursor <= rightBarOfCurrentPair; cursor++) {
+            if (leftHalfCursor > middleOfCurrentPair) a[cursor] = aux[rightHalfCursor++];
+            else if (rightHalfCursor > rightBarOfCurrentPair) a[cursor] = aux[leftHalfCursor++];
+            else if (less(aux[leftHalfCursor], aux[rightHalfCursor])) a[cursor] = aux[leftHalfCursor++];
             else a[cursor] = aux[rightHalfCursor++];
         }
     }
