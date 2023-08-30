@@ -40,32 +40,33 @@ public class ShellSortTemplate {
     public static void sort(Comparable[] a) {
         // 先把序列元素更新到 最大元素
         int itemAmount = a.length;
-        int itemAmountOfSubGroup = 1;
+        int blockSize = 1;
 
         // #1 按照一个公式，生成一个比较大的N值（小于itemAmount） 用于分割原始数组为子数组
-        while (itemAmountOfSubGroup < itemAmount / 3) {
-            itemAmountOfSubGroup = 3 * itemAmountOfSubGroup + 1; // h序列：1, 4, 13, 40, 121, 364, 1093...
+        while (blockSize < itemAmount / 3) {
+            blockSize = 3 * blockSize + 1; // h序列：1, 4, 13, 40, 121, 364, 1093...
         } // 循环结束时，h是一个比较大的值...
 
         // 完成对数组中所有元素的排序
         // 手段：#1 对于当前的itemAmountOfSubGroup, 得到“分隔有序的元素序列”； #2 调整当前的itemAmountOfSubGroup，得到 “完全有序的元素序列”
-        while (itemAmountOfSubGroup >= 1) { // 当N=1（子数组尺寸为1）时，整个数组排序完成
+        while (blockSize >= 1) { // 当N=1（子数组尺寸为1）时，整个数组排序完成
             // #2 按照当前itemAmountOfSubGroup分组后，得到“分隔有序的元素序列”
             // 手段：从 startPointOfDisorder 开始到原始数组的最后一个元素为止，对每个元素，把它插入到“其对应的序列”
-            int startPointOfDisorder = itemAmountOfSubGroup;
+            int startPointOfDisorder = blockSize;
             for (int anchorOfItemToInsert = startPointOfDisorder; anchorOfItemToInsert < itemAmount; anchorOfItemToInsert++) { // 内循环的次数
-                // #3 把a[anchorOfItemToInsert]插入到a[anchorOfItemToInsert-itemAmountOfSubGroup],a[anchorOfItemToInsert-2*itemAmountOfSubGroup],a[anchorOfItemToInsert-3*itemAmountOfSubGroup]...之中
+                // #3 把a[anchorOfItemToInsert]插入到a[anchorOfItemToInsert-blockSize],a[anchorOfItemToInsert-2*blockSize],a[anchorOfItemToInsert-3*blockSize]...之中
                 // 手段：插入排序
-                for (int backwardsCursor = anchorOfItemToInsert;
-                     backwardsCursor >= startPointOfDisorder && less(a[backwardsCursor], a[backwardsCursor - itemAmountOfSubGroup]);
-                     backwardsCursor -= itemAmountOfSubGroup) {
-                    exch(a, backwardsCursor, backwardsCursor - itemAmountOfSubGroup);
+                for (int backwardsCursor = anchorOfItemToInsert; backwardsCursor >= startPointOfDisorder; backwardsCursor -= blockSize) {
+
+                    if (less(a[backwardsCursor], a[backwardsCursor - blockSize])) {
+                        exch(a, backwardsCursor, backwardsCursor - blockSize);
+                    }
                 }
             }
 
             // 两层for循环结束后，就得到了 “分割有序的元素序列”
-            // #4 缩小 itemAmountOfSubGroup，来 最终得到 “完全排序的数组”。
-            itemAmountOfSubGroup = itemAmountOfSubGroup / 3;
+            // #4 缩小 blockSize，来 最终得到 “完全排序的数组”。
+            blockSize = blockSize / 3;
         }
     }
 
