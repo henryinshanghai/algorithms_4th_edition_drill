@@ -43,13 +43,13 @@ public class IndexMinPQFromWebsite<Element extends Comparable<Element>> implemen
     // 对于使用者而言，会使用 index -> element的方式把 元素以指定索引插入堆中。
     // 对于底层存储的数据结构，会使用 spot -> index -> element的方式来存储“index 与 element”信息
     // 相比于 简单优先队列的信息存储方式 spot -> element, 这里添加了 index
-    // 用来记录 spot -> index的关联信息  totalExpectStepsRouteViaCurrentGrid(spot_in_heap/array) = index
+    // 用来记录 spot -> index的关联信息  f(spot_in_heap/array) = index
     private int[] spotToIndexArray; // 🐖 只有spot才具有连续性，但spotToIndexArray本身并不是一个“堆”
 
-    // 用来记录 index -> element的关联信息 totalExpectStepsRouteViaCurrentGrid(index/priority) = element_value
+    // 用来记录 index -> element的关联信息 f(index/priority) = element_value
     private Element[] indexToElementArray;
 
-    // 用来记录 index -> spot的关联信息  totalExpectStepsRouteViaCurrentGrid(index) = spot_in_heap/array
+    // 用来记录 index -> spot的关联信息  f(index) = spot_in_heap/array
     private int[] indexToSpotArray;        // 作用： 辅助数组，用于快速找到 特定index “在逻辑堆中的位置spot”
 
 
