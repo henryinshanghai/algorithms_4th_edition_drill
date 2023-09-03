@@ -36,11 +36,11 @@ public class MergeFromTopToDownTemplate {
         aux = new Comparable[a.length];
 
         // 对数组的指定区间进行排序 - 这里是全部区间
-        sort(a, 0, a.length - 1);
+        sortRange(a, 0, a.length - 1);
     }
 
     // 排序数组的指定区间 a[leftBar, rightBar] 闭区间
-    private static void sort(Comparable[] a, int leftBar, int rightBar) {
+    private static void sortRange(Comparable[] a, int leftBar, int rightBar) {
         // 递归终结的条件：区间变窄为0 aka 数组已经有序
         if(leftBar >= rightBar) return;
 
@@ -48,16 +48,16 @@ public class MergeFromTopToDownTemplate {
         int middle = leftBar + (rightBar - leftBar) / 2;
 
         // 使左区间有序
-        sort(a, leftBar, middle);
+        sortRange(a, leftBar, middle);
         // 使右区间有序
-        sort(a, middle+1, rightBar);
+        sortRange(a, middle+1, rightBar);
 
         // 有了两个有序的子数组后，使用归并操作 得到一个 元素完全有序的数组
-        merge(a, leftBar, middle, rightBar);
+        mergeSorterdRange(a, leftBar, middle, rightBar);
     }
 
     // 归并 a[leftBar, middle] 与 a[middle+1, rightBar] - 特征：两个子区间都已经是有序数组了
-    private static void merge(Comparable[] a, int leftBar, int middle, int rightBar) {
+    private static void mergeSorterdRange(Comparable[] a, int leftBar, int middle, int rightBar) {
         // 准备左区间的指针 与 右区间的指针 - 初始位置放在最左侧
         int leftHalfCursor = leftBar;
         int rightHalfCursor = middle + 1;
