@@ -51,7 +51,7 @@ public class MergeSortBottomUpTemplate {
             // 手段：先对当前Pair执行归并操作，再更新指针，对新的Pair执行归并操作。直到 原始数组中的最后一个Pair
             for (int leftBarOfCurrentPair = 0; leftBarOfCurrentPair < itemAmount - blockSize; leftBarOfCurrentPair += (blockSize * 2)) {
                 // 随着currentPair被不断更新，rightBarCursor可能会超出原始数组的边界。因此这里使用min()
-                merge(a, leftBarOfCurrentPair, leftBarOfCurrentPair + blockSize - 1,
+                mergeBlocksInPair(a, leftBarOfCurrentPair, leftBarOfCurrentPair + blockSize - 1,
                         Math.min((leftBarOfCurrentPair + blockSize * 2) - 1, itemAmount - 1));
             }
         }
@@ -59,20 +59,20 @@ public class MergeSortBottomUpTemplate {
 
     // 归并指定闭区间中的元素
     // 特征：a[leftBar, middle] 与 a[middle+1, rightBar] - 均为闭区间
-    private static void merge(Comparable[] a, int leftBarOfCurrentPair, int middleOfCurrentPair, int rightBarOfCurrentPair) {
+    private static void mergeBlocksInPair(Comparable[] a, int leftBarOfPair, int middleOfPair, int rightBarOfPair) {
         // 1
-        for (int cursor = leftBarOfCurrentPair; cursor <= rightBarOfCurrentPair; cursor++) {
+        for (int cursor = leftBarOfPair; cursor <= rightBarOfPair; cursor++) {
             aux[cursor] = a[cursor];
         }
 
         // 2
-        int leftHalfCursor = leftBarOfCurrentPair;
-        int rightHalfCursor = middleOfCurrentPair + 1;
+        int leftHalfCursor = leftBarOfPair;
+        int rightHalfCursor = middleOfPair + 1;
 
         // 3
-        for (int cursor = leftBarOfCurrentPair; cursor <= rightBarOfCurrentPair; cursor++) {
-            if (leftHalfCursor > middleOfCurrentPair) a[cursor] = aux[rightHalfCursor++];
-            else if (rightHalfCursor > rightBarOfCurrentPair) a[cursor] = aux[leftHalfCursor++];
+        for (int cursor = leftBarOfPair; cursor <= rightBarOfPair; cursor++) {
+            if (leftHalfCursor > middleOfPair) a[cursor] = aux[rightHalfCursor++];
+            else if (rightHalfCursor > rightBarOfPair) a[cursor] = aux[leftHalfCursor++];
             else if (less(aux[leftHalfCursor], aux[rightHalfCursor])) a[cursor] = aux[leftHalfCursor++];
             else a[cursor] = aux[rightHalfCursor++];
         }
