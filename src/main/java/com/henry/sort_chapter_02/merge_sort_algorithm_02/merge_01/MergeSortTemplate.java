@@ -67,12 +67,12 @@ public class MergeSortTemplate {
         aux = new Comparable[a.length];
 
         // 对“数组的指定区间”进行排序 - 这里是全部区间
-        sort(a, 0, a.length - 1);
+        sortRange(a, 0, a.length - 1);
     }
 
     // 排序“数组的指定区间” a[leftBar, rightBar] 闭区间
     // 手段：递归
-    private static void sort(Comparable[] a, int leftBar, int rightBar) {
+    private static void sortRange(Comparable[] a, int leftBar, int rightBar) {
         // 递归终结的条件：区间变窄为0
         if(leftBar >= rightBar) return;
 
@@ -80,17 +80,17 @@ public class MergeSortTemplate {
         int middle = leftBar + (rightBar - leftBar) / 2;
 
         // #1 使左区间有序
-        sort(a, leftBar, middle);
+        sortRange(a, leftBar, middle);
         // #2 使右区间有序
-        sort(a, middle+1, rightBar);
+        sortRange(a, middle+1, rightBar);
 
         // #3 有了两个“有序的子数组”后，使用归并操作 得到一个 “元素完全有序的数组”
-        merge(a, leftBar, middle, rightBar);
+        mergeSortedRange(a, leftBar, middle, rightBar);
     }
 
     // 归并“原始数组”中的两个“有序子数组”
     // 归并 a[leftBar, middle] 与 a[middle+1, rightBar] - 特征：两个子区间都已经是有序数组了
-    private static void merge(Comparable[] a, int leftBar, int middle, int rightBar) {
+    private static void mergeSortedRange(Comparable[] a, int leftBar, int middle, int rightBar) {
         // #1 拷贝区间[leftBar, rightBar](闭区间)之间的元素 到 aux
         for (int cursor = leftBar; cursor <= rightBar; cursor++) {
             aux[cursor] = a[cursor];
