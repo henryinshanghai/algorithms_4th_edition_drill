@@ -9,18 +9,20 @@ public class HeapSortDrill {
 
         // #1 build a heap out of the array - via sink(currentNodeSpot)
         for (int currentNodeSpot = itemAmount / 2; currentNodeSpot >= 1; currentNodeSpot--) { // 这里是 >=
-            sink(a, currentNodeSpot, itemAmount);
+            sinkNodeOf(a, currentNodeSpot, itemAmount);
         }
 
         // #2 sort the items in the array - arrange the biggest item, and re-construct the heap.
         int cursorToLastNodeSpot = itemAmount;
         while (cursorToLastNodeSpot > 1) {
+            // arrange the maxItem and remove it logically
             exch(a, 1, cursorToLastNodeSpot--);
-            sink(a, 1, cursorToLastNodeSpot);
+            // to re-build the max heap based on what's rest.
+            sinkNodeOf(a, 1, cursorToLastNodeSpot);
         }
     }
 
-    private static void sink(Comparable[] originalArray, int currentNodeSpot, int lastNodeSpot) {
+    private static void sinkNodeOf(Comparable[] originalArray, int currentNodeSpot, int lastNodeSpot) {
         while (currentNodeSpot * 2 < lastNodeSpot) {
             int biggerChildSpot = currentNodeSpot * 2;
             if (less(originalArray, biggerChildSpot, biggerChildSpot + 1)) biggerChildSpot++;
