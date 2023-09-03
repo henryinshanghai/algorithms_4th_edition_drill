@@ -19,14 +19,14 @@ import edu.princeton.cs.algs4.StdOut;
 
     算法过程：
         #1 按照一个公式，生成一个比较大的N值（小于并接近itemAmount） 用于分割原始数组为子数组
-        #2 按照当前 itemAmountOfSubGroup 分组后，得到“分隔有序的元素序列”
+        #2 按照当前 blockSize 分组后，得到“分隔有序的元素序列”
             手段：从 startPointOfDisorder 开始到原始数组的最后一个元素为止，对每个元素，把它插入到“其对应的序列”
         #3 把当前“待插入的元素”插入到其所对应的序列中；aka 把 a[i] 插入到 a[i-toMoveStepsToEndGridWithoutObstacles], a[i-2*toMoveStepsToEndGridWithoutObstacles]...中
             手段：插入排序；
-        #4 缩小 itemAmountOfSubGroup，来 最终得到 “完全排序的数组”。
+        #4 缩小 blockSize，来 最终得到 “完全排序的数组”。
 
     有意义的变量名：
-        1 按照特定的size对原始数组进行分组 - itemAmountOfSubGroup
+        1 按照特定的size对原始数组进行分组 - blockSize
         2 指向 开始执行插入操作的起始元素 的静态指针 - startPointOfDisorder（起始指针 ∈希尔排序）
         3 指向 待插入到有序区中的元素 的动态指针 - cursorOfItemToInsert（待插入元素的指针 ∈插入排序）
         4 从后往前遍历有序序列时 的游标指针 - backwardsCursor（倒序指针 ∈插入排序）
@@ -48,9 +48,9 @@ public class ShellSortTemplate {
         } // 循环结束时，h是一个比较大的值...
 
         // 完成对数组中所有元素的排序
-        // 手段：#1 对于当前的itemAmountOfSubGroup, 得到“分隔有序的元素序列”； #2 调整当前的itemAmountOfSubGroup，得到 “完全有序的元素序列”
+        // 手段：#1 对于当前的 blockSize, 得到“分隔有序的元素序列”； #2 调整当前的blockSize，得到 “完全有序的元素序列”
         while (blockSize >= 1) { // 当N=1（子数组尺寸为1）时，整个数组排序完成
-            // #2 按照当前itemAmountOfSubGroup分组后，得到“分隔有序的元素序列”
+            // #2 按照当前blockSize分组后，得到“分隔有序的元素序列”
             // 手段：从 startPointOfDisorder 开始到原始数组的最后一个元素为止，对每个元素，把它插入到“其对应的序列”
             int startPointOfDisorder = blockSize;
             for (int anchorOfItemToInsert = startPointOfDisorder; anchorOfItemToInsert < itemAmount; anchorOfItemToInsert++) { // 内循环的次数
