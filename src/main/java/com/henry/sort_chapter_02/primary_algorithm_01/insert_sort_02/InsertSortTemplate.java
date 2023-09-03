@@ -54,9 +54,10 @@ public class InsertSortTemplate {
                 如果有必要（less & exch），则：比较的操作要向前推进(j--)
                 如果没必要（less不成立），则：比较操作终止（for循环）
              */
-            for (int backwardsCursor = anchorOfItemToInsert;
-                 backwardsCursor > 0 && less(a[backwardsCursor], a[backwardsCursor - 1]); backwardsCursor--) {
-                exch(a, backwardsCursor, backwardsCursor - 1);
+            for (int backwardsCursor = anchorOfItemToInsert; backwardsCursor > 0; backwardsCursor--) {
+                if (less(a[backwardsCursor], a[backwardsCursor - 1])) {
+                    exch(a, backwardsCursor, backwardsCursor - 1);
+                }
             }
 
             // 断言 当前的有序区域是元素有序的
