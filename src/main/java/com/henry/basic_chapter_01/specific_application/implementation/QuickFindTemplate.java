@@ -1,9 +1,9 @@
-package com.henry.basic_chapter_01;
+package com.henry.basic_chapter_01.specific_application.implementation;
 
 import edu.princeton.cs.algs4.StdIn;
 
 /**
- * 用于解决 “动态连通性问题” （todo 解释清楚它）
+ * 用于解决 “动态连通性问题”  see introduce
  * 作用：
  * 1 记录元素集合中任意两个元素之间的连通性；
  * 2 对任意两个元素执行连通操作；
@@ -15,7 +15,7 @@ import edu.princeton.cs.algs4.StdIn;
  */
 // 执行手段：redirect from input ： <tinyUF>
 public class QuickFindTemplate {
-    private int[] nodeToItsGroupIdArray; // 存储分量（子集合）的信息
+    private int[] nodeToItsGroupIdArray; // 存储节点 -> 节点所属子组的信息
     private int groupAmount; // 集合分组后，子集合的数量
 
     public QuickFindTemplate(int nodeAmount) {
@@ -25,7 +25,8 @@ public class QuickFindTemplate {
         nodeToItsGroupIdArray = new int[nodeAmount];
         // 数组元素初始化
         for (int currentNode = 0; currentNode < nodeAmount; currentNode++) {
-            nodeToItsGroupIdArray[currentNode] = currentNode;  // 分量信息的存储：以元素i作为索引，存储的初始值=元素i
+            // 初始状态：groupId = 节点本身的值 - 后继连接节点后，会把同一个组中的节点 映射到 同一个组Id中
+            nodeToItsGroupIdArray[currentNode] = currentNode;
         }
     }
 
@@ -47,11 +48,11 @@ public class QuickFindTemplate {
      * 手段1：同一个分量中的各个元素对应的值(分量id)相同；
      * 具体方法：nodeToItsGroupIdArray[]使用元素作为索引，使用分量的唯一标识作为值；
      *
-     * @param node
+     * @param passedNode
      * @return
      */
-    private int findGroupIdOf(int node) {
-        return nodeToItsGroupIdArray[node]; // 返回id[]数组在索引p处存储的值：分量的唯一标识
+    private int findGroupIdOf(int passedNode) {
+        return nodeToItsGroupIdArray[passedNode]; // 返回id[]数组在索引p处存储的值：分量的唯一标识
     }
 
     /**
@@ -71,8 +72,8 @@ public class QuickFindTemplate {
         for (int currentNode = 0; currentNode < nodeToItsGroupIdArray.length; currentNode++) {
             // 把 两个node 合并到 同一个子组中去
             // 手段：为 nodeP 绑定 nodeQ的分组id
-            if (nodeToItsGroupIdArray[currentNode] == groupIdOfNodeP) {
-                nodeToItsGroupIdArray[currentNode] = groupIdOfNodeQ;
+            if (nodeToItsGroupIdArray[currentNode] == groupIdOfNodeP) { // 找到 nodeP
+                nodeToItsGroupIdArray[currentNode] = groupIdOfNodeQ; // 设置它在 nodeToItsGroupArray[]中的值
             }
         }
 
