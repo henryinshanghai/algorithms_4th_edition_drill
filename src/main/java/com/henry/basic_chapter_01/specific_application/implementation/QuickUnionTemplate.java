@@ -1,4 +1,4 @@
-package com.henry.basic_chapter_01;
+package com.henry.basic_chapter_01.specific_application.implementation;
 
 import edu.princeton.cs.algs4.StdIn;
 
@@ -19,10 +19,10 @@ import edu.princeton.cs.algs4.StdIn;
 
 public class QuickUnionTemplate {
     private int[] currentNodeToParentNodeArray; // currentNodeToParentNodeArray
-    private int groupAmount;
+    private int treeAmount;
 
     public QuickUnionTemplate(int nodeAmount) {
-        groupAmount = nodeAmount;
+        treeAmount = nodeAmount;
         currentNodeToParentNodeArray = new int[nodeAmount];
 
         for (int currentNode = 0; currentNode < currentNodeToParentNodeArray.length; currentNode++) {
@@ -36,8 +36,8 @@ public class QuickUnionTemplate {
      * 获取集合中的分量个数
      * @return
      */
-    public int getConnectedComponentAmount(){
-        return groupAmount;
+    public int getComponentAmount(){
+        return treeAmount;
     }
 
     /**
@@ -48,18 +48,28 @@ public class QuickUnionTemplate {
      *  手段：
      *      查询到指定节点的根节点
      *  返回值：根节点的内容/索引
-     * @param node
+     * @param currentNode
      */
     // 原理：使用 “相互连通的所有节点” 所组成的树的根节点，来 作为 组的id
-    public int findGroupIdOf(int node){
-        while (node != currentNodeToParentNodeArray[node]) { // 判断当前节点是不是根节点...
+    public int findComponentIdOf(int currentNode){
+        while (isNotRootNode(currentNode)) { // 判断当前节点是不是根节点...
             // 如果不是，则：更新当前节点
             // 手段：找到当前节点的上一个节点
-            node = currentNodeToParentNodeArray[node];
+            currentNode = swimUpTheTree(currentNode);
         }
 
-        int groupId = node;
-        return groupId;
+        // 到达根结点 - 根结点本身就是树的标识符
+        int treeId = currentNode;
+        return treeId;
+    }
+
+    private int swimUpTheTree(int currentNode) {
+        int parentNode = currentNodeToParentNodeArray[currentNode];
+        return parentNode;
+    }
+
+    private boolean isNotRootNode(int currentNode) {
+        return currentNode != currentNodeToParentNodeArray[currentNode];
     }
 
     /**
@@ -70,17 +80,19 @@ public class QuickUnionTemplate {
      * @param nodeP
      * @param nodeQ
      */
-    public void unionToSameGroup(int nodeP, int nodeQ) {
-        int groupIdOfNodeP = findGroupIdOf(nodeP);
-        int groupIdOfNodeQ = findGroupIdOf(nodeQ);
+    public void unionToSameComponent(int nodeP, int nodeQ) {
+        int treeIdOfNodeP = findComponentIdOf(nodeP);
+        int treeIdOfNodeQ = findComponentIdOf(nodeQ);
 
-        if (groupIdOfNodeP == groupIdOfNodeQ) {
+        if (treeIdOfNodeP == treeIdOfNodeQ) {
             return;
         }
-        // 把 节点p的根节点 指向 节点q的根节点
-        currentNodeToParentNodeArray[groupIdOfNodeP] = groupIdOfNodeQ;
 
-        groupAmount--;
+        // 把 节点p的根节点 指向 节点q的根节点 treeIdOfNodeP -> treeIdOfNodeQ
+        currentNodeToParentNodeArray[treeIdOfNodeP] = treeIdOfNodeQ;
+
+        // 合并后，森林中的树的数量减一
+        treeAmount--;
     }
 
     /**
@@ -89,15 +101,15 @@ public class QuickUnionTemplate {
      * @param nodeQ
      */
     public boolean isConnectedBetween(int nodeP, int nodeQ) {
-        int groupIdOfNodeP = findGroupIdOf(nodeP);
-        int groupIdOfNodeQ = findGroupIdOf(nodeQ);
+        int treeIdOfNodeP = findComponentIdOf(nodeP);
+        int treeIdOfNodeQ = findComponentIdOf(nodeQ);
 
-        return groupIdOfNodeP == groupIdOfNodeQ;
+        return treeIdOfNodeP == treeIdOfNodeQ;
     }
 
     public static void main(String[] args) {
         int nodeAmount = StdIn.readInt();
-        QuickUnionTemplate nailBoard = new QuickUnionTemplate(nodeAmount);
+        QuickUnionTemplate forest = new QuickUnionTemplate(nodeAmount);
 
         while (!StdIn.isEmpty()) {
             // 读取整数对 pair
@@ -106,16 +118,16 @@ public class QuickUnionTemplate {
 
             // 判断这对元素是否已经连通
             // 比如：在union(9, 4)的时候， 就会导致 (8, 9)连通 - 因此对于 pair(8, 9) 就不用再做union()了
-            if (nailBoard.isConnectedBetween(nodeP, nodeQ)) {
+            if (forest.isConnectedBetween(nodeP, nodeQ)) {
                 continue; // 如果已经连通了，就什么都不做
             }
 
-            nailBoard.unionToSameGroup(nodeP, nodeQ); // 把两个元素连接到同一个分量中
+            forest.unionToSameComponent(nodeP, nodeQ); // 把两个元素连接到同一个分量中
             System.out.println("在 " + nodeP + " " + nodeQ + " 之间建立连接");
 
         }
 
-        System.out.println(nailBoard.getConnectedComponentAmount() + "分量（子集合）");
+        System.out.println(forest.getComponentAmount() + "分量（子集合）");
     }
 }
 /*
