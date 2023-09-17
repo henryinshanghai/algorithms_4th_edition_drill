@@ -1,0 +1,35 @@
+quick-find算法
+
+一种方式是 保证 当且仅当 nodeToGroupIdArray[nodeP] 等于 nodeToGroupIdArray[nodeQ]时， nodeP与nodeQ是相互连通的。
+aka 在同一个连通分量中的所有触点 在nodeToGroupIdArray[]数组中的值 都必须要完全相同。
+在此基础上推论：实现 isConnectedBetween(nodeP, nodeQ) 就只需要 判断 nodeToGroupIdArray[nodeP] == nodeToGroupIdArray[nodeQ]就行了。
+原理：当且仅当 nodeP 与 nodeQ在同一个连通分量中时，上述语句才会返回true。
+
+处理策略：
+#1 如果两个触点已经在同一个分量中了，则：不对它们做任何处理，直接跳到下一个数对；
+#2 如果两个触点不在同一个分量中，则：调用unionToSameGroup(nodeP, nodeQ) 来 把它们添加到同一个分量中。
+目标：把两个触点 添加到 同一个分量中；
+手段：把两个触点在nodeToGroupIdArray[]数组中的值 设置为 相同的值；
+具体做法：遍历整个nodeToGroupIdArray[]数组，把所有 所有满足条件的元素的值，都设置为 另一个值；
+
+
+quick-find算法分析
+
+#1 find()操作
+操作的速度会非常快，因为它只需要访问 nodeToGroupIdArray[]数组一次；
+
+但是 quick-find算法没办法处理大规模的问题，因为每一次unionToSameGroup()的操作 都会需要遍历整个 nodeToGroupIdArray[]数组。
+
+命题：在 quick-find算法中，每次find()调用 都只会需要访问数组一次，但是 归并两个元素/分量的union()操作 访问数组的次数 在(N+3)到(2N+1)之间。
+证明：略
+
+推论：
+假设我们使用 quick-find算法 来 解决“动态连通性问题”，而且 最终只得到了一个连通分量。
+则：这会最少需要调用 (N - 1)次union()操作，也就是最少 (N+3)(N-1) ~ N^2次数组访问.
+因此，结论 - 动态连通性问题的quick-find解法是平方级别的。
+推广这个分析，可知：对于那些个 最终只会得到少数的连通分量的一般应用，quick-find算法的运行时长是平方级别的。
+
+在计算机上使用倍率实验 很容易验证这个猜想。
+
+现代计算机每秒钟能够执行数亿甚至数十亿条指令，所以 当N比较小的时候，这个成本不会太明显。
+但是某些现代应用中，可能会需要处理 数百万或者数亿的触点与连接，这时候 quick-find算法就明显捉襟见肘了。
