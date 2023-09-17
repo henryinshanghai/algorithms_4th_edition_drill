@@ -1,4 +1,4 @@
-package com.henry.basic_chapter_01.specific_application.implementation;
+package com.henry.basic_chapter_01.specific_application.implementation.advanced.quick_union_by_weight;
 
 import edu.princeton.cs.algs4.StdIn;
 
@@ -36,37 +36,6 @@ public class WeightedQuickUnionTemplate {
 
     // API
     /**
-     * 获取到集合中当前分量的总数量
-     */
-    public int getTreeAmount(){
-        return treeAmount;
-    }
-
-    /**
-     * 查询到指定元素所在的分量；
-     * 手段：找到所在分量的根节点————链表的根节点满足特征xxx
-     * 使用树的根节点 作为 组id
-     * @param currentNode
-     */
-    public int findTreeIdOf(int currentNode){
-        while (isNotRootNode(currentNode)) { // 如果不是根节点（根节点上存在自环）
-            currentNode = parentNodeOf(currentNode);
-        }
-
-        int treeId = currentNode;
-        return treeId; // 返回 参数节点的根节点 aka 组的id
-    }
-
-    private boolean isNotRootNode(int currentNode) {
-        return currentNode != currentNodeToParentNodeArray[currentNode];
-    }
-
-    private int parentNodeOf(int currentNode) {
-        int parentNode = currentNodeToParentNodeArray[currentNode]; // 则：更新到父节点
-        return parentNode;
-    }
-
-    /**
      * 对两个指定的元素进行连接（到同一个分量）
      * 优化：小树连到大树上 而不是随意连接
      * @param nodeP
@@ -95,6 +64,30 @@ public class WeightedQuickUnionTemplate {
         treeAmount--;
     }
 
+    /**
+     * 查询到指定元素所在的分量；
+     * 手段：找到所在分量的根节点————链表的根节点满足特征xxx
+     * 使用树的根节点 作为 组id
+     * @param currentNode
+     */
+    public int findTreeIdOf(int currentNode){
+        while (isNotRootNode(currentNode)) { // 如果不是根节点（根节点上存在自环）
+            currentNode = parentNodeOf(currentNode);
+        }
+
+        int treeId = currentNode;
+        return treeId; // 返回 参数节点的根节点 aka 组的id
+    }
+
+    private boolean isNotRootNode(int currentNode) {
+        return currentNode != currentNodeToParentNodeArray[currentNode];
+    }
+
+    private int parentNodeOf(int currentNode) {
+        int parentNode = currentNodeToParentNodeArray[currentNode]; // 则：更新到父节点
+        return parentNode;
+    }
+
     private void addsNodeAmountToBiggerTree(int treeIdOfSmallerTree, int treeIdOfBiggerTree) {
         treeIdToItsNodeAmount[treeIdOfBiggerTree] += treeIdToItsNodeAmount[treeIdOfSmallerTree];
     }
@@ -106,6 +99,21 @@ public class WeightedQuickUnionTemplate {
     private boolean nodePIsInSmallerTree(int treeIdOfNodeP, int treeIdOfNodeQ) {
         return treeIdToItsNodeAmount[treeIdOfNodeP] < treeIdToItsNodeAmount[treeIdOfNodeQ];
     }
+
+    public boolean isConnectedBetween(int nodeP, int nodeQ) {
+        int groupIdOfNodeP = findTreeIdOf(nodeP);
+        int groupIdOfNodeQ = findTreeIdOf(nodeQ);
+
+        return groupIdOfNodeP == groupIdOfNodeQ;
+    }
+
+    /**
+     * 获取到集合中当前分量的总数量
+     */
+    public int getTreeAmount(){
+        return treeAmount;
+    }
+
 
     public static void main(String[] args) {
         int nodeAmount = StdIn.readInt();
@@ -124,17 +132,9 @@ public class WeightedQuickUnionTemplate {
 
             forest.unionToSameComponent(nodeP, nodeQ); // 把两个元素连接到同一个分量中
             System.out.println("在 " + nodeP + " " + nodeQ + " 之间建立连接");
-
         }
 
         System.out.println(forest.getTreeAmount() + "分量（子集合）");
     }
 
-
-    private boolean isConnectedBetween(int nodeP, int nodeQ) {
-        int groupIdOfNodeP = findTreeIdOf(nodeP);
-        int groupIdOfNodeQ = findTreeIdOf(nodeQ);
-
-        return groupIdOfNodeP == groupIdOfNodeQ;
-    }
 }
