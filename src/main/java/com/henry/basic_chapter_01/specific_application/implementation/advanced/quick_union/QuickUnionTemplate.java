@@ -1,4 +1,4 @@
-package com.henry.basic_chapter_01.specific_application.implementation;
+package com.henry.basic_chapter_01.specific_application.implementation.advanced.quick_union;
 
 import edu.princeton.cs.algs4.StdIn;
 
@@ -21,23 +21,39 @@ public class QuickUnionTemplate {
     private int[] currentNodeToParentNodeArray; // currentNodeToParentNodeArray
     private int treeAmount;
 
-    public QuickUnionTemplate(int nodeAmount) {
-        treeAmount = nodeAmount;
-        currentNodeToParentNodeArray = new int[nodeAmount];
+    public QuickUnionTemplate(int maxNumber) {
+        treeAmount = maxNumber;
 
+        currentNodeToParentNodeArray = new int[maxNumber];
         for (int currentNode = 0; currentNode < currentNodeToParentNodeArray.length; currentNode++) {
-            // 初始化时，当前节点 指向它自己（形成了自环）
+            // 初始化时，当前节点 指向它自己（形成了自链接）
             currentNodeToParentNodeArray[currentNode] = currentNode;
         }
     }
 
     // API
     /**
-     * 获取集合中的分量个数
-     * @return
+     * 对指定的两个元素进行连接操作（连接到同一分量）
+     * 说明：
+     *  1 先判断两个元素是否已经属于同一个分量了
+     *  手段：在根节点A与根节点B之间添加一个指向关系
+     * @param nodeP
+     * @param nodeQ
      */
-    public int getComponentAmount(){
-        return treeAmount;
+    public void unionToSameComponent(int nodeP, int nodeQ) {
+        int treeIdOfNodeP = findComponentIdOf(nodeP);
+        int treeIdOfNodeQ = findComponentIdOf(nodeQ);
+
+        if (treeIdOfNodeP == treeIdOfNodeQ) {
+            return;
+        }
+
+        // 手段：把两棵树的根结点连接起来，得到一棵树
+        // 具体做法：把 节点p的根节点(作为当前节点) 指向 节点q的根节点(作为父结点)
+        currentNodeToParentNodeArray[treeIdOfNodeP] = treeIdOfNodeQ;
+
+        // 合并后，森林中的树的数量减一
+        treeAmount--;
     }
 
     /**
@@ -55,7 +71,7 @@ public class QuickUnionTemplate {
         while (isNotRootNode(currentNode)) { // 判断当前节点是不是根节点...
             // 如果不是，则：更新当前节点
             // 手段：找到当前节点的上一个节点
-            currentNode = swimUpTheTree(currentNode);
+            currentNode = parentNodeOf(currentNode);
         }
 
         // 到达根结点 - 根结点本身就是树的标识符
@@ -63,36 +79,13 @@ public class QuickUnionTemplate {
         return treeId;
     }
 
-    private int swimUpTheTree(int currentNode) {
+    private int parentNodeOf(int currentNode) {
         int parentNode = currentNodeToParentNodeArray[currentNode];
         return parentNode;
     }
 
     private boolean isNotRootNode(int currentNode) {
         return currentNode != currentNodeToParentNodeArray[currentNode];
-    }
-
-    /**
-     * 对指定的两个元素进行连接操作（连接到同一分量）
-     * 说明：
-     *  1 先判断两个元素是否已经属于同一个分量了
-     *  手段：在根节点A与根节点B之间添加一个指向关系
-     * @param nodeP
-     * @param nodeQ
-     */
-    public void unionToSameComponent(int nodeP, int nodeQ) {
-        int treeIdOfNodeP = findComponentIdOf(nodeP);
-        int treeIdOfNodeQ = findComponentIdOf(nodeQ);
-
-        if (treeIdOfNodeP == treeIdOfNodeQ) {
-            return;
-        }
-
-        // 把 节点p的根节点 指向 节点q的根节点 treeIdOfNodeP -> treeIdOfNodeQ
-        currentNodeToParentNodeArray[treeIdOfNodeP] = treeIdOfNodeQ;
-
-        // 合并后，森林中的树的数量减一
-        treeAmount--;
     }
 
     /**
@@ -105,6 +98,14 @@ public class QuickUnionTemplate {
         int treeIdOfNodeQ = findComponentIdOf(nodeQ);
 
         return treeIdOfNodeP == treeIdOfNodeQ;
+    }
+
+    /**
+     * 获取集合中的分量个数
+     * @return
+     */
+    public int getComponentAmount(){
+        return treeAmount;
     }
 
     public static void main(String[] args) {
