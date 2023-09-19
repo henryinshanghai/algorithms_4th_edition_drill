@@ -1,4 +1,4 @@
-package com.henry.symbol_table_chapter_03.implementation.primary;
+package com.henry.symbol_table_chapter_03.implementation_02.primary;
 
 import edu.princeton.cs.algs4.Queue;
 import edu.princeton.cs.algs4.StdIn;

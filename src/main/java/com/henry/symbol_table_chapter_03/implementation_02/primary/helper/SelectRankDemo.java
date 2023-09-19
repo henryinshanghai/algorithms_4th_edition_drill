@@ -1,4 +1,4 @@
-package com.henry.symbol_table_chapter_03.implementation.primary.helper;
+package com.henry.symbol_table_chapter_03.implementation_02.primary.helper;
 
 public class SelectRankDemo<Key extends Comparable<Key>> {
     private Key[] keys;

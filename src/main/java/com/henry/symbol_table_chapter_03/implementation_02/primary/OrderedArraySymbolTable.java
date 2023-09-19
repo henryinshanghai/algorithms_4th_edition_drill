@@ -1,4 +1,4 @@
-package com.henry.symbol_table_chapter_03.implementation.primary; /***************************************************************************
+package com.henry.symbol_table_chapter_03.implementation_02.primary; /***************************************************************************
  *  Compilation:  javac OrderedArraySymbolTable.java
  *  Execution:    java OrderedArraySymbolTable
  *  Dependencies: StdIn.java StdOut.java

@@ -1,4 +1,4 @@
-package com.henry.symbol_table_chapter_03.implementation.advanced.via_balanced_search_tree.to_implement_23tree_neatly_02.when_delete; /******************************************************************************
+package com.henry.symbol_table_chapter_03.implementation_02.advanced.via_balanced_search_tree.to_implement_23tree_neatly_02.when_delete; /******************************************************************************
  *  Compilation:  javac RedBlackTreeSymbolTable.java
  *  Execution:    java RedBlackTreeSymbolTable < input.txt
  *  Dependencies: StdIn.java StdOut.java  

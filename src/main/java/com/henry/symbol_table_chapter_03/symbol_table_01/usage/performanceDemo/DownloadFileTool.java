@@ -23,24 +23,26 @@ public class DownloadFileTool {
             throw new Exception("文件读取失败！");
         }
 
-        // 从响应中获取文件流————作为输入流
+        // 从响应中获取"文件流"————作为"输入流"
         InputStream fis = new BufferedInputStream(conn.getInputStream());
-        // 创建输出到指定路径的输出流
+        // 创建 "输出到指定路径的输出流"
         File storeFile = new File(storePath);
         BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(storeFile));
 
-        // 把输入流中的数据写入到输出流中
-        // 1 创建一个缓冲区———— 字节数组（单位为M）
+        /* 把输入流中的数据 "写入到输出流中" */
+        // #1 创建一个缓冲区———— 字节数组（单位为M）
         byte[] buffer = new byte[1024 * 1024];
 
-        // 2 读取输入流
+        // #2 读取输入流
         int read = 0;
         while ((read = fis.read(buffer)) != -1) {
-            // 写入到输出流中
+            // #3 写入到输出流中
             bos.write(buffer, 0, read);
         }
 
+        // 清空缓冲区
         bos.flush();
+        // 关闭资源
         bos.close();
         fis.close();
     }

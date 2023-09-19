@@ -1,4 +1,4 @@
-package com.henry.symbol_table_chapter_03.implementation.advanced.via_binary_search_tree;
+package com.henry.symbol_table_chapter_03.implementation_02.advanced.via_binary_search_tree;
 /******************************************************************************
  *  Compilation:  javac BinarySearchTreeSymbolTable.java
  *  Execution:    java BinarySearchTreeSymbolTable

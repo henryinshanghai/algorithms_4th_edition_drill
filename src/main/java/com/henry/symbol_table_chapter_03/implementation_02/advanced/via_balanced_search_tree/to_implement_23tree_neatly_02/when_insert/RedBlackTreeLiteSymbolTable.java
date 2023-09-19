@@ -1,4 +1,4 @@
-package com.henry.symbol_table_chapter_03.implementation.advanced.via_balanced_search_tree.to_implement_23tree_neatly_02.when_insert;
+package com.henry.symbol_table_chapter_03.implementation_02.advanced.via_balanced_search_tree.to_implement_23tree_neatly_02.when_insert;
 
 import edu.princeton.cs.algs4.Queue;
 import edu.princeton.cs.algs4.StdOut;

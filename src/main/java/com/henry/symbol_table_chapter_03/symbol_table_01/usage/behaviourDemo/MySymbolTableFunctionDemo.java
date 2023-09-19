@@ -1,7 +1,6 @@
 package com.henry.symbol_table_chapter_03.symbol_table_01.usage.behaviourDemo;
 
-import com.henry.symbol_table_chapter_03.implementation.primary.LinkedNodeSymbolTable;
-import com.henry.symbol_table_chapter_03.implementation.primary.OrderedArraySymbolTable;
+import com.henry.symbol_table_chapter_03.implementation_02.primary.OrderedArraySymbolTable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
