@@ -30,38 +30,8 @@ import edu.princeton.cs.algs4.StdOut;
  *
  ******************************************************************************/
 
-/**
- * The {@code LinkedNodeSymbolTable} class represents an (unordered)
- * symbol table of generic key-value pairs.
- * It supports the usual <em>put</em>, <em>get</em>, <em>contains</em>,
- * <em>delete</em>, <em>size</em>, and <em>is-empty</em> methods.
- * It also provides a <em>keys</em> method for iterating over all of the keys.
- * A symbol table implements the <em>associative array</em> abstraction:
- * when associating a value with a key that is already in the symbol table,
- * the convention is to replace the old value with the new value.
- * The class also uses the convention that values cannot be {@code null}. Setting the
- * value associated with a key to {@code null} is equivalent to deleting the key
- * from the symbol table.
- * <p>
- * It relies on the {@code equals()} method to test whether two keys
- * are equal. It does not call either the {@code compareTo()} or
- * {@code hashCode()} method.
- * <p>
- * This implementation uses a <em>singly linked list</em> and
- * <em>sequential search</em>.
- * The <em>put</em> and <em>delete</em> operations take &Theta;(<em>pairAmount</em>).
- * The <em>get</em> and <em>contains</em> operations takes &Theta;(<em>pairAmount</em>)
- * time in the worst case.
- * The <em>size</em>, and <em>is-empty</em> operations take &Theta;(1) time.
- * Construction takes &Theta;(1) time.
- * <p>
- * For additional documentation, see
- * <a href="https://algs4.cs.princeton.edu/31elementary">Section 3.1</a> of
- * <i>Algorithms, 4th Edition</i> by Robert Sedgewick and Kevin Wayne.
- *
- * @author Robert Sedgewick
- * @author Kevin Wayne
- */
+// 验证：可以使用链表 来 实现符号表
+// 手段：在链表的节点中，定义 key -> value的映射关系
 public class LinkedNodeSymbolTable<Key, Value> {
     private int pairAmount;           // 符号表中 键值对的数量
     private Node firstNode;      // 实现符号表的底层数据结构：链表 - 作为递归结构，链表的头节点即可代表链表本身
@@ -105,7 +75,7 @@ public class LinkedNodeSymbolTable<Key, Value> {
      */
     public boolean contains(Key key) {
         if (key == null) throw new IllegalArgumentException("argument to contains() is null");
-        return get(key) != null;
+        return getAssociatedValueOf(key) != null;
     }
 
     /**
@@ -116,7 +86,7 @@ public class LinkedNodeSymbolTable<Key, Value> {
      *
      * @param passedKey
      */
-    public Value get(Key passedKey) {
+    public Value getAssociatedValueOf(Key passedKey) {
         if (passedKey == null) throw new IllegalArgumentException("argument to get() is null");
         for (Node currentNode = firstNode; currentNode != null; currentNode = currentNode.nextNode) {
             if (passedKey.equals(currentNode.key))
@@ -131,15 +101,14 @@ public class LinkedNodeSymbolTable<Key, Value> {
      * 如果传入的值是null的话，则：从符号表中删除指定的key（以及它关联的值）
      * <p>
      * 如果key是null的话，则：抛出异常
-     *
-     * @param passedKey
+     *  @param passedKey
      * @param associatedValue
      */
-    public void put(Key passedKey, Value associatedValue) {
+    public void putInPairOf(Key passedKey, Value associatedValue) {
         if (passedKey == null) throw new IllegalArgumentException("firstNode argument to put() is null");
         // #1 删除键值对的操作
         if (associatedValue == null) {
-            delete(passedKey);
+            deletePairOf(passedKey);
             return;
         }
 
@@ -162,9 +131,9 @@ public class LinkedNodeSymbolTable<Key, Value> {
      *
      * @param passedKey
      */
-    public void delete(Key passedKey) {
+    public void deletePairOf(Key passedKey) {
         if (passedKey == null) throw new IllegalArgumentException("argument to delete() is null");
-        firstNode = delete(firstNode, passedKey);
+        firstNode = deletePairFrom(firstNode, passedKey);
     }
 
     /**
@@ -175,7 +144,7 @@ public class LinkedNodeSymbolTable<Key, Value> {
      * @param passedKey
      * @return
      */
-    private Node delete(Node passedNode, Key passedKey) {
+    private Node deletePairFrom(Node passedNode, Key passedKey) {
         // delete操作的终止条件：1 链表已经空了（aka x == null） 2 找到指定key对应的节点
         if (passedNode == null) return null;
 
@@ -186,7 +155,7 @@ public class LinkedNodeSymbolTable<Key, Value> {
         }
 
         // 在剩下的链表中，继续 “查找&删除”指定key的节点（递归操作）
-        passedNode.nextNode = delete(passedNode.nextNode, passedKey);
+        passedNode.nextNode = deletePairFrom(passedNode.nextNode, passedKey);
 
         // 递归调用结束后（表示任务完成），返回 “删除了指定节点的链表”
         return passedNode;
@@ -198,7 +167,7 @@ public class LinkedNodeSymbolTable<Key, Value> {
      * <p>
      * 返回符号表中所有的key
      */
-    public Iterable<Key> keys() {
+    public Iterable<Key> getIterableKeys() {
         Queue<Key> keysQueue = new Queue<Key>();
 
         for (Node currentNode = firstNode; currentNode != null; currentNode = currentNode.nextNode)
@@ -221,12 +190,12 @@ public class LinkedNodeSymbolTable<Key, Value> {
         for (int currentSpot = 0; !StdIn.isEmpty(); currentSpot++) {
             String keyOnCurrentSpot = StdIn.readString();
             // 向符号表中添加 键（字符串）-> 值（字符串的位置）对
-            linkedNodeSymbolTable.put(keyOnCurrentSpot, currentSpot);
+            linkedNodeSymbolTable.putInPairOf(keyOnCurrentSpot, currentSpot);
         }
 
         // 打印符号表中的键值对    手段：1 获取到键的集合； 2 通过get(key)的方式获取到值
         // 特征：键值对 会按照它们被插入到符号表中的顺序打印
-        for (String currentKey : linkedNodeSymbolTable.keys())
-            StdOut.println(currentKey + " " + linkedNodeSymbolTable.get(currentKey));
+        for (String currentKey : linkedNodeSymbolTable.getIterableKeys())
+            StdOut.println(currentKey + " " + linkedNodeSymbolTable.getAssociatedValueOf(currentKey));
     }
 }
