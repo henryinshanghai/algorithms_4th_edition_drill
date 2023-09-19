@@ -31,6 +31,7 @@ import java.util.NoSuchElementException;
 
 // 验证：可以使用有序数组 来 实现符号表
 // 手段：使用Key[] 来 表示键，使用Value[] 来 表示值。
+// 特征：对于key的存储是有序的；   验证手段：遍历keys并打印时，key会被按照自然字母的顺序打印
 public class OrderedArraySymbolTable<Key extends Comparable<Key>, Value> {
     private static final int INIT_CAPACITY = 2;
     private Key[] keyArray;
@@ -395,9 +396,9 @@ public class OrderedArraySymbolTable<Key extends Comparable<Key>, Value> {
         OrderedArraySymbolTable<String, Integer> symbolTable = new OrderedArraySymbolTable<String, Integer>();
 
         for (int currentSpot = 0; !StdIn.isEmpty(); currentSpot++) {
-            String currentKey = StdIn.readString();
+            String keyOnCurrentSpot = StdIn.readString();
             // 插入时是随机插入的
-            symbolTable.put(currentKey, currentSpot);
+            symbolTable.put(keyOnCurrentSpot, currentSpot);
         }
 
         // 但打印时，却是键有序的————在存储时，数据结构内部就进行了排序

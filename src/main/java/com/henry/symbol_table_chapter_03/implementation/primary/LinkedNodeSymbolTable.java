@@ -32,6 +32,7 @@ import edu.princeton.cs.algs4.StdOut;
 
 // 验证：可以使用链表 来 实现符号表
 // 手段：在链表的节点中，定义 key -> value的映射关系
+// 特征：key在链表中的存储是无序的 验证手段：使用keys来遍历链表中的key时，key只会按照存储的顺序打印，而不是自然字母顺序
 public class LinkedNodeSymbolTable<Key, Value> {
     private int pairAmount;           // 符号表中 键值对的数量
     private Node firstNode;      // 实现符号表的底层数据结构：链表 - 作为递归结构，链表的头节点即可代表链表本身
@@ -183,19 +184,19 @@ public class LinkedNodeSymbolTable<Key, Value> {
      */
     public static void main(String[] args) {
         // 创建符号表对象
-        LinkedNodeSymbolTable<String, Integer> linkedNodeSymbolTable = new LinkedNodeSymbolTable<String, Integer>();
+        LinkedNodeSymbolTable<String, Integer> symbolTable = new LinkedNodeSymbolTable<String, Integer>();
 
         // 读取 标准输入中的字符串 - 手段：读取文件内容作为输入
         // 具体方法：#1 redirect input from file; #2 使用 StdIn工具类读取文件内容
         for (int currentSpot = 0; !StdIn.isEmpty(); currentSpot++) {
             String keyOnCurrentSpot = StdIn.readString();
             // 向符号表中添加 键（字符串）-> 值（字符串的位置）对
-            linkedNodeSymbolTable.putInPairOf(keyOnCurrentSpot, currentSpot);
+            symbolTable.putInPairOf(keyOnCurrentSpot, currentSpot);
         }
 
         // 打印符号表中的键值对    手段：1 获取到键的集合； 2 通过get(key)的方式获取到值
         // 特征：键值对 会按照它们被插入到符号表中的顺序打印
-        for (String currentKey : linkedNodeSymbolTable.getIterableKeys())
-            StdOut.println(currentKey + " " + linkedNodeSymbolTable.getAssociatedValueOf(currentKey));
+        for (String currentKey : symbolTable.getIterableKeys())
+            StdOut.println(currentKey + " " + symbolTable.getAssociatedValueOf(currentKey));
     }
 }
