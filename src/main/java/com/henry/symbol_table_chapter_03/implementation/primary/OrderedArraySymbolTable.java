@@ -147,7 +147,7 @@ public class OrderedArraySymbolTable<Key extends Comparable<Key>, Value> {
      * 如果符号表中存在对应的key，则：使用新的值来覆盖旧的值。
      * 如果指定的value为null的话，则：从符号表中删除键（及其绑定的值）
      */
-    public void put(Key passedKey, Value associatedValue) {
+    public void putInPairOf(Key passedKey, Value associatedValue) {
         if (passedKey == null) throw new IllegalArgumentException("first argument to put() is null");
 
         // #1 删除的case
@@ -398,7 +398,7 @@ public class OrderedArraySymbolTable<Key extends Comparable<Key>, Value> {
         for (int currentSpot = 0; !StdIn.isEmpty(); currentSpot++) {
             String keyOnCurrentSpot = StdIn.readString();
             // 插入时是随机插入的
-            symbolTable.put(keyOnCurrentSpot, currentSpot);
+            symbolTable.putInPairOf(keyOnCurrentSpot, currentSpot);
         }
 
         // 但打印时，却是键有序的————在存储时，数据结构内部就进行了排序
