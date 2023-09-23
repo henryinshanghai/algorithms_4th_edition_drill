@@ -446,9 +446,8 @@ public class BinarySearchTreeSymbolTable<Key extends Comparable<Key>, Value> {
     // ~~ ITERABLE ~~
     /**
      * 以Iterable的方式 来 返回符号表中所有的key所组成的集合
-     * <p>
      * 为了遍历 st符号表中所有的key，可以使用foreach标记语法： for(Key key : st.keys()) {...}
-     *
+     * 特征：以 “左 - 根 - 右” 的次序 来 返回BST中的key
      * @return all keys in the symbol table
      */
     public Iterable<Key> getIterableKeys() {
@@ -468,6 +467,7 @@ public class BinarySearchTreeSymbolTable<Key extends Comparable<Key>, Value> {
         if (leftBarKey == null) throw new IllegalArgumentException("first argument to keys() is null");
         if (rightBarKey == null) throw new IllegalArgumentException("second argument to keys() is null");
 
+        // 🐖：这里只需要一个可迭代的集合类型，不一定要是队列
         Queue<Key> queue = new Queue<>();
         collectKeysBetweenRangeInto(rootNode, queue, leftBarKey, rightBarKey);
         return queue;
