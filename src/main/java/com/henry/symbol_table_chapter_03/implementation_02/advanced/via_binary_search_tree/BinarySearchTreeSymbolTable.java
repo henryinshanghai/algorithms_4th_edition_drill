@@ -106,12 +106,12 @@ public class BinarySearchTreeSymbolTable<Key extends Comparable<Key>, Value> {
         }
 
         // 向二叉查找树rootNode 中插入 key-value pair
-        rootNode = putIntoPairOf(rootNode, passedKey, associatedValue);
+        rootNode = putPairInto(rootNode, passedKey, associatedValue);
         assert checkIfUnderlyingMemberCorrect();
     }
 
     // 🐖 插入的过程 与 查找的过程十分类似 - 插入前，需要先查找
-    private Node putIntoPairOf(Node currentNode, Key passedKey, Value associatedValue) {
+    private Node putPairInto(Node currentNode, Key passedKey, Value associatedValue) {
         // 递归终结条件：查询结束于一个空结点/链接
         // 则：为传入的键值对创建一个新结点，并返回 以 链接到父节点上（重置搜索路径上指向结点的链接）
         if (currentNode == null)
@@ -121,9 +121,9 @@ public class BinarySearchTreeSymbolTable<Key extends Comparable<Key>, Value> {
         // 手段：node.leftNode = xxx; node.rightNode = ooo;
         int result = passedKey.compareTo(currentNode.key);
         if (result < 0) // 向左子树中插入键值对，并使用插入后的子树 来 更新左子树
-            currentNode.leftSubTree = putIntoPairOf(currentNode.leftSubTree, passedKey, associatedValue);
+            currentNode.leftSubTree = putPairInto(currentNode.leftSubTree, passedKey, associatedValue);
         else if (result > 0) // 向右子树中插入键值对，并使用插入后的子树 来 更新右子树
-            currentNode.rightSubTree = putIntoPairOf(currentNode.rightSubTree, passedKey, associatedValue);
+            currentNode.rightSubTree = putPairInto(currentNode.rightSubTree, passedKey, associatedValue);
         else currentNode.value = associatedValue; // 如果根节点的key 与 传入的key相同，则：更新结点中的value
 
         // 更新搜索路径中每个结点的 计数器 - 🐖 如果新增了结点，则：搜索路径上的每个结点的结点计数器都要+1

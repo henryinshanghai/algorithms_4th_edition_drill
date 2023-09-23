@@ -46,7 +46,7 @@ public class RedBlackTreeLiteSymbolTable<Key extends Comparable<Key>, Value> {
         private Key key;           // 结点中的键
         private Value value;         // 结点中 键所关联的值
         private Node leftSubNode, rightSubNode;  // 当前结点的左子结点、右子结点
-        private boolean color;     // 结点的颜色（指向当前结点的链接的颜色）
+        private boolean color;     // 相比较BST中的Node，这里新增了一个属性：结点的颜色（指向当前结点的链接的颜色）
 
         public Node(Key key, Value value, boolean color) {
             this.key = key;
@@ -61,11 +61,11 @@ public class RedBlackTreeLiteSymbolTable<Key extends Comparable<Key>, Value> {
      * @param passedKey*/
 
     // 返回传入的键 所关联的值, 如果传入的键不存在的话，则：返回null
-    public Value get(Key passedKey) {
-        return get(rootNode, passedKey);
+    public Value getAssociatedValueOf(Key passedKey) {
+        return getAssociatedValueFrom(rootNode, passedKey);
     }
 
-    public Value get(Node currentNode, Key passedKey) {
+    public Value getAssociatedValueFrom(Node currentNode, Key passedKey) {
         while (currentNode != null) {
             // 比较 传入的键 与 根结点中的键
             int result = passedKey.compareTo(currentNode.key);
@@ -82,27 +82,26 @@ public class RedBlackTreeLiteSymbolTable<Key extends Comparable<Key>, Value> {
     }
 
     // 在符号表中 是否存在 与传入的key相等的键（&值）
-    public boolean contains(Key passedKey) {
-        return get(passedKey) != null;
+    public boolean doesContains(Key passedKey) {
+        return getAssociatedValueOf(passedKey) != null;
     }
 
 
     /***************************************************************************
      *  红黑树的插入算法.
-     **************************************************************************
-     * @param passedKey
+     **************************************************************************  @param passedKey
      * @param associatedValue*/
 
-    public void put(Key passedKey, Value associatedValue) {
+    public void putInPairOf(Key passedKey, Value associatedValue) {
         // 查找key 找到则更新其值，否则为它创建一个节点
-        rootNode = insert(rootNode, passedKey, associatedValue);
+        rootNode = putPairInto(rootNode, passedKey, associatedValue);
 
         // 约定：红黑树中根结点总是黑色的 - 为了遵守 红色左链接 <-> 3-结点的约定
         rootNode.color = BLACK;
-        assert check();
+        assert checkIfItIsLegitBTree();
     }
 
-    private Node insert(Node currentNode, Key passedKey, Value associatedValue) {
+    private Node putPairInto(Node currentNode, Key passedKey, Value associatedValue) {
         if (currentNode == null) { // 如果查找操作结束于一个空结点 说明BST中不存在 与passedKey相等的键(&值)，则...
             pairsAmount++;
             // 将传入的键值作为新结点添加到树的底部
@@ -113,9 +112,9 @@ public class RedBlackTreeLiteSymbolTable<Key extends Comparable<Key>, Value> {
         // 为了保证“对称有序性”，按照与根结点的比较结果，在对应的子树中递归地插入结点
         int result = passedKey.compareTo(currentNode.key);
         if (result < 0)
-            currentNode.leftSubNode = insert(currentNode.leftSubNode, passedKey, associatedValue); // 在左子树中插入
+            currentNode.leftSubNode = putPairInto(currentNode.leftSubNode, passedKey, associatedValue); // 在左子树中插入
         else if (result > 0)
-            currentNode.rightSubNode = insert(currentNode.rightSubNode, passedKey, associatedValue); // 在右子树中插入
+            currentNode.rightSubNode = putPairInto(currentNode.rightSubNode, passedKey, associatedValue); // 在右子树中插入
         else
             currentNode.value = associatedValue; // 更新结点的value
 
@@ -124,11 +123,11 @@ public class RedBlackTreeLiteSymbolTable<Key extends Comparable<Key>, Value> {
         // 具体实现：插入结点后，在查找路径中的每一个结点（从下往上）上，根据需要来进行适当的局部变换
         // 🐖 红黑树中插入新结点是，5中具体情形(2-结点的插入&3-结点的插入)归约后得到如下3种情形👇
         if (isRed(currentNode.rightSubNode) && !isRed(currentNode.leftSubNode)) // #1 右子结点为红色，而左子结点为黑色
-            currentNode = rotateLeft(currentNode); // 对当前结点左旋转
+            currentNode = rotateItsRedSubLinkToLeft(currentNode); // 对当前结点左旋转
         if (isRed(currentNode.leftSubNode) && isRed(currentNode.leftSubNode.leftSubNode)) // #2 左子结点为红色，左子结点的左子结点也为红色，
-            currentNode = rotateRight(currentNode); // 对上层链接进行右旋转
+            currentNode = rotateItsRedSubLinkToRight(currentNode); // 对上层链接进行右旋转
         if (isRed(currentNode.leftSubNode) && isRed(currentNode.rightSubNode)) // #3 左子结点为红色，且右子结点也为红色
-            flipColors(currentNode); // 进行颜色转换 来 #1 消除breach； #2 把红链接向上传递（维持与2-3树的等价性）
+            flipColorToRed(currentNode); // 进行颜色转换 来 #1 消除breach； #2 把红链接向上传递（维持与2-3树的等价性）
 
         return currentNode;
     }
@@ -145,18 +144,22 @@ public class RedBlackTreeLiteSymbolTable<Key extends Comparable<Key>, Value> {
     }
 
     // rotate rightSubNode
-    private Node rotateRight(Node currentNode) {
+    private Node rotateItsRedSubLinkToRight(Node currentNode) {
         assert (currentNode != null) && isRed(currentNode.leftSubNode);
+
+        /* 结构上的变更 */
         Node replacerNode = currentNode.leftSubNode;
         currentNode.leftSubNode = replacerNode.rightSubNode;
         replacerNode.rightSubNode = currentNode;
+
+        /* 颜色上的变更 */
         replacerNode.color = currentNode.color;
         currentNode.color = RED;
         return replacerNode;
     }
 
     // rotate leftSubNode
-    private Node rotateLeft(Node currentNode) {
+    private Node rotateItsRedSubLinkToLeft(Node currentNode) {
         assert (currentNode != null) && isRed(currentNode.rightSubNode);
         /* 左旋转的操作统共需要5步来完成 👇 */
         /* 结构上的变更 */
@@ -173,7 +176,7 @@ public class RedBlackTreeLiteSymbolTable<Key extends Comparable<Key>, Value> {
 
     // 前提条件： 两个子节点是红色的，父结点是黑色的
     // 后置条件：方法执行后，两个子节点是黑色的，父结点是红色的
-    private void flipColors(Node currentNode) {
+    private void flipColorToRed(Node currentNode) {
         // 防御性编程？ 先断言前置条件成立
         assert !isRed(currentNode) && isRed(currentNode.leftSubNode) && isRed(currentNode.rightSubNode);
 
@@ -188,7 +191,7 @@ public class RedBlackTreeLiteSymbolTable<Key extends Comparable<Key>, Value> {
      *  Utility functions.
      ***************************************************************************/
     // return number of key-value pairs in symbol table
-    public int size() {
+    public int pairAmount() {
         return pairsAmount;
     }
 
@@ -198,41 +201,48 @@ public class RedBlackTreeLiteSymbolTable<Key extends Comparable<Key>, Value> {
     }
 
     // height of tree (1-node tree has height 0)
-    public int height() {
-        return height(rootNode);
+    public int heightOfRBTree() {
+        return heightOf(rootNode);
     }
 
-    private int height(Node currentNode) {
-        if (currentNode == null) return -1;
-        return 1 + Math.max(height(currentNode.leftSubNode), height(currentNode.rightSubNode));
+    private int heightOf(Node currentNode) {
+        if (currentNode == null)
+            return -1;
+
+        return 1 + Math.max(heightOf(currentNode.leftSubNode), heightOf(currentNode.rightSubNode));
     }
 
     // return the smallest key; null if no such key
-    public Key minKey() {
-        return minKey(rootNode);
+    public Key getMinKey() {
+        return getMinKeyFrom(rootNode);
     }
 
-    private Key minKey(Node currentNode) {
-        Key key = null;
+    private Key getMinKeyFrom(Node currentNode) {
+        Key currentMinKey = null;
+
         while (currentNode != null) {
-            key = currentNode.key;
+            // 一路向左子树更新
+            currentMinKey = currentNode.key;
             currentNode = currentNode.leftSubNode;
         }
-        return key;
+
+        return currentMinKey;
     }
 
     // return the largest key; null if no such key
-    public Key maxKey() {
-        return maxKey(rootNode);
+    public Key getMaxKey() {
+        return getMaxKeyFrom(rootNode);
     }
 
-    private Key maxKey(Node currentNode) {
-        Key key = null;
+    private Key getMaxKeyFrom(Node currentNode) {
+        Key currentMaxKey = null;
+
         while (currentNode != null) {
-            key = currentNode.key;
+            currentMaxKey = currentNode.key;
             currentNode = currentNode.rightSubNode;
         }
-        return key;
+
+        return currentMaxKey;
     }
 
 
@@ -240,24 +250,26 @@ public class RedBlackTreeLiteSymbolTable<Key extends Comparable<Key>, Value> {
      *  Iterate using an inorder traversal.
      *  Iterating through N elements takes O(N) time.
      ***************************************************************************/
-    public Iterable<Key> keys() {
+    public Iterable<Key> getIterableKeys() {
         Queue<Key> queue = new Queue<Key>();
-        keys(rootNode, queue);
+        collectKeysFromTreeInto(rootNode, queue);
         return queue;
     }
 
-    private void keys(Node currentNode, Queue<Key> keysQueue) {
-        if (currentNode == null) return;
-        keys(currentNode.leftSubNode, keysQueue);
-        keysQueue.enqueue(currentNode.key);
-        keys(currentNode.rightSubNode, keysQueue);
+    private void collectKeysFromTreeInto(Node currentTreeNode, Queue<Key> keysCollection) {
+        if (currentTreeNode == null) return;
+
+        // 以“左-根-右”的次序 来 递归调用方法
+        collectKeysFromTreeInto(currentTreeNode.leftSubNode, keysCollection);
+        keysCollection.enqueue(currentTreeNode.key);
+        collectKeysFromTreeInto(currentTreeNode.rightSubNode, keysCollection);
     }
 
 
     /***************************************************************************
      *  Check integrity of red-black tree data structure.
      ***************************************************************************/
-    private boolean check() {
+    private boolean checkIfItIsLegitBTree() {
         if (!isBST()) StdOut.println("Not in symmetric order");
         if (!is23()) StdOut.println("Not a 2-3 tree");
         if (!isBalanced()) StdOut.println("Not balanced");
@@ -325,18 +337,18 @@ public class RedBlackTreeLiteSymbolTable<Key extends Comparable<Key>, Value> {
                 = new RedBlackTreeLiteSymbolTable<String, Integer>();
 
         for (int spot = 0; spot < letterArray.length; spot++)
-            letterToSpotSymbolTable.put(letterArray[spot], spot);
+            letterToSpotSymbolTable.putInPairOf(letterArray[spot], spot);
 
-        StdOut.println("size = " + letterToSpotSymbolTable.size());
-        StdOut.println("min  = " + letterToSpotSymbolTable.minKey());
-        StdOut.println("max  = " + letterToSpotSymbolTable.maxKey());
+        StdOut.println("size = " + letterToSpotSymbolTable.pairAmount());
+        StdOut.println("min  = " + letterToSpotSymbolTable.getMinKey());
+        StdOut.println("max  = " + letterToSpotSymbolTable.getMaxKey());
         StdOut.println();
 
         // print letterArray in order using allKeys()
         StdOut.println("Testing keys() API");
         StdOut.println("--------------------------------");
-        for (String letter : letterToSpotSymbolTable.keys())
-            StdOut.println(letter + " " + letterToSpotSymbolTable.get(letter));
+        for (String letter : letterToSpotSymbolTable.getIterableKeys())
+            StdOut.println(letter + " " + letterToSpotSymbolTable.getAssociatedValueOf(letter));
         StdOut.println();
 
         // 如果提供了一个命令行参数，则：按照顺序插入N个元素
@@ -346,11 +358,11 @@ public class RedBlackTreeLiteSymbolTable<Key extends Comparable<Key>, Value> {
                 = new RedBlackTreeLiteSymbolTable<Integer, Integer>();
 
         for (int currentSpot = 0; currentSpot < pairsAmount; currentSpot++) {
-            symbolTable.put(currentSpot, currentSpot);
-            int redBlackTreesHeight = symbolTable.height();
-            StdOut.println("currentSpot = " + currentSpot + ", height = " + redBlackTreesHeight + ", size = " + symbolTable.size());
+            symbolTable.putInPairOf(currentSpot, currentSpot);
+            int redBlackTreesHeight = symbolTable.heightOfRBTree();
+            StdOut.println("currentSpot = " + currentSpot + ", height = " + redBlackTreesHeight + ", size = " + symbolTable.pairAmount());
         }
 
-        StdOut.println("size = " + symbolTable.size());
+        StdOut.println("size = " + symbolTable.pairAmount());
     }
 }
