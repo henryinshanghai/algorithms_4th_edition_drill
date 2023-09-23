@@ -533,7 +533,9 @@ public class BinarySearchTreeSymbolTable<Key extends Comparable<Key>, Value> {
 
     /**
      * 出于调试目的，返回 符号表所使用的二叉查找树的 层序遍历产生的key序列
-     * 手段：利用队列的先进先出特性 来 以“当前层：自左向右 不同层：自上而下”的顺序 遍历BST中的结点
+     * 手段：
+     *  #1 利用队列的先进先出特性 来 以“当前层：自左向右 不同层：自上而下”的顺序 遍历BST中的结点
+     *  #2 把队列中的队首结点 添加到 keys简单集合中
      * @return the keys in the BinarySearchTreeSymbolTable in level order traversal（层序遍历）
      */
     public Iterable<Key> getIterableKeysInLevelOrder() {
