@@ -142,16 +142,16 @@ public class RedBlackTreeLiteSymbolTable<Key extends Comparable<Key>, Value> {
 
     /***************************************************************************
      *  Red-black tree helper functions.
-     **************************************************************************
-     * @param currentNode*/
+     ***************************************************************************/
 
     // is node currentNode red (and non-null) ?
     private boolean isRed(Node currentNode) {
-        if (currentNode == null) return false;
+        if (currentNode == null)
+            return false;
         return currentNode.color == RED;
     }
 
-    // rotate rightSubNode
+    // rotate red rightSubNode to left
     private Node rotateItsRedSubLinkToRight(Node currentNode) {
         assert (currentNode != null) && isRed(currentNode.leftSubNode);
 
@@ -163,10 +163,11 @@ public class RedBlackTreeLiteSymbolTable<Key extends Comparable<Key>, Value> {
         /* 颜色上的变更 */
         replacerNode.color = currentNode.color;
         currentNode.color = RED;
+
         return replacerNode;
     }
 
-    // rotate leftSubNode
+    // rotate red leftSubNode to right
     private Node rotateItsRedSubLinkToLeft(Node currentNode) {
         assert (currentNode != null) && isRed(currentNode.rightSubNode);
         /* 左旋转的操作统共需要5步来完成 👇 */
