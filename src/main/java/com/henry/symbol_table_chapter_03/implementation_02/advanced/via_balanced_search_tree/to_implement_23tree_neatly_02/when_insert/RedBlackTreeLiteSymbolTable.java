@@ -70,11 +70,14 @@ public class RedBlackTreeLiteSymbolTable<Key extends Comparable<Key>, Value> {
             // 比较 传入的键 与 根结点中的键
             int result = passedKey.compareTo(currentNode.key);
             // 如果更小，则：使用左子结点 来 更新当前节点
-            if (result < 0) currentNode = currentNode.leftSubNode;
+            if (result < 0)
+                currentNode = currentNode.leftSubNode;
             // 如果更大，则：使用右子结点 来 更新当前节点
-            else if (result > 0) currentNode = currentNode.rightSubNode;
+            else if (result > 0)
+                currentNode = currentNode.rightSubNode;
             // 如果相等，则：返回根结点中 的值
-            else return currentNode.value;
+            else
+                return currentNode.value;
         }
 
         // 循环如果结束，说明查找结束于空结点 aka BST中没有找到传入的键。这种情况下返回null
