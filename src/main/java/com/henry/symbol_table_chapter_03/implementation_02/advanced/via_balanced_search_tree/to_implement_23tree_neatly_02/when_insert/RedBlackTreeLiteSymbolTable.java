@@ -33,6 +33,10 @@ import edu.princeton.cs.algs4.StdOut;
  *
  ******************************************************************************/
 
+// 验证：可以使用红黑树 作为底层数据结构 来 实现符号表
+// 手段：使用红黑树中的节点 来 封装 #1 key -> value的映射 & #2 结点的颜色 - 用于使用2-结点 来 表示3-结点
+// 性能特征：作为平衡树，红黑树能够保证 - 在最坏的情况下，各种操作的算法增长数量级都是logN
+// put()操作特征：#1 插入新结点时，始终插入红色的新结点; #2 插入新结点后，通过{左旋转、右旋转、颜色翻转} 来 维护“合法的红黑树”
 public class RedBlackTreeLiteSymbolTable<Key extends Comparable<Key>, Value> {
 
     private static final boolean RED = true;
