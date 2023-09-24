@@ -92,8 +92,7 @@ public class RedBlackTreeLiteSymbolTable<Key extends Comparable<Key>, Value> {
 
     /***************************************************************************
      *  红黑树的插入算法.
-     **************************************************************************  @param passedKey
-     * @param associatedValue*/
+     ***************************************************************************/
 
     public void putInPairOf(Key passedKey, Value associatedValue) {
         // 查找key 找到则更新其值，否则为它创建一个节点
@@ -104,8 +103,10 @@ public class RedBlackTreeLiteSymbolTable<Key extends Comparable<Key>, Value> {
         assert checkIfItIsLegitBTree();
     }
 
-    private Node putPairInto(Node currentNode, Key passedKey, Value associatedValue) {
-        if (currentNode == null) { // 如果查找操作结束于一个空结点 说明BST中不存在 与passedKey相等的键(&值)，则...
+    // 手段：先查找，再插入
+    private Node putPairInto(Node currentRootNode, Key passedKey, Value associatedValue) {
+        // 如果查找操作结束于一个空结点 说明BST中不存在 与passedKey相等的键(&值)，则...
+        if (currentRootNode == null) {
             pairsAmount++;
             // 将传入的键值作为新结点添加到树的底部
             // 🐖 插入新结点时，使用红链接 将之和父节点之间相连
@@ -113,27 +114,31 @@ public class RedBlackTreeLiteSymbolTable<Key extends Comparable<Key>, Value> {
         }
 
         // 为了保证“对称有序性”，按照与根结点的比较结果，在对应的子树中递归地插入结点
-        int result = passedKey.compareTo(currentNode.key);
+        int result = passedKey.compareTo(currentRootNode.key);
         if (result < 0)
-            currentNode.leftSubNode = putPairInto(currentNode.leftSubNode, passedKey, associatedValue); // 在左子树中插入
+            currentRootNode.leftSubNode = putPairInto(currentRootNode.leftSubNode, passedKey, associatedValue); // 在左子树中插入
         else if (result > 0)
-            currentNode.rightSubNode = putPairInto(currentNode.rightSubNode, passedKey, associatedValue); // 在右子树中插入
+            currentRootNode.rightSubNode = putPairInto(currentRootNode.rightSubNode, passedKey, associatedValue); // 在右子树中插入
         else
-            currentNode.value = associatedValue; // 更新结点的value
+            currentRootNode.value = associatedValue; // 更新结点的value
 
-        // 插入结点后，维护“合法的红黑树(黑链接平衡&&红链接约束)”     原理：参考 implement_insertion_code_wise_04
+        /* 插入结点后，维护得到“合法的红黑树(黑链接平衡&&红链接约束)”     原理：参考 implement_insertion_code_wise_04 */
         // 手段：树中的局部变换 {左旋转、右旋转、颜色翻转}
-        // 具体实现：插入结点后，在查找路径中的每一个结点（从下往上）上，根据需要来进行适当的局部变换
-        // 🐖 红黑树中插入新结点是，5中具体情形(2-结点的插入&3-结点的插入)归约后得到如下3种情形👇
-        if (isRed(currentNode.rightSubNode) && !isRed(currentNode.leftSubNode)) // #1 右子结点为红色，而左子结点为黑色
-            currentNode = rotateItsRedSubLinkToLeft(currentNode); // 对当前结点左旋转
-        if (isRed(currentNode.leftSubNode) && isRed(currentNode.leftSubNode.leftSubNode)) // #2 左子结点为红色，左子结点的左子结点也为红色，
-            currentNode = rotateItsRedSubLinkToRight(currentNode); // 对上层链接进行右旋转
-        if (isRed(currentNode.leftSubNode) && isRed(currentNode.rightSubNode)) // #3 左子结点为红色，且右子结点也为红色
-            flipColorToRed(currentNode); // 进行颜色转换 来 #1 消除breach； #2 把红链接向上传递（维持与2-3树的等价性）
+        // 具体做法：插入结点后，在查找路径中的每一个结点（从下往上）上，根据需要来进行适当的局部变换
+        // 🐖 红黑树中插入新结点是，5种具体情形(2-结点的插入&3-结点的插入)归约后得到如下3种情形👇
+        if (isRed(currentRootNode.rightSubNode) && !isRed(currentRootNode.leftSubNode)) // #1 右子结点为红色，而左子结点为黑色
+            // 对当前结点（的红色右链接），进行左旋转 - 得到红色的左链接
+            currentRootNode = rotateItsRedSubLinkToLeft(currentRootNode);
+        if (isRed(currentRootNode.leftSubNode) && isRed(currentRootNode.leftSubNode.leftSubNode)) // #2 左子结点为红色，左子结点的左子结点也为红色
+            // 对第一层的红色左链接进行右旋转 - 得到红色的右链接
+            currentRootNode = rotateItsRedSubLinkToRight(currentRootNode);
+        if (isRed(currentRootNode.leftSubNode) && isRed(currentRootNode.rightSubNode)) // #3 左子结点为红色，且右子结点也为红色
+            // 进行颜色转换 来 #1 消除breach； #2 把红链接向上传递（维持与2-3树的等价性）
+            flipColorToRed(currentRootNode);
 
-        return currentNode;
-    }
+        // 返回 “合法的红黑树”
+        return currentRootNode;
+}
 
     /***************************************************************************
      *  Red-black tree helper functions.
