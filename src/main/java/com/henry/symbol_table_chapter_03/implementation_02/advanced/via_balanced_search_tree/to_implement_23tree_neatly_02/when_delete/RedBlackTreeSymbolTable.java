@@ -223,6 +223,7 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
         // assert check();
     }
 
+    // 判断根结点是不是一个2-结点   手段：判断根结点的左子结点、右子结点是不是都是黑色结点
     private boolean rootNodeIsA2Node() {
         return !isRed(rootNode.leftSubNode) && !isRed(rootNode.rightSubNode);
     }
@@ -374,10 +375,12 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
         defaultApproach(currentNode);
 
         // 判断查询路径上下一个结点的sibling结点 是不是一个 非2-结点
-        if (siblingNodeIsNot2Node(currentNode)) {
+        // #1 获取到sibling node（currentNode.rightSubNode）;
+        Node siblingNode = currentNode.rightSubNode;
+        if (siblingNodeIsNot2Node(siblingNode)) {
             // 如果 是一个非2-结点, 则：在结点颜色翻转后，会出现连续的红链接。因此产生了breach
             // 解决手段：把红链接移动到左脊上 - 从2-3-4树的角度来说，我们从sibling node中借一个结点
-            currentNode = moveRedLinkToLeft(currentNode);
+            currentNode = moveRedLinkToLeftSpine(currentNode);
         }
 
         // 返回 “按需移动红链接”后的当前节点
@@ -385,10 +388,8 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
     }
 
     // 判断查询路径上当前节点的下一个节点的sibling node是不是一个非2-结点
-    private boolean siblingNodeIsNot2Node(Node currentNode) {
-        // #1 获取到sibling node（currentNode.rightSubNode）;
-        Node siblingNode = currentNode.rightSubNode;
-        // #2 判断sibling结点 是不是一个非2-结点；
+    private boolean siblingNodeIsNot2Node(Node siblingNode) {
+        // 判断sibling结点 是不是一个非2-结点；
         // 手段：查看它的左链接是否为红色？ 如果是，则：为非2-结点。否则，为2-结点
         return isRed(siblingNode.leftSubNode);
     }
@@ -401,10 +402,10 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
     }
 
     // 把当前子树 右脊中的红链接 移动到 左脊上
-    private Node moveRedLinkToLeft(Node currentNode) {
-        // #1 右旋转当前结点的右子结点(在右脊上产生连续的红色链接);
+    private Node moveRedLinkToLeftSpine(Node currentNode) {
+        // #1 右旋转当前结点的右子结点 来 在右脊上产生连续的红色链接; / -> \
         currentNode.rightSubNode = rotateItsRedSubLinkToRight(currentNode.rightSubNode);
-        // #2 左旋转当前节点（在左脊上产生连续的红色链接）;
+        // #2 左旋转当前节点 来 在左脊上产生连续的红色链接;
         currentNode = rotateItsRedSubLinkToLeft(currentNode);
         // #3 翻转当前节点的颜色（只保留左脊上第二层的红链接）
         flipColors(currentNode); // 从结果上看，相当于把 右孙子的红链接移动到左孙子上（从sibling借红链接）
@@ -421,22 +422,24 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
         // 翻转当前节点的颜色：从2-3-4树的角度来看，是 与sibling结点相结合，得到了一个4-结点 从而 维护了 当前节点不是2-结点的不变性
         defaultApproach(currentNode);
 
-        if (siblingNodeIsNot2NodeInMaxPath(currentNode)) {
+        // 手段：#1 获取“当前节点的左子结点” - maxPath路径上的下一个结点的兄弟结点;
+        Node siblingNode = currentNode.leftSubNode;
+        if (siblingNodeIsNot2NodeInMaxPath(siblingNode)) {
             // 如果 是一个非2-结点, 则：为了维护当前结点不是2-结点的不变性
             // 从2-3-4树的角度来说，我们需要从sibling node中借一个结点
             // 借的手段：通过右旋转 来 把根结点移动到右脊上
-            currentNode = moveRedLinkToRight(currentNode);
+            currentNode = moveRedLinkToRightSpine(currentNode);
         }
 
         // 返回 “按需移动红链接”后的当前节点
         return currentNode;
     }
 
-    private Node moveRedLinkToRight(Node currentNode) {
-        // #1 右旋转当前结点(在右脊上产生连续的红色链接);
+    private Node moveRedLinkToRightSpine(Node currentNode) {
+        // #1 右旋转当前结点 来 在右脊上产生连续的红色链接;
         currentNode = rotateItsRedSubLinkToRight(currentNode);
 
-        // #2 翻转当前结点的颜色（只保留右脊上第二层的红链接）
+        // #2 翻转当前结点的颜色 来 只保留右脊上第二层的红链接;
         flipColors(currentNode);
 
         // 🐖 从结果上看（在查询路径上产生了一个右链接 在2-3-4树中，等同于一个3-结点）
@@ -445,10 +448,8 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
     }
 
     // 判断 “查询路径中下一个结点的sibling结点” 是不是一个非2-结点
-    private boolean siblingNodeIsNot2NodeInMaxPath(Node currentNode) {
-        // 手段：#1 获取“当前节点的左子结点”;
-        Node siblingNode = currentNode.leftSubNode;
-        // #2 判断其左链接(左子结点)是不是红色 - 如果是，则为非2-结点。如果不是，则为2-结点
+    private boolean siblingNodeIsNot2NodeInMaxPath(Node siblingNode) {
+        // 判断其左链接(左子结点)是不是红色 - 如果是，则为非2-结点。如果不是，则为2-结点
         return isRed(siblingNode.leftSubNode);
     }
 
