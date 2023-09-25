@@ -502,7 +502,7 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
             // （#2）手段1：在继续 “在查询路径中引入红链接” 之前，先判断查询是不是已经到了 树的底部
             // 如果 查询已经到达树的叶子节点处，并且在此找到预期删除的结点...
             if (findTheWantedAtBottom(currentNode, passedKey))
-                // 则：直接物理删除结点 返回null
+                // 则：直接“物理删除”结点 返回null
                 return performDeletion();
 
             // （#1）手段2： 如果在查询路径上缺少红链接...
@@ -513,12 +513,12 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
             // （#2）手段2：在继续 “递归地在当前子树（右子树）中查找” 之前，先判断当前结点的key 与 传入的key是否相等
             // 如果当前节点就是待删除的结点...
             if (findWantedNode(currentNode, passedKey)) {
-                // 则：借助后继结点的方式 来 实现删除; - 类似于BST中的删除
+                // 则：借助“后继结点的方式” 来 实现物理删除; - 类似于BST中的删除
                 deleteViaReplaceWithSuccessor(currentNode);
             }
 
             // （#2）手段3：如果当前节点并不是待删除的结点...
-            // 则：在当前子树（右子树）中 来 继续查询并删除预期的结点
+            // 则：在当前子树（右子树）中 来 继续查询并“声明式删除”预期的结点
             else currentNode.rightSubNode = deleteNodeFrom(currentNode.rightSubNode, passedKey);
         }
 
