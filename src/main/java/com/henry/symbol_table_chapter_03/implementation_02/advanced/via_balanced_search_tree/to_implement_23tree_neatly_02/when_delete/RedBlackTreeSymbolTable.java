@@ -494,6 +494,7 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
 
             // #1 保证向下查找过程中，不会出现2-结点；
             // （#1）手段1： 如果查询路径中出现了3-结点...
+            // 原因：当查询路径上的结点出现红色左链接时，旋转后得到的红色右链接 能够保证最大结点
             if (isA3Node(currentNode))
                 // 则：把红色的左链接推到右边 - 具体做法：右旋转当前节点
                 currentNode = rotateItsRedSubLinkToRight(currentNode);
