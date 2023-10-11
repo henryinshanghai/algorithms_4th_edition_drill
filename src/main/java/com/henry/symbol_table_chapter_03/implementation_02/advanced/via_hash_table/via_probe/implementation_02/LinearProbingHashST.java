@@ -14,20 +14,41 @@ public class LinearProbingHashST<Key, Value> {
         values = (Value[]) new Object[tableSize];
     }
 
-    private int hash(Key key) {
-        return (key.hashCode() & 0x7fffffff) % tableSize;
+    public LinearProbingHashST(int capacity) {
+        tableSize = capacity;
+        pairAmount = 0;
+        keys = (Key[])   new Object[tableSize];
+        values = (Value[]) new Object[tableSize];
+    }
+
+    private int calculateHashOf(Key passedKey) {
+        return (passedKey.hashCode() & 0x7fffffff) % tableSize;
     }
 
     private void resizeTo(int capacity) {
+        // 以新的容量 来 创建 临时的符号表对象
+        LinearProbingHashST<Key, Value> tempSymbolTable;
+        tempSymbolTable = new LinearProbingHashST<>(capacity);
 
+        // 把当前符号表中的键值对 添加到 新的符号表对象中
+        for (int currentSpot = 0; currentSpot < tableSize; currentSpot++) {
+            if (keys[currentSpot] != null) {
+                tempSymbolTable.putInto(keys[currentSpot], values[currentSpot]);
+            }
+        }
+
+        // 把 tempSymbolTable中的键值对 绑定回去 原始的符号表
+        keys = tempSymbolTable.keys;
+        values = tempSymbolTable.values;
+        tableSize = tempSymbolTable.tableSize;
     }
 
     public void putInto(Key passedKey, Value associatedValue) {
         if (pairAmount >= tableSize / 2) resizeTo(2 * tableSize);
 
         int hashedSpot;
-        // case02: 找到了一个值为null的位置 aka 未命中
-        for (hashedSpot = hash(passedKey); keys[hashedSpot] != null; hashedSpot = (hashedSpot + 1) % tableSize) {
+        // case02: 最终找到一个值为null的位置 aka 未命中
+        for (hashedSpot = calculateHashOf(passedKey); keys[hashedSpot] != null; hashedSpot = (hashedSpot + 1) % tableSize) {
             // case01: 如果找到了 与传入的key相同的key
             if (keys[hashedSpot].equals(passedKey)) {
                 values[hashedSpot] = associatedValue;
@@ -44,7 +65,7 @@ public class LinearProbingHashST<Key, Value> {
     }
 
     public Value getAssociatedValueOf(Key passedKey) {
-        for (int hashedSpot = hash(passedKey); keys[hashedSpot] != null; hashedSpot = (hashedSpot + 1) % tableSize) {
+        for (int hashedSpot = calculateHashOf(passedKey); keys[hashedSpot] != null; hashedSpot = (hashedSpot + 1) % tableSize) {
             // 如果命中，则：返回values[]数组对应位置上的元素
             if (keys[hashedSpot].equals(passedKey)) {
                 return values[hashedSpot];
@@ -57,11 +78,11 @@ public class LinearProbingHashST<Key, Value> {
 
     public void deletePairOf(Key passedKey) {
         if (!contains(passedKey)) return;
-        int hashedSpot = hash(passedKey);
+        int hashedSpot = calculateHashOf(passedKey);
 
         // 如果当前位置上的元素 不等于 传入的key...
         while (!passedKey.equals(keys[hashedSpot])) {
-            // 移动到散列表的下一个位置
+            // 则：移动到散列表的下一个位置
             hashedSpot = (hashedSpot + 1) % tableSize;
         }
 
@@ -69,10 +90,9 @@ public class LinearProbingHashST<Key, Value> {
         keys[hashedSpot] = null;
         values[hashedSpot] = null;
 
-        // 向后移动一个位置
-        hashedSpot = (hashedSpot + 1) % tableSize;
-
         /* 重新插入已删除键之后的元素 */
+        // 然后向后移动一个位置
+        hashedSpot = (hashedSpot + 1) % tableSize;
         // 如果该位置上不是一个空元素...
         while (keys[hashedSpot] != null) {
             // #1 记录该位置上的元素
@@ -89,7 +109,7 @@ public class LinearProbingHashST<Key, Value> {
             // #4 把#1中所记录的键值对，重新插入到符号表中
             putInto(keyToRedo, valueToRedo);
 
-            // #5 移动到下一个位置（最终结束于null元素）
+            // #5 移动到下一个位置（循环最终结束于null元素 表示 键簇结束）
             hashedSpot = (hashedSpot + 1) % tableSize;
         }
 
