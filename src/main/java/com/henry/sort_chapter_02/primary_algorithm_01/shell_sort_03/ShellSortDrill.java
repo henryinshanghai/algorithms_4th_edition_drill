@@ -1,35 +1,64 @@
 package com.henry.sort_chapter_02.primary_algorithm_01.shell_sort_03;
 
-// #1 partition the array into subGroup via 'itemAmountOfSubGroup';
-// #2 iterate each item after the item(startPointOfDisorder), then using 'insert sort' to sort each item sequence
-// #3 downhill the subGroup till 1.
 public class ShellSortDrill {
+    public static void main(String[] args) {
+        Comparable[] a = {"S", "H", "E", "L", "L", "S", "O", "R", "T", "E", "X", "A", "M", "P", "L", "E",};
 
-    public static void sort(Comparable[] a) {
+        sort(a);
+
+        printItems(a);
+    }
+
+    private static void printItems(Comparable[] a) {
+        for (Comparable item : a) {
+            System.out.print(item + " ");
+        }
+    }
+
+    private static void sort(Comparable[] a) {
 
         int itemAmount = a.length;
-        int itemAmountOfSubGroup = 1;
+        int blockSize = initBlockSize(itemAmount);
 
-        while (itemAmountOfSubGroup < itemAmount / 3) {
-            itemAmountOfSubGroup = itemAmountOfSubGroup * 3 + 1;
-        }
-
-        int count = 0;
-        while (itemAmountOfSubGroup >= 1) {
-            int startPointOfDisorder = itemAmountOfSubGroup;
-
-            for (int anchorOfItemToInsert = startPointOfDisorder; anchorOfItemToInsert < itemAmount; anchorOfItemToInsert++) {
-                for (int backwardsCursor = anchorOfItemToInsert; backwardsCursor >= itemAmountOfSubGroup && less(a, backwardsCursor, backwardsCursor - itemAmountOfSubGroup); backwardsCursor -= itemAmountOfSubGroup) {
-                    exch(a, backwardsCursor, backwardsCursor - itemAmountOfSubGroup);
-                }
+        while (blockSize >= 1) {
+            // 对于闭区间[a[blockSize], a[itemAmount -1]]中的每个元素，逐一执行插入操作
+            int startPointOfDisorder = blockSize;
+            for (int currentItemToInsert = startPointOfDisorder; currentItemToInsert < itemAmount; currentItemToInsert++) {
+                insertItemWithStepPitch(a, currentItemToInsert, blockSize);
             }
-            System.out.println("第" + (++count) + "次循环");
-            System.out.println("当前 itemAmountOfSubGroup的值为： " + itemAmountOfSubGroup);
-            System.out.println("当前数组元素为：");
+
+            System.out.println("当前的blockSize为： " + blockSize);
+            System.out.print("闭区间中的所有元素，插入操作执行完成后的数组为：");
             show(a);
-            System.out.println("--------------");
-            itemAmountOfSubGroup = itemAmountOfSubGroup / 3;
+            System.out.println("~~~~~~~~~~~~~~~~~~");
+
+            blockSize /= 3;
         }
+
+    }
+
+    private static void show(Comparable[] a) {
+        for (Comparable item : a) {
+            System.out.print(item + " ");
+        }
+
+        System.out.println();
+    }
+
+    private static void insertItemWithStepPitch(Comparable[] a, int itemToInsert, int stepPitch) {
+        for (int backwardCursor = itemToInsert; backwardCursor >= stepPitch; backwardCursor -= stepPitch) {
+            if (less(a[backwardCursor], a[backwardCursor - stepPitch])) {
+                exch(a, backwardCursor, backwardCursor - stepPitch);
+            }
+        }
+    }
+
+    private static int initBlockSize(int itemAmount) {
+        int blockSize = 1;
+        while (blockSize < itemAmount / 3) {
+            blockSize = blockSize * 3 + 1;
+        }
+        return blockSize;
     }
 
     private static void exch(Comparable[] a, int i, int j) {
@@ -38,23 +67,7 @@ public class ShellSortDrill {
         a[j] = temp;
     }
 
-    private static boolean less(Comparable[] a, int i, int j) {
-        return a[i].compareTo(a[j]) < 0;
-    }
-
-    private static void show(Comparable[] a) {
-        for (int cursor = 0; cursor < a.length; cursor++) {
-            System.out.print(a[cursor] + " ");
-        }
-
-        System.out.println();
-    }
-
-    public static void main(String[] args) {
-        String[] a = {"S", "H", "E", "L", "L", "S", "O", "R", "T", "E", "X", "A", "M", "P", "L", "E"};
-
-        sort(a);
-
-        show(a);
+    private static boolean less(Comparable v, Comparable w) {
+        return v.compareTo(w) < 0;
     }
 }
