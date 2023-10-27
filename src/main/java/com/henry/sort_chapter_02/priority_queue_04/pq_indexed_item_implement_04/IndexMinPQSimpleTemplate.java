@@ -2,6 +2,10 @@ package com.henry.sort_chapter_02.priority_queue_04.pq_indexed_item_implement_04
 
 import edu.princeton.cs.algs4.StdOut;
 
+// 索引优先队列 - 能够通过索引 来 快速检索到队列中的元素
+// 原理: spot->IndexArray & index->ItemArray
+// 特性：#1 index->SpotArray用于支持与索引相关的操作(Simple版本中没有这一类的API);
+// #2 比较时，参与比较的是Item； #3 交换时，交换的是两个位置上的index；
 public class IndexMinPQSimpleTemplate<Element extends Comparable<Element>> {
 
     private Element[] indexToElementArray;
