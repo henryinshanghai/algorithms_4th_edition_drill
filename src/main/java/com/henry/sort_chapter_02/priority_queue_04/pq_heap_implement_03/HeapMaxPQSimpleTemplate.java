@@ -39,7 +39,7 @@ import java.util.NoSuchElementException;
     #2 最大堆的数值约束 - 当前位置元素的数值约束、子节点位置的数值约束
  */
 public class HeapMaxPQSimpleTemplate<Item extends Comparable<Item>> {
-    private Item[] spotToItemArray; // 泛型数组 - 用于表示堆
+    private Item[] spotToItemArray; // 堆 - 使用泛型数组来实现
     private int itemAmount; // 堆中元素的数量
     private Comparator customComparator;  // 自定义的比较器 - 用于支持更加灵活的构造方法
 
@@ -80,7 +80,7 @@ public class HeapMaxPQSimpleTemplate<Item extends Comparable<Item>> {
         // 原因：对某个位置，执行了sink(index)后，则：这个位置上的节点 就一定会大于 它的子节点了。
         // 因此保证前一半的节点被排定后，剩下的节点必然也符合 堆对元素的数值约束了
         for (int currentSpot = itemAmount / 2; currentSpot >= 1 ; currentSpot--) {
-            sink(currentSpot);
+            sinkItemToCorrectSpot(currentSpot);
         }
 
         // 断言：我们已经得到了一个 堆有序的数组
@@ -142,12 +142,13 @@ public class HeapMaxPQSimpleTemplate<Item extends Comparable<Item>> {
         // 如果 元素数量 = 数组容量 - 1，说明堆已经满员了，则：需要扩容
         if(itemAmount == spotToItemArray.length - 1) resize(spotToItemArray.length * 2);
 
-        // #2 把元素添加到堆数组的末尾
+        // #2 向堆中添加新结点 - 手段：把元素添加到堆数组的末尾
+        // 🐖 ++itemAmount 意味着 第一个元素添加在了 数组中下标为1的位置上
         spotToItemArray[++itemAmount] = newItem; // itemAmount=队列中的元素个数 需要的索引是N+1 使用++N能够一步到位
 
-        // #3 维护堆数组的“堆有序”特性
-        // 手段：对 最后一个位置上的元素执行上浮操作
-        swim(itemAmount);
+        // #3 维护堆的数值约束
+        // 手段：对 堆中最后一个位置上的元素执行上浮操作 - 具体做法：操作对应的数组元素
+        swimItemToCorrectSpot(itemAmount);
 
         assert isMaxHeap();
     }
@@ -169,24 +170,25 @@ public class HeapMaxPQSimpleTemplate<Item extends Comparable<Item>> {
     public Item delMax() {
         if (isEmpty()) throw new NoSuchElementException("Priority queue underflow");
 
+        /* 从堆中删除最大元素 */
         // #1 先获取到最大元素
         Item maxItem = spotToItemArray[1];
-
-
-        // #2 把最大元素交换到 堆数组的末尾
+        // #2 （交换）把最大元素交换到 堆数组的末尾
         // 手段：交换 位置为1的元素 与 最后一个位置上的元素
         exch(1, itemAmount--);
-        // #3 物理删除掉最后一个位置上的元素
+        // #3 （物理删除）物理删除掉最后一个位置上的元素
         spotToItemArray[itemAmount + 1] = null;
-        // #4 对顶点位置的元素 执行下沉操作 来 恢复数组的“堆有序”
-        sink(1);
+
+        // 删除元素后，维护堆的数值约束
+        // 手段：对顶点位置的元素 执行下沉操作 来 恢复数组的“堆有序”
+        sinkItemToCorrectSpot(1);
 
         assert isMaxHeap(); // 局部断言
         return maxItem;
     }
 
     // 把指定位置上的元素（更小的元素） 下沉到 堆中正确的位置  - 作用：恢复完全二叉树的“堆有序”
-    private void sink(int currentNodeSpot) {
+    private void sinkItemToCorrectSpot(int currentNodeSpot) {
         // 如果当前位置属于数组的前半段，则：可以执行下沉操作
         while (2 * currentNodeSpot <= itemAmount) {
             // #1 找到较大的子节点 所对应的位置
@@ -211,7 +213,7 @@ public class HeapMaxPQSimpleTemplate<Item extends Comparable<Item>> {
 
 
     // 把指定位置上的元素（更大的元素） 上浮到 堆中正确的位置 - 作用：恢复完全二叉树的“堆有序”
-    private void swim(int currentNodeSpot) {
+    private void swimItemToCorrectSpot(int currentNodeSpot) {
         // 如果当前位置不是堆的根节点位置，则：可以执行上浮操作
         // 🐖 对于swim 与 sink操作，需要保证 指针的有效性，否则在循环中很容易出现NPE
         // #1 判断当前节点 是否大于 根节点
