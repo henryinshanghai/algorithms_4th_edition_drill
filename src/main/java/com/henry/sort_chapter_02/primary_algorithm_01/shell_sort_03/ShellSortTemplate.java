@@ -40,12 +40,7 @@ public class ShellSortTemplate {
     public static void sort(Comparable[] a) {
         // 先把序列元素更新到 最大元素
         int itemAmount = a.length;
-        int blockSize = 1;
-
-        // #1 按照一个公式，生成一个比较大的N值（小于itemAmount） 用于分割原始数组为子数组
-        while (blockSize < itemAmount / 3) {
-            blockSize = 3 * blockSize + 1; // h序列：1, 4, 13, 40, 121, 364, 1093...
-        } // 循环结束时，h是一个比较大的值...
+        int blockSize = initBlockSize(itemAmount);
 
         // 完成对数组中所有元素的排序
         // 手段：#1 对于当前的 blockSize, 得到“分隔有序的元素序列”； #2 调整当前的blockSize，得到 “完全有序的元素序列”
@@ -56,18 +51,32 @@ public class ShellSortTemplate {
             for (int anchorOfItemToInsert = startPointOfDisorder; anchorOfItemToInsert < itemAmount; anchorOfItemToInsert++) { // 内循环的次数
                 // #3 把a[anchorOfItemToInsert]插入到a[anchorOfItemToInsert-blockSize],a[anchorOfItemToInsert-2*blockSize],a[anchorOfItemToInsert-3*blockSize]...之中
                 // 手段：插入排序
-                for (int backwardsCursor = anchorOfItemToInsert; backwardsCursor >= startPointOfDisorder; backwardsCursor -= blockSize) {
-
-                    if (less(a[backwardsCursor], a[backwardsCursor - blockSize])) {
-                        exch(a, backwardsCursor, backwardsCursor - blockSize);
-                    }
-                }
+                insertWithStepPitch(a, anchorOfItemToInsert, blockSize);
             }
 
             // 两层for循环结束后，就得到了 “分割有序的元素序列”
             // #4 缩小 blockSize，来 最终得到 “完全排序的数组”。
             blockSize = blockSize / 3;
         }
+    }
+
+    private static void insertWithStepPitch(Comparable[] a, int anchorOfItemToInsert, int stepPitch) {
+        for (int backwardsCursor = anchorOfItemToInsert; backwardsCursor >= stepPitch; backwardsCursor -= stepPitch) {
+
+            if (less(a[backwardsCursor], a[backwardsCursor - stepPitch])) {
+                exch(a, backwardsCursor, backwardsCursor - stepPitch);
+            }
+        }
+    }
+
+    private static int initBlockSize(int itemAmount) {
+        int blockSize = 1;
+
+        // #1 按照一个公式，生成一个比较大的N值（小于itemAmount） 用于分割原始数组为子数组
+        while (blockSize < itemAmount / 3) {
+            blockSize = 3 * blockSize + 1; // h序列：1, 4, 13, 40, 121, 364, 1093...
+        } // 循环结束时，h是一个比较大的值...
+        return blockSize;
     }
 
     @SuppressWarnings("unchecked")
