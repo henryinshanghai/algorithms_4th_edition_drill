@@ -80,5 +80,8 @@ public class DynamicCapacityStackOfGenericTypesSupportIteration<Item> implements
         for (String currentItem : myStringStack) {
             System.out.println("currentItem: " + currentItem);
         }
+
+        // 由于迭代器的实现有问题，所以这里出现了错误的表现
+        System.out.println("itemAmount is: " + myStringStack.getItemAmount());
     }
 }
