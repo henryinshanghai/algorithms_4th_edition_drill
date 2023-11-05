@@ -498,13 +498,13 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
 
         // 如果预期删除的节点在左子树中，则：执行左子树中的递归删除 / 删除最小结点的算法
         if (wantedNodeInLeftSpine(currentNode, passedKey)) {
-            // Ⅰ 保证向下查找过程中，不会出现2-结点；
+            // Ⅰ 为minPath引入红链接
             // 手段：如果minPath上出现了2-结点...
             if (incomingNodeIsA2NodeInLeftSpine(currentNode))
                 // 则：为当前查询路径引入红链接
                 currentNode = introduceRedLinkIntoMinPath(currentNode);
 
-            // Ⅱ 删除结点
+            // Ⅱ 递归删除“待删除结点”
             // 手段：从当前子树(左子树)中 删除预期节点， 并把删除结点后的左子树 重新绑定回到 左子树上
             currentNode.leftSubNode = deleteNodeFrom(currentNode.leftSubNode, passedKey);
         } else { // 如果预期删除的结点 在右子树中 或者 与当前结点相等，则：执行右子树中的递归删除
