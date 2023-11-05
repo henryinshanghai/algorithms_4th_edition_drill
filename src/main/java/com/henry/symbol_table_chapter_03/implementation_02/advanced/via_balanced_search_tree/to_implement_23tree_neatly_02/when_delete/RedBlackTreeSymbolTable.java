@@ -351,11 +351,11 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
         // assert (toMoveStepsToEndGridWithoutObstacles != null);
 
         // 需要被修复的三种情况：#1 红色右链接（左旋转）; #2 连续的红色左链接(右旋转); #3 红色的左右子结点（反转颜色）
-        if (redSubLinkExist(currentNode)) // 如果出现了红色右链接...
+        if (redRightSublinkExist(currentNode)) // 如果出现了红色右链接...
             // 则：把红链接移动到左边
             currentNode = rotateItsRedSubLinkToLeft(currentNode); 
         // 如果出现了连续的红色左链接...
-        if (consecutiveRedLinkExist(currentNode))
+        if (consecutiveRedLeftSublinksExist(currentNode))
             // 则：把红链接移动到右边
             currentNode = rotateItsRedSubLinkToRight(currentNode);
         // 如果出现了红色的左链接与红色的右链接
@@ -373,11 +373,11 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
         return isRed(currentNode.leftSubNode) && isRed(currentNode.rightSubNode);
     }
 
-    private boolean consecutiveRedLinkExist(Node currentNode) {
+    private boolean consecutiveRedLeftSublinksExist(Node currentNode) {
         return isRed(currentNode.leftSubNode) && isRed(currentNode.leftSubNode.leftSubNode);
     }
 
-    private boolean redSubLinkExist(Node currentNode) {
+    private boolean redRightSublinkExist(Node currentNode) {
         return isRed(currentNode.rightSubNode);
     }
 
