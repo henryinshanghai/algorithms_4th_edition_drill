@@ -296,12 +296,13 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
     // 整体的不变性 - 即当前节点不是2节点
     // 具体的不变性 - 在查询路径中，保持当前节点为红色 或者 当前节点的左子结点为红色
     private Node deleteNodeOfMinKeyFrom(Node currentRootNode) {
-        // 如果调用沿着左脊 递归执行到了树的底部...
+        // Ⅰ 执行物理删除操作
+        // 如果调用沿着左脊 找到了最小结点 aka 递归执行到了树的底部...
         if (reachToBottomOnLeftSpine(currentRootNode))
             return performDeletion();
 
-        // 在沿着树的左脊向下递归查找的过程中，判断查询路径上的下一个节点（当前节点的左子结点）是否为2-3-4树中的2-结点...
-        // 如果是一个2-结点，则:
+        // Ⅱ 在递归调用之前（沿着树从上往下）在查询路径中，引入红链接👇
+        // 如果minPath的incomingNode是一个2-结点，则 通过xxx 来 为minPath中引入红链接
         if (incomingNodeIsA2NodeInLeftSpine(currentRootNode))
             // 在查询路径中引入红链接，使之不再是一个2-结点
             currentRootNode = introduceRedLinkIntoMinPath(currentRootNode);
@@ -383,16 +384,16 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
     // 把当前结点上的红链接 沿着查询路径向下移动
     // 或者，把红链接从右孙子 移动到左孙子
     private Node introduceRedLinkIntoMinPath(Node currentNode) { // moveRedLeft
+        // 手段#1（默认操作）：翻转当前节点的颜色 / 把当前结点与sibling结点相结合，得到一个4-结点
         // 🐖 由于所维护的不变性，因此当前节点必然是红节点。
         defaultApproach(currentNode);
 
-        // 判断查询路径上下一个结点的sibling结点 是不是一个 非2-结点
-        // #1 获取到sibling node（currentNode.rightSubNode）;
+        // 手段#2：根据需要，从 incoming结点的兄弟结点中，借一个结点，得到一个3-结点
+        // ① 获取minPath路径上的 incoming结点的兄弟结点 aka “当前节点的右子结点”;
         Node siblingNodeOfIncomingNode = currentNode.rightSubNode;
         if (isNot2Node(siblingNodeOfIncomingNode)) {
             // 如果 是一个非2-结点, 则：在结点颜色翻转后，会出现连续的红链接。因此产生了breach
-            // 从2-3-4树的角度来说，我们从sibling node中借一个结点
-            // 借的手段（额外的步骤）：把红链接移动到左脊上
+            // 从2-3-4树的角度来说，我们从sibling node中借一个结点，得到一个3-结点 - 维护了 不是2-结点的不变性
             currentNode = borrowRedFromSiblingToMinPath(currentNode);
         }
 
@@ -417,7 +418,7 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
         currentNode.rightSubNode = rotateItsRedSubLinkToRight(currentNode.rightSubNode);
         // #2 左旋转当前节点 来 在左脊上产生连续的红色链接;
         currentNode = rotateItsRedSubLinkToLeft(currentNode);
-        // #3 翻转当前节点的颜色（只保留左脊上第二层的红链接）
+        // #3 翻转当前节点的颜色 来 只保留左脊上第二层的红链接 & 恢复当前结点的颜色为红色；
         flipColors(currentNode);
 
         // 从结果上看，相当于把 右孙子的红链接移动到左孙子上（从sibling借红链接）
@@ -455,7 +456,7 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
         // step#1 右旋转当前结点 来 在右脊上产生连续的红色链接;
         currentNode = rotateItsRedSubLinkToRight(currentNode);
 
-        // step#2 翻转当前结点的颜色 来 只保留右脊上第二层的红链接;
+        // step#2 翻转当前结点的颜色 来 只保留右脊上第二层的红链接 & 恢复当前结点的颜色为红色;
         flipColors(currentNode);
 
         // 🐖 从结果上看（在查询路径上产生了一个右链接 在2-3-4树中，等同于一个3-结点）
