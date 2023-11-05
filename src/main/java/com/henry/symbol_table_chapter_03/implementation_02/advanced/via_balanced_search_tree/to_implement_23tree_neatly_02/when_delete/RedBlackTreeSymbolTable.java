@@ -523,7 +523,7 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
                 // 则：直接“物理删除”结点 返回null
                 return performDeletion();
 
-            // #1-②： 如果在查询路径上缺少红链接...
+            // Ⅰ-②： 如果在查询路径上缺少红链接...
             if (incomingNodeIsA2NodeInRightSpine(currentNode))
                 // 则：把红链接移动到查询路径中
                 currentNode = introduceRedLinkIntoMaxPath(currentNode);
