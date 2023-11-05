@@ -496,51 +496,51 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
     // 不变性 - 查找路径中，不会出现2-结点
     private Node deleteNodeFrom(Node currentNode, Key passedKey) {
 
-        // 如果预期删除的节点在左子树中，则：
+        // 如果预期删除的节点在左子树中，则：执行左子树中的递归删除 / 删除最小结点的算法
         if (wantedNodeInLeftSpine(currentNode, passedKey)) {
-            // #1 保证向下查找过程中，不会出现2-结点；
+            // Ⅰ 保证向下查找过程中，不会出现2-结点；
             // 手段：如果minPath上出现了2-结点...
             if (incomingNodeIsA2NodeInLeftSpine(currentNode))
                 // 则：为当前查询路径引入红链接
                 currentNode = introduceRedLinkIntoMinPath(currentNode);
 
-            // #2 删除结点
+            // Ⅱ 删除结点
             // 手段：从当前子树(左子树)中 删除预期节点， 并把删除结点后的左子树 重新绑定回到 左子树上
             currentNode.leftSubNode = deleteNodeFrom(currentNode.leftSubNode, passedKey);
-        } else { // 如果预期删除的结点 在右子树中 或者 与当前结点相等，则：
+        } else { // 如果预期删除的结点 在右子树中 或者 与当前结点相等，则：执行右子树中的递归删除
 
-            // #1 保证向下查找过程中，不会出现2-结点；
-            // #1 - 手段1： 如果查询路径中出现了 红黑树中标准的3-结点...
+            // Ⅰ 保证向下查找过程中，不会出现2-结点；
+            // Ⅰ-①： 如果查询路径中出现了 红黑树中标准的3-结点...
             // 原因：当maxPath上的结点出现红色左链接时，旋转后得到的红色右链接 能够保证最大结点
             if (isA3NodeIn23Tree(currentNode))
                 // 则：把红色的左链接推到右边 - 具体做法：右旋转当前节点
                 currentNode = rotateItsRedSubLinkToRight(currentNode);
 
-            // #2 删除结点
-            // #2 - 手段1：在继续 “在查询路径中引入红链接” 之前，先判断查询是不是已经到了 树的底部
+            // Ⅱ 删除结点
+            // Ⅱ-①：在继续 “在查询路径中引入红链接” 之前，先判断查询是不是已经到了 树的底部
             // 如果 查询已经到达树的叶子节点处，并且在此找到预期删除的结点...
             if (findTheWantedAtBottom(currentNode, passedKey))
                 // 则：直接“物理删除”结点 返回null
                 return performDeletion();
 
-            // #1 - 手段2： 如果在查询路径上缺少红链接...
+            // #1-②： 如果在查询路径上缺少红链接...
             if (incomingNodeIsA2NodeInRightSpine(currentNode))
                 // 则：把红链接移动到查询路径中
                 currentNode = introduceRedLinkIntoMaxPath(currentNode);
 
-            // #2（相对于deleteFromMax()是新增的步骤） - 手段2：在继续 “递归地在当前子树（右子树）中查找” 之前，先判断当前结点的key 与 传入的key是否相等
+            // Ⅱ-②（相对于deleteFromMax()是新增的步骤）：在继续 “递归地在当前子树（右子树）中查找” 之前，先判断当前结点的key 与 传入的key是否相等
             // 如果当前节点就是待删除的结点...
             if (findWantedNode(currentNode, passedKey)) {
                 // 则：借助“后继结点的方式” 来 实现物理删除; - 类似于BST中的删除
                 deleteViaReplaceWithSuccessor(currentNode);
             }
 
-            // （#2）手段3：如果当前节点并不是待删除的结点...
+            // Ⅱ-③：如果当前节点并不是待删除的结点...
             // 则：在当前子树（右子树）中 来 继续查询并“声明式删除”预期的结点
             else currentNode.rightSubNode = deleteNodeFrom(currentNode.rightSubNode, passedKey);
         }
 
-        // #3 删除结点后，修复可能引入的红色右链接 + 4-结点
+        // Ⅲ 删除结点后，修复可能引入的红色右链接 + 4-结点
         return fixMightBreaches(currentNode);
     }
 
