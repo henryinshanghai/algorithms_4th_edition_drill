@@ -4,13 +4,20 @@ import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.ST;
 import edu.princeton.cs.algs4.StdIn;
 
-// TODO 在终端执行命令时失败（类的编译问题）
+// fixed 在终端执行命令时失败（类的编译问题）
+// 绕过这个问题
+/*
+    命令行参数 <-> CLI arguments for your application
+    标准输入的input <-> redirect from a certain file
+    自定义文件中字符串 需要单独添加双引号
+ */
 public class LookupCSV {
     public static void main(String[] args) {
         // 读取并接受 命令行中的参数
         In in = new In(args[0]); // args[0]是一个文件名。根据文件名 得到文件的流对象
-        int keyField = Integer.parseInt(args[1]); // args[1]是一个数字
-        int valueFiled = Integer.parseInt(args[2]); // args[2]也是一个数字
+        int keyField = Integer.parseInt(args[1]); // args[1]是一个数字   1
+        int valueFiled = Integer.parseInt(args[2]); // args[2]也是一个数字    0
+        /* 以上，建立起 从1th个字符串 -> 第0th个字符串的映射 */
 
         // 使用标准输入中的信息 来 构造符号表
         ST<String, String> st = new ST<>();
