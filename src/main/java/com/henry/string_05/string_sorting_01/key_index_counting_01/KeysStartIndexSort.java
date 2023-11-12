@@ -47,7 +47,7 @@ public class KeysStartIndexSort {
         // #3 得到有序的辅助数组aux
         // 手段：对于原始数组a[]的当前元素，使用 groupNoToItsStartIndexArr[] 来 确定 它会具体被排定到 aux[]的什么位置；
         for (int currentSpot = 0; currentSpot < studentAmount; currentSpot++) {
-            // 正确语句👇 示例 - 重构改变了原始语句的语义~
+            // 正确语句👇 示例 - 重构改变了原始语句的语义~~~
 //            aux[groupNoToItsStartIndexArr[studentArr[currentSpot].getGroupNo()]++] = studentArr[currentSpot];
 
             /*
