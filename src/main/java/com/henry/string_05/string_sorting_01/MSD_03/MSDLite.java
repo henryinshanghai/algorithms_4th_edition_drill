@@ -5,11 +5,11 @@ public class MSDLite {
     private static final int thresholdToSwitch = 15;
     private static String[] aux;
 
-    // todo key 与  索引排定位置的关系???
+    // 字符 -> 字符的数字表示    手段：把字符以int类型的值返回
     private static int charAt(String word, int slot) {
         if (slot < word.length()) // 字符串范围内
             return word.charAt(slot); // 返回对应的字符
-        else // 字符串的末尾
+        else // 字符串的末尾'\0'
             return -1; // 使用-1
     }
 
@@ -28,9 +28,10 @@ public class MSDLite {
         }
 
         // 🐖 每次对sort()的调用，都会产生一个新的 keyToItsStartIndexArr[]数组
+        // 准备 keyToItsStartIndex[] - #1 key = 字符的数字表示 + 1; 用于避免出现值为-1的key  #2 多预留出一个位置，用于 累加得到 startIndex
         int[] keyToItsStartIndexArr = new int[biggestGroupNoPlus1 + 2];
         for (int currentWordCursor = wordLeftBar; currentWordCursor <= wordRightBar; currentWordCursor++) {
-            // 字符串在当前位置上的字符 + 2 todo ??? 作为 key
+            // #1 构造出 keyPlus1ToItsSize[] key = 字符的数字表示 + 1; KeyPlus1 = key + 1 👇
             int key = charAt(wordArr[currentWordCursor], currentCharacterCursor) + 2;
             // 累计
             keyToItsStartIndexArr[key]++;
@@ -44,15 +45,17 @@ public class MSDLite {
 
         // 从[a[wordLeftBar], wordRightBar]]区间中的所有字符串中，构造出 第currentCharacterCursor个字符有序的 aux[]
         for (int currentWordCursor = wordLeftBar; currentWordCursor <= wordRightBar; currentWordCursor++) {
-            // 获取当前单词在当前位置上的字符
-            int currentKey = charAt(wordArr[currentWordCursor], currentCharacterCursor);
-            // 得到该字符 在最终结果中的起始索引    todo 🐖 这里把返回值+1 来 避免出现负数索引（字符串末尾的情况）
-            int keysStartIndex = keyToItsStartIndexArr[currentKey + 1];
+            // 获取当前单词在当前位置上的字符的数字表示
+            int charsIntForm = charAt(wordArr[currentWordCursor], currentCharacterCursor);
+            // 由数字表示 得到 对应的key
+            int currentKey = charsIntForm + 1;
+            // 得到该字符 在最终结果中的起始索引
+            int keysStartIndex = keyToItsStartIndexArr[currentKey];
             // 把当前字符串 排定到 预期的索引位置上
             aux[keysStartIndex] = wordArr[currentWordCursor];
 
             // 把当前key -> 起始索引位置+1，方便将 此key对应的下一个字符串 排定到正确的位置上
-            keyToItsStartIndexArr[currentKey + 1]++;
+            keyToItsStartIndexArr[currentKey]++;
         }
 
         // 把aux[]中的字符串，逐个写回到 原始数组wordArr[]中
