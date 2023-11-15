@@ -1,5 +1,9 @@
 package com.henry.string_05.string_sorting_01.MSD_03;
 
+// 算法：从左往右，对特定区间中的 所有字符串的 当前字符，进行键索引计数。
+// 原理：把原始任务（把所有的字符串按照字母表顺序 完全排序） 分解成为 #1 对首字符执行键索引计数操作（得到有序的首字符）; #2 对各个子组进行同样的操作。
+// 递归方法：将 指定闭区间中的所有字符串，从 指定字符开始 完全排序；
+// 可以使用递归的特征：更小规模问题的答案 能够帮助解决 原始问题。
 public class MSDLite {
     private static int biggestGroupNoPlus1 = 256;
     private static final int thresholdToSwitch = 15;
