@@ -21,7 +21,7 @@ public class Quick3WayStringLite {
                 greaterZoneLeftBoundary = wordRightBar;
         int cursorOfItemToCompare = wordLeftBar + 1;
 
-        // 获取当前位置上的字符 来 用作基准字符
+        // 获取当前位置上的字符 来 作为基准字符
         int pivotCharacter = charAt(wordArr[wordLeftBar], currentCharacterSlot);
 
         while (cursorOfItemToCompare <= greaterZoneLeftBoundary) {
