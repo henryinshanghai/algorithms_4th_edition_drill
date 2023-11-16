@@ -40,6 +40,8 @@ public class Quick3WayStringLite {
         // 如果“当前字符”还不是末尾字符，则：把首字母排定的字符串集合的 剩余部分 继续排序
         // 🐖 如果不添加判断条件，则：横向地调用永远不会结束（会一直获取到-1的值），直到StackOverFlow
         if (pivotCharacter >= 0) sortRangeFrom(wordArr, lessZoneRightBoundary, greaterZoneLeftBoundary, currentCharacterSlot + 1);
+
+        // 对 未排定的区间，进行三向快速排序 - 实现组内有序
         sortRangeFrom(wordArr, greaterZoneLeftBoundary+1, wordRightBar, currentCharacterSlot);
     }
 
