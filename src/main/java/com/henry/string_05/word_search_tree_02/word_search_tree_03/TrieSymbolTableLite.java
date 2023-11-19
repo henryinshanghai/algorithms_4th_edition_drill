@@ -61,7 +61,7 @@ public class TrieSymbolTableLite {
         }
 
         // #2 获取到 “当前字符预期在树中对应的链接/结点/单词查找树”
-        char currentCharacter = passedKey.charAt(currentCharacterSpot); // 找到第d个字符 所对应的子单词查找树
+        char currentCharacter = passedKey.charAt(currentCharacterSpot);
         Node nodesSuccessorNode = currentNode.nodesSuccessorNodes[currentCharacter];
 
         // #3 把在子树上递归调用的结果（添加了key->value所需要的结点的子树），绑定回 当前节点的后继子树 上
