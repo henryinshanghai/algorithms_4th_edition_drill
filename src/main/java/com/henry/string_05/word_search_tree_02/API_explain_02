@@ -1,0 +1,31 @@
+键的序列（符号表中所有的键）： she sells sea shells by the shore.
+
+#1 longestPrefixOf():
+作用：接受一个字符串作为参数，并 返回 符号表中存在的 能够匹配该字符串前缀的 最长的键；
+比如 对于以上符号表，
+    longestPrefixOf("shell") = "she";
+    longestPrefixOf("shellsort") = "shells";
+
+#2 keysWithPrefix()
+作用：接受一个字符串作为参数，并 返回 符号表中所有 以该字符串作为前缀的键。
+比如 对于以上符号表，
+    keysWithPrefix("she") = {she, shells}
+    keysWithPrefix("se") = {sells, sea}
+
+#3 keysThatMatch()
+作用：接受一个字符串作为参数，并 返回 符号表中所有 与该字符串相匹配的键；
+特征：参数字符串中的.字符 能够用于匹配任何字符。
+比如 对于以上符号表，
+    keysThatMatch(".he") = {she, the};
+    keysThatMatch("s..") = {she, sea};
+
+学习路线：
+在见过这些 基本的符号表方法之后，我们 将详细讨论 这些操作的具体实现及应用。
+这些特别的操作 是 字符串类型的键 可能进行的操作中的一些典型示例，
+在练习中，我们会讨论 其他可能的操作。
+
+为了突出中心思想，本节的重点是 put(), get() 和 几个新增的方法 - 它们 使用了 contains() 和 isEmpty()的默认实现；
+把 size() 和 delete()方法的实现 留作练习。
+
+🐖 因为字符串都是 Comparable的，所以 可以在API中，包含 所有 第3章有序符号表API的各种有序性操作(非常值得)；
+
