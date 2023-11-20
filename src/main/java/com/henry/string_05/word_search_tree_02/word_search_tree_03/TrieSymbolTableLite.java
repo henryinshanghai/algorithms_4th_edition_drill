@@ -8,14 +8,14 @@ public class TrieSymbolTableLite {
     private Node rootNode;
 
     private static class Node {
-        private Object nodesValue;
-        private Node[] nodesSuccessorNodes = new Node[R];
+        private Object value;
+        private Node[] successorNodes = new Node[R];
     }
 
     public Value getAssociatedValueOf(String passedKey) {
         Node retrievedNode = getLastNodeOfPathThatStartFrom(rootNode, passedKey, 0);
         if (retrievedNode == null) return null;
-        return (Value) retrievedNode.nodesValue;
+        return (Value) retrievedNode.value;
     }
 
     // 作用：从 当前单词查找树中，查询到 与passedKey的 [currentCharacterSpot, passedKey.length - 1]闭区间对应的子字符串匹配的路径，并返回 尾字符所对应的结点
@@ -38,7 +38,7 @@ public class TrieSymbolTableLite {
             手段：直接 尝试获取 “当前字符预期在树中对应的链接/结点/单词查找树”  - 如果结点不为null，说明 该字符在单词查找树中，“逻辑上存在”
          */
         char currentCharacter = passedKey.charAt(currentCharacterStartSpot); // 获取字符
-        Node successorNodeForCharacter = currentNode.nodesSuccessorNodes[currentCharacter]; // 获取字符在树中对应的结点
+        Node successorNodeForCharacter = currentNode.successorNodes[currentCharacter]; // 获取字符在树中对应的结点
 
         // #3 得到 “当前字符预期在树中对应的结点”后，接着 在此子树中，查询 子字符串对应的路径
         // 🐖 子问题的答案 就是 原始问题的答案
@@ -63,17 +63,17 @@ public class TrieSymbolTableLite {
         // 🐖 我们总是 先找到“字符对应的结点”(本次调用)，然后再 Ⅰ “判断路径是否已经到达字符串的尾字符”(下一次调用)、Ⅱ 获取结点的值、Ⅲ 更新结点的值...
         // 所以这里比较的是  length()
         if(currentCharacterStartSpot == passedKey.length()) {
-            currentNode.nodesValue = associatedValue;
+            currentNode.value = associatedValue;
             return currentNode;
         }
 
         /* #1 子问题：在子树中，插入更短的路径 & 使用 子问题的结果 来 帮助解决原始问题 */
         // #1-① 获取到 “当前字符预期在树中对应的链接/结点/单词查找树”
         char currentCharacter = passedKey.charAt(currentCharacterStartSpot);
-        Node nodesSuccessorNode = currentNode.nodesSuccessorNodes[currentCharacter];
+        Node nodesSuccessorNode = currentNode.successorNodes[currentCharacter];
 
         // #1-② 把在子树上递归调用的结果（添加了key->value所需要的结点的子树），绑定回 当前节点的后继子树 上
-        currentNode.nodesSuccessorNodes[currentCharacter] = putInNodesOfPathThatStartFrom(nodesSuccessorNode, passedKey, associatedValue, currentCharacterStartSpot + 1);
+        currentNode.successorNodes[currentCharacter] = putInNodesOfPathThatStartFrom(nodesSuccessorNode, passedKey, associatedValue, currentCharacterStartSpot + 1);
 
         return currentNode;
     }
