@@ -193,34 +193,50 @@ public class TrieSTWebsite<Value> {
      * Returns all of the keys in the symbol table that match {@code pattern},
      * where the character '.' is interpreted as a wildcard character.
      *
-     * @param pattern the pattern
+     * @param patternStr the pattern
      * @return all of the keys in the symbol table that match {@code pattern},
      * as an iterable, where . is treated as a wildcard character.
      */
-    public Iterable<String> keysThatMatch(String pattern) {
-        Queue<String> results = new Queue<String>();
-        collect(root, new StringBuilder(), pattern, results);
-        return results;
+    public Iterable<String> keysThatMatch(String patternStr) {
+        Queue<String> validKeysCollection = new Queue<String>();
+        collectKeysStartWithPrefixThatMatchingPatternInto(root, new StringBuilder(), patternStr, validKeysCollection);
+        return validKeysCollection;
     }
 
-    private void collect(Node x, StringBuilder prefix, String pattern, Queue<String> results) {
-        if (x == null) return;
-        int d = prefix.length();
-        if (d == pattern.length() && x.value != null)
-            results.enqueue(prefix.toString());
-        if (d == pattern.length())
+    // 原始任务：在单词查找树中，收集所有以 “指定的前缀字符串”(生成自“指定的模式字符串”) 作为前缀 而与“模式字符串”长度相等（匹配）的键
+    // 匹配“指定模式字符串” 的键 <->
+    private void collectKeysStartWithPrefixThatMatchingPatternInto(Node currentNode, StringBuilder currentPrefixStr, String patternStr, Queue<String> validKeysCollection) {
+        // #1 如果已经到达叶子结点，说明 没有找到匹配条件的key，则：直接返回
+        if (currentNode == null) return;
+        int prefixStrLength = currentPrefixStr.length();
+        // #2 如果已经查找到 patternStr的最后一个字符，并且 这个字符对应的结点上有值，说明 找到了满足条件的key，则：把key添加到集合中
+        if (prefixStrLength == patternStr.length() && currentNode.value != null)
+            validKeysCollection.enqueue(currentPrefixStr.toString());
+        // #3 如果已经查找到了 patternStr的最后一个字符，但 字符对应的结点上没有值，说明 单词查找树中虽然存在所有字符，但没有满足条件的key，则：直接返回
+        if (prefixStrLength == patternStr.length())
             return;
-        char c = pattern.charAt(d);
-        if (c == '.') {
-            for (char ch = 0; ch < R; ch++) {
-                prefix.append(ch);
-                collect(x.successorNodes[ch], prefix, pattern, results);
-                prefix.deleteCharAt(prefix.length() - 1);
+
+        // 获取到 patternStr的当前字符
+        char currentCharacterOfPatternStr = patternStr.charAt(prefixStrLength);
+
+        // 与书上提供的代码不一样 👇
+        // 如果当前字符是 一个通配字符, 说明 当前字符在单词查找树中匹配成功，则：
+        if (currentCharacterOfPatternStr == '.') {
+            for (char currentCharacterOfAlphabet = 0; currentCharacterOfAlphabet < R; currentCharacterOfAlphabet++) {
+                // 把字母表中的每一个字符，分别追加到 prefixStr上。
+                currentPrefixStr.append(currentCharacterOfAlphabet);
+                // 子问题：在（每一个）子树中，收集匹配模式字符串的key
+                collectKeysStartWithPrefixThatMatchingPatternInto(currentNode.characterToNodeArr[currentCharacterOfAlphabet], currentPrefixStr, patternStr, validKeysCollection);
+
+                currentPrefixStr.deleteCharAt(currentPrefixStr.length() - 1);
             }
-        } else {
-            prefix.append(c);
-            collect(x.successorNodes[c], prefix, pattern, results);
-            prefix.deleteCharAt(prefix.length() - 1);
+        } else { // 如果不是通配字符的话，说明 我们已经知道 需要在哪一个具体的子树中查找与收集，则：
+            // 把 patternStr的当前字符 直接追加到 prefixStr的后面，然后
+            currentPrefixStr.append(currentCharacterOfPatternStr);
+            // 子问题：在（特定的）子树中，收集匹配模式字符串的key
+            collectKeysStartWithPrefixThatMatchingPatternInto(currentNode.characterToNodeArr[currentCharacterOfPatternStr], currentPrefixStr, patternStr, validKeysCollection);
+
+            currentPrefixStr.deleteCharAt(currentPrefixStr.length() - 1);
         }
     }
 
