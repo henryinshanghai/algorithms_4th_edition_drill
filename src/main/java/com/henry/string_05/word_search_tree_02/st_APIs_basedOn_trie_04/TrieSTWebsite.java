@@ -59,7 +59,7 @@ public class TrieSTWebsite<Value> {
     // R-way trie node
     private static class Node {
         private Object value;
-        private Node[] successorNodes = new Node[R];
+        private Node[] characterToNodeArr = new Node[R]; // successorNodes
     }
 
     /**
@@ -101,7 +101,7 @@ public class TrieSTWebsite<Value> {
         if (currentNode == null) return null;
         if (currentCharacterSpot == passedKey.length()) return currentNode;
         char currentCharacter = passedKey.charAt(currentCharacterSpot);
-        return getLastNodeOfPathThatStartFrom(currentNode.successorNodes[currentCharacter], passedKey, currentCharacterSpot + 1);
+        return getLastNodeOfPathThatStartFrom(currentNode.characterToNodeArr[currentCharacter], passedKey, currentCharacterSpot + 1);
     }
 
     /**
@@ -127,7 +127,7 @@ public class TrieSTWebsite<Value> {
             return x;
         }
         char c = key.charAt(d);
-        x.successorNodes[c] = put(x.successorNodes[c], key, val, d + 1);
+        x.characterToNodeArr[c] = put(x.characterToNodeArr[c], key, val, d + 1);
         return x;
     }
 
@@ -180,9 +180,9 @@ public class TrieSTWebsite<Value> {
             String currentKey = currentPrefix.toString();
             keysCollection.enqueue(currentKey);
         }
-        for (char currentCharacter = 0; currentCharacter < R; currentCharacter++) {
-            currentPrefix.append(currentCharacter);
-            collectKeysStartWithPrefixInto(currentNode.successorNodes[currentCharacter], currentPrefix, keysCollection);
+        for (char currentAlphabetCharacter = 0; currentAlphabetCharacter < R; currentAlphabetCharacter++) {
+            currentPrefix.append(currentAlphabetCharacter);
+            collectKeysStartWithPrefixInto(currentNode.characterToNodeArr[currentAlphabetCharacter], currentPrefix, keysCollection);
 
             // ???
             currentPrefix.deleteCharAt(currentPrefix.length() - 1);
@@ -249,7 +249,7 @@ public class TrieSTWebsite<Value> {
         if (x.value != null) length = d;
         if (d == query.length()) return length;
         char c = query.charAt(d);
-        return longestPrefixOf(x.successorNodes[c], query, d + 1, length);
+        return longestPrefixOf(x.characterToNodeArr[c], query, d + 1, length);
     }
 
     /**
@@ -270,13 +270,13 @@ public class TrieSTWebsite<Value> {
             x.value = null;
         } else {
             char c = key.charAt(d);
-            x.successorNodes[c] = delete(x.successorNodes[c], key, d + 1);
+            x.characterToNodeArr[c] = delete(x.characterToNodeArr[c], key, d + 1);
         }
 
         // remove subtrie rooted at x if it is completely empty
         if (x.value != null) return x;
         for (int c = 0; c < R; c++)
-            if (x.successorNodes[c] != null)
+            if (x.characterToNodeArr[c] != null)
                 return x;
         return null;
     }
