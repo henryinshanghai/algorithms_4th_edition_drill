@@ -54,7 +54,7 @@ public class TrieSTWebsite<Value> {
 
 
     private Node root;      // root of trie
-    private int n;          // number of keys in trie
+    private int keysAmount;          // number of keys in trie
 
     // R-way trie node
     private static class Node {
@@ -122,7 +122,7 @@ public class TrieSTWebsite<Value> {
     private Node put(Node x, String key, Value val, int d) {
         if (x == null) x = new Node();
         if (d == key.length()) {
-            if (x.value == null) n++;
+            if (x.value == null) keysAmount++;
             x.value = val;
             return x;
         }
@@ -137,7 +137,7 @@ public class TrieSTWebsite<Value> {
      * @return the number of key-value pairs in this symbol table
      */
     public int size() {
-        return n;
+        return keysAmount;
     }
 
     /**
@@ -279,29 +279,37 @@ public class TrieSTWebsite<Value> {
     /**
      * Removes the key from the set if the key is present.
      *
-     * @param key the key
+     * @param passedKey the key
      * @throws IllegalArgumentException if {@code key} is {@code null}
      */
-    public void delete(String key) {
-        if (key == null) throw new IllegalArgumentException("argument to delete() is null");
-        root = delete(root, key, 0);
+    public void delete(String passedKey) {
+        if (passedKey == null) throw new IllegalArgumentException("argument to delete() is null");
+        root = deleteNodesOfPathFrom(root, passedKey, 0);
     }
 
-    private Node delete(Node x, String key, int d) {
-        if (x == null) return null;
-        if (d == key.length()) {
-            if (x.value != null) n--;
-            x.value = null;
-        } else {
-            char c = key.charAt(d);
-            x.characterToNodeArr[c] = delete(x.characterToNodeArr[c], key, d + 1);
+    private Node deleteNodesOfPathFrom(Node currentNode, String passedKey, int currentCharacterSpot) {
+        if (currentNode == null) return null;
+
+        /* #1 把“键字符串的尾字符”所对应的结点的value 设置为null */
+        // 如果当前结点 是 键字符串尾字符所对应的结点，则：把结点的value 设置为null
+        if (currentCharacterSpot == passedKey.length()) {
+            if (currentNode.value != null) keysAmount--;
+            currentNode.value = null;
+        } else { // 如果还不是“尾字符结点”的话，则：递归地在树中查找下一个字符对应地结点
+            char currentCharacterOfPassedKey = passedKey.charAt(currentCharacterSpot);
+            Node successorSubTree = currentNode.characterToNodeArr[currentCharacterOfPassedKey];
+            currentNode.characterToNodeArr[currentCharacterOfPassedKey] = deleteNodesOfPathFrom(successorSubTree, passedKey, currentCharacterSpot + 1);
         }
 
-        // remove subtrie rooted at x if it is completely empty
-        if (x.value != null) return x;
-        for (int c = 0; c < R; c++)
-            if (x.characterToNodeArr[c] != null)
-                return x;
+        /* #2 如果当前节点 既没有value，又没有子链接，则：物理删除当前结点（返回null） */
+        // 如果当前节点 “非空值”，则：保留当前结点
+        if (currentNode.value != null) return currentNode;
+        // 如果当前节点 存在“非空链接”，则：保留当前结点
+        for (int currentCharacterOfAlphabet = 0; currentCharacterOfAlphabet < R; currentCharacterOfAlphabet++)
+            if (currentNode.characterToNodeArr[currentCharacterOfAlphabet] != null)
+                return currentNode;
+
+        // 对于其他情况，返回null 来 从单词查找树中物理删除当前结点
         return null;
     }
 
