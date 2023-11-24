@@ -244,28 +244,36 @@ public class TrieSTWebsite<Value> {
      * Returns the string in the symbol table that is the longest prefix of {@code query},
      * or {@code null}, if no such string.
      *
-     * @param query the query string
+     * @param passedStr the query string
      * @return the string in the symbol table that is the longest prefix of {@code query},
      * or {@code null} if no such string
      * @throws IllegalArgumentException if {@code query} is {@code null}
      */
-    public String longestPrefixOf(String query) {
-        if (query == null) throw new IllegalArgumentException("argument to longestPrefixOf() is null");
-        int length = longestPrefixOf(root, query, 0, -1);
-        if (length == -1) return null;
-        else return query.substring(0, length);
+    public String longestKeyThatPrefixOf(String passedStr) {
+        if (passedStr == null) throw new IllegalArgumentException("argument to longestPrefixOf() is null");
+        int keyStrLength = longestKeysLengthThatPrefixOf(root, passedStr, 0, -1);
+
+        // 返回-1，表示 不存在 满足条件的键字符串
+        if (keyStrLength == -1) return null;
+        // 如果存在满足条件的键字符串，则：从传入的字符串中切取出 最长的“键字符串”
+        else return passedStr.substring(0, keyStrLength);
     }
 
-    // returns the length of the longest string key in the subtrie
-    // rooted at x that is a prefix of the query string,
-    // assuming the first d character match and we have already
-    // found a prefix match of given length (-1 if no such match)
-    private int longestPrefixOf(Node x, String query, int d, int length) {
-        if (x == null) return length;
-        if (x.value != null) length = d;
-        if (d == query.length()) return length;
-        char c = query.charAt(d);
-        return longestPrefixOf(x.characterToNodeArr[c], query, d + 1, length);
+    // 返回 以x（x是一个查询字符串的前缀）作为根结点的子树中的 最长字符串键的长度
+    // 假设前d个字符匹配，并且我们已经 找到了与给定长度相匹配的前缀（如果没有匹配的前缀，返回-1）
+    private int longestKeysLengthThatPrefixOf(Node currentNode, String passedStr, int currentCharacterSpot, int keysLength) {
+        // 原理：指定字符在单词查找树中是否存在 <-> 该字符对应的子查找树是否为null
+        if (currentNode == null) return keysLength;
+
+        // 当遇到键结点时，初始化/更新 length的值 - 在路径上找到的最后一个key结点 会用来更新length的值
+        if (currentNode.value != null) keysLength = currentCharacterSpot;
+        if (currentCharacterSpot == passedStr.length()) return keysLength;
+
+        // 获取字符
+        char currentCharacterInPassedStr = passedStr.charAt(currentCharacterSpot);
+        // 字符对应的子查找树
+        Node charactersSubTree = currentNode.characterToNodeArr[currentCharacterInPassedStr];
+        return longestKeysLengthThatPrefixOf(charactersSubTree, passedStr, currentCharacterSpot + 1, keysLength);
     }
 
     /**
@@ -321,11 +329,11 @@ public class TrieSTWebsite<Value> {
         }
 
         StdOut.println("longestPrefixOf(\"shellsort\"):");
-        StdOut.println(st.longestPrefixOf("shellsort"));
+        StdOut.println(st.longestKeyThatPrefixOf("shellsort"));
         StdOut.println();
 
         StdOut.println("longestPrefixOf(\"quicksort\"):");
-        StdOut.println(st.longestPrefixOf("quicksort"));
+        StdOut.println(st.longestKeyThatPrefixOf("quicksort"));
         StdOut.println();
 
         StdOut.println("keysWithPrefix(\"shor\"):");
