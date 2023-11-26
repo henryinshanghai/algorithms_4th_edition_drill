@@ -115,22 +115,29 @@ public class TSTWebsite<Value> {
             throw new IllegalArgumentException("calls get() with null argument");
         }
         if (passedKey.length() == 0) throw new IllegalArgumentException("key must have length >= 1");
-        Node<Value> x = getNodeFrom(root, passedKey, 0);
-        if (x == null) return null;
-        return x.value;
+        Node<Value> foundNode = getLastNodeOfPathThatStartFrom(root, passedKey, 0);
+        if (foundNode == null) return null;
+        return foundNode.value;
     }
 
     // return subtrie corresponding to given key
-    private Node<Value> getNodeFrom(Node<Value> currentNode, String passedKey, int currentCharacterSpot) {
+    private Node<Value> getLastNodeOfPathThatStartFrom(Node<Value> currentNode, String passedKey, int currentCharacterSpot) {
         if (currentNode == null) return null;
         if (passedKey.length() == 0) throw new IllegalArgumentException("key must have length >= 1");
+
+        // 获取“查询字符串”的当前字符
         char currentCharacterOfPassedKey = passedKey.charAt(currentCharacterSpot);
+
+        // 比较 当前字符 与 树的根结点中存储的字符
         if (currentCharacterOfPassedKey < currentNode.character)
-            return getNodeFrom(currentNode.leftSubtree, passedKey, currentCharacterSpot);
+            // 如果更小，则：在左子树中继续查找
+            return getLastNodeOfPathThatStartFrom(currentNode.leftSubtree, passedKey, currentCharacterSpot);
         else if (currentCharacterOfPassedKey > currentNode.character)
-            return getNodeFrom(currentNode.rightSubtree, passedKey, currentCharacterSpot);
+            // 如果更大，则：在右子树中继续查找
+            return getLastNodeOfPathThatStartFrom(currentNode.rightSubtree, passedKey, currentCharacterSpot);
         else if (currentCharacterSpot < passedKey.length() - 1)
-            return getNodeFrom(currentNode.midSubtree, passedKey, currentCharacterSpot + 1);
+            // 如果相等，并且当前字符不是“待查询字符串的尾字符”，则：在中子树中，继续查找 “由剩余字符组成的子字符串”
+            return getLastNodeOfPathThatStartFrom(currentNode.midSubtree, passedKey, currentCharacterSpot + 1);
         else return currentNode;
     }
 
@@ -149,22 +156,36 @@ public class TSTWebsite<Value> {
         }
         if (!contains(passedKey)) keysAmount++;
         else if (associatedValue == null) keysAmount--;       // delete existing key
-        root = putNodeInto(root, passedKey, associatedValue, 0);
+        root = putNodesOfPathThatStartFrom(root, passedKey, associatedValue, 0);
     }
 
-    private Node<Value> putNodeInto(Node<Value> currentNode, String passedKey, Value associatedValue, int currentCharacterSpot) {
+    private Node<Value> putNodesOfPathThatStartFrom(Node<Value> currentNode, String passedKey, Value associatedValue, int currentCharacterSpot) {
+        // 获取“待插入字符串”的当前字符
         char currentCharacterOfPassedKey = passedKey.charAt(currentCharacterSpot);
+
+        /* #1 具体的插入操作 */
+        // 如果字符对应的结点为null，则：创建新结点
         if (currentNode == null) {
             currentNode = new Node<Value>();
             currentNode.character = currentCharacterOfPassedKey;
         }
-        if (currentCharacterOfPassedKey < currentNode.character)
-            currentNode.leftSubtree = putNodeInto(currentNode.leftSubtree, passedKey, associatedValue, currentCharacterSpot);
+
+        /* #2 声明式插入操作 */
+        if (currentCharacterOfPassedKey < currentNode.character) {
+            // 如果“当前字符”比起“根结点中的字符”更小，则：在左子树中继续执行插入
+            currentNode.leftSubtree = putNodesOfPathThatStartFrom(currentNode.leftSubtree, passedKey, associatedValue, currentCharacterSpot);
+        }
         else if (currentCharacterOfPassedKey > currentNode.character)
-            currentNode.rightSubtree = putNodeInto(currentNode.rightSubtree, passedKey, associatedValue, currentCharacterSpot);
+            // 如果“当前字符”比起“根结点中的字符”更大，则：在右子树中继续执行插入
+            currentNode.rightSubtree = putNodesOfPathThatStartFrom(currentNode.rightSubtree, passedKey, associatedValue, currentCharacterSpot);
         else if (currentCharacterSpot < passedKey.length() - 1)
-            currentNode.midSubtree = putNodeInto(currentNode.midSubtree, passedKey, associatedValue, currentCharacterSpot + 1);
-        else currentNode.value = associatedValue;
+            // 如果“当前字符” 与 “根结点中的字符”相等，并且“当前字符”不是“尾字符”，则：在中子树中继续执行插入“剩余字符”
+            currentNode.midSubtree = putNodesOfPathThatStartFrom(currentNode.midSubtree, passedKey, associatedValue, currentCharacterSpot + 1);
+        else
+            // 如果找到了尾字符对应的结点，则：为其绑定 associatedValue
+            currentNode.value = associatedValue;
+
+        /* #3 在插入路径后，返回三向单词查找树的根结点 */
         return currentNode;
     }
 
@@ -224,7 +245,7 @@ public class TSTWebsite<Value> {
             throw new IllegalArgumentException("calls keysWithPrefix() with null argument");
         }
         Queue<String> queue = new Queue<String>();
-        Node<Value> x = getNodeFrom(root, prefix, 0);
+        Node<Value> x = getLastNodeOfPathThatStartFrom(root, prefix, 0);
         if (x == null) return queue;
         if (x.value != null) queue.enqueue(prefix);
         collect(x.midSubtree, new StringBuilder(prefix), queue);
