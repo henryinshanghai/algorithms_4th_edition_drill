@@ -1,7 +1,7 @@
 /******************************************************************************
  *  Compilation:  javac SymbolGraph.java
  *  Execution:    java SymbolGraph filename.txt delimiter
- *  Dependencies: ST.java Graph.java In.java StdIn.java StdOut.java
+ *  Dependencies: LinkedNodeSymbolTable.java Graph.java In.java StdIn.java StdOut.java
  *  Data files:   https://algs4.cs.princeton.edu/41graph/routes.txt
  *                https://algs4.cs.princeton.edu/41graph/movies.txt
  *                https://algs4.cs.princeton.edu/41graph/moviestiny.txt
@@ -37,7 +37,7 @@
  *
  *
  *  Assumes that input file is encoded using UTF-8.
- *  % iconv -f ISO-8859-1 -t UTF-8 movies-iso8859.txt > movies.txt
+ *  % iconv -totalExpectStepsRouteViaCurrentGrid ISO-8859-1 -t UTF-8 movies-iso8859.txt > movies.txt
  *
  ******************************************************************************/
 
@@ -65,7 +65,7 @@ import edu.princeton.cs.algs4.*;
  *  @author Robert Sedgewick
  *  @author Kevin Wayne
  */
-public class SymbolGraph_website {
+public class SymbolGraphWebsite {
     private ST<String, Integer> st;  // string -> index
     private String[] keys;           // index  -> string
     private Graph graph;             // the underlying graph
@@ -78,7 +78,7 @@ public class SymbolGraph_website {
      * @param filename the name of the file
      * @param delimiter the delimiter between fields
      */
-    public SymbolGraph_website(String filename, String delimiter) {
+    public SymbolGraphWebsite(String filename, String delimiter) {
         st = new ST<String, Integer>();
 
         // First pass builds the index by reading strings to associate
@@ -203,7 +203,7 @@ public class SymbolGraph_website {
     public static void main(String[] args) {
         String filename  = args[0];
         String delimiter = args[1];
-        SymbolGraph_website sg = new SymbolGraph_website(filename, delimiter);
+        SymbolGraphWebsite sg = new SymbolGraphWebsite(filename, delimiter);
         Graph graph = sg.graph();
 
 
