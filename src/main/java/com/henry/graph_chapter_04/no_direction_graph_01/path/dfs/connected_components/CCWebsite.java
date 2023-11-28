@@ -65,7 +65,7 @@ import edu.princeton.cs.algs4.*;
  *  @author Robert Sedgewick
  *  @author Kevin Wayne
  */
-public class CC {
+public class CCWebsite {
     private boolean[] marked;   // marked[v] = has vertex v been marked?
     private int[] id;           // id[v] = id of connected component containing v
     private int[] size;         // size[id] = number of vertices in given component
@@ -76,7 +76,7 @@ public class CC {
      *
      * @param G the undirected graph
      */
-    public CC(Graph G) {
+    public CCWebsite(Graph G) {
         marked = new boolean[G.V()];
         id = new int[G.V()];
         size = new int[G.V()];
@@ -93,7 +93,7 @@ public class CC {
      *
      * @param G the edge-weighted graph
      */
-    public CC(EdgeWeightedGraph G) {
+    public CCWebsite(EdgeWeightedGraph G) {
         marked = new boolean[G.V()];
         id = new int[G.V()];
         size = new int[G.V()];
@@ -215,7 +215,7 @@ public class CC {
     public static void main(String[] args) {
         In in = new In(args[0]);
         Graph G = new Graph(in);
-        CC cc = new CC(G);
+        CCWebsite cc = new CCWebsite(G);
 
         // number of connected components
         int m = cc.count();
