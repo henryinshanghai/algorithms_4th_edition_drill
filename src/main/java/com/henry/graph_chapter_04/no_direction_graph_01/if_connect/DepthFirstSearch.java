@@ -1,4 +1,4 @@
-package com.henry.graph_chapter_04.no_direction_graph_01.dfs;
+package com.henry.graph_chapter_04.no_direction_graph_01.if_connect;
 
 import com.henry.graph_chapter_04.no_direction_graph_01.graph.Graph;
 import edu.princeton.cs.algs4.In;
