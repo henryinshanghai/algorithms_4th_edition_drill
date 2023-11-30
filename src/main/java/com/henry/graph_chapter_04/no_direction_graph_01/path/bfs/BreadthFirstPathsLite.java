@@ -18,11 +18,11 @@ public class BreadthFirstPathsLite {
         terminalVertexToDepartVertex = new int[graph.V()];
         this.startVertex = startVertex;
 
-        bfs(graph, startVertex);
+        markAdjacentVertexesViaBFS(graph, startVertex);
     }
 
     // BFS - 先添加到数据结构中的边，先处理
-    private void bfs(Graph graph, int passedVertex) {
+    private void markAdjacentVertexesViaBFS(Graph graph, int passedVertex) {
         // 准备一个队列
         Queue<Integer> queue = new Queue<>();
 
