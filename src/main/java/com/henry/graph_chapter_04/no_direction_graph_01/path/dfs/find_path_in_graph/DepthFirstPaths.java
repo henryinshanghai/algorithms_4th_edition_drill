@@ -26,11 +26,11 @@ public class DepthFirstPaths {
         this.startVertex = startVertex;
 
         // 处理“单点路径”的任务
-        dfs(graph, startVertex);
+        markAdjacentVertexesViaDFS(graph, startVertex);
     }
 
     // 作用：标记节点 + 记录路径中的节点
-    private void dfs(Graph graph, int currentVertex) {
+    private void markAdjacentVertexesViaDFS(Graph graph, int currentVertex) {
         // 标记当前顶点
         vertexToIsMarked[currentVertex] = true;
         // 对于当前顶点的所有相邻节点
@@ -40,7 +40,7 @@ public class DepthFirstPaths {
                 // 记录 "当前邻居节点" 到 “当前结点”的连接关系
                 vertexToVertex[currentAdjacentVertex] = currentVertex;
                 // 对当前节点进行同样的操作
-                dfs(graph, currentAdjacentVertex);
+                markAdjacentVertexesViaDFS(graph, currentAdjacentVertex);
             }
         }
     }
