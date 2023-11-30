@@ -1,0 +1,253 @@
+package com.henry.graph_chapter_04.direction_graph_02.path.bfs; /******************************************************************************
+ *  Compilation:  javac BreadthFirstDirectedPaths.java
+ *  Execution:    java BreadthFirstDirectedPaths digraph.txt s
+ *  Dependencies: Digraph.java Queue.java Stack.java
+ *  Data files:   https://algs4.cs.princeton.edu/42digraph/tinyDG.txt
+ *                https://algs4.cs.princeton.edu/42digraph/mediumDG.txt
+ *                https://algs4.cs.princeton.edu/42digraph/largeDG.txt
+ *
+ *  Run breadth-first search on a digraph.
+ *  Runs in O(E + V) time.
+ *
+ *  % java BreadthFirstDirectedPaths tinyDG.txt 3
+ *  3 to 0 (2):  3->2->0
+ *  3 to 1 (3):  3->2->0->1
+ *  3 to 2 (1):  3->2
+ *  3 to 3 (0):  3
+ *  3 to 4 (2):  3->5->4
+ *  3 to 5 (1):  3->5
+ *  3 to 6 (-):  not connected
+ *  3 to 7 (-):  not connected
+ *  3 to 8 (-):  not connected
+ *  3 to 9 (-):  not connected
+ *  3 to 10 (-):  not connected
+ *  3 to 11 (-):  not connected
+ *  3 to 12 (-):  not connected
+ *
+ ******************************************************************************/
+
+import com.henry.graph_chapter_04.direction_graph_02.graph.Digraph;
+import edu.princeton.cs.algs4.In;
+import edu.princeton.cs.algs4.Queue;
+import edu.princeton.cs.algs4.Stack;
+import edu.princeton.cs.algs4.StdOut;
+
+/**
+ * The {@code BreadthDirectedFirstPaths} class represents a data type for
+ * finding shortest paths (number of edges) from a source vertex <em>s</em>
+ * (or set of source vertices) to every other vertex in the digraph.
+ * <p>
+ * This implementation uses breadth-first search.
+ * The constructor takes &Theta;(<em>V</em> + <em>E</em>) time in the
+ * worst case, where <em>V</em> is the number of vertices and <em>E</em> is
+ * the number of edges.
+ * Each instance method takes &Theta;(1) time.
+ * It uses &Theta;(<em>V</em>) extra space (not including the digraph).
+ * <p>
+ * For additional documentation,
+ * see <a href="https://algs4.cs.princeton.edu/42digraph">Section 4.2</a> of
+ * <i>Algorithms, 4th Edition</i> by Robert Sedgewick and Kevin Wayne.
+ *
+ * @author Robert Sedgewick
+ * @author Kevin Wayne
+ */
+public class BreadthFirstDirectedPaths {
+    private static final int INFINITY = Integer.MAX_VALUE;
+    private boolean[] vertexToIsMarked;  // marked[v] = is there an s->v path?
+    private int[] terminalVertexToDepartVertex;      // edgeTo[v] = last edge on shortest s->v path
+    private int[] vertexToPathLength;      // distTo[v] = length of shortest s->v path
+
+    /**
+     * Computes the shortest path from {@code s} and every other vertex in graph {@code G}.
+     *
+     * @param digraph     the digraph
+     * @param startVertex the source vertex
+     * @throws IllegalArgumentException unless {@code 0 <= v < V}
+     */
+    public BreadthFirstDirectedPaths(Digraph digraph, int startVertex) {
+        vertexToIsMarked = new boolean[digraph.getVertexAmount()];
+        vertexToPathLength = new int[digraph.getVertexAmount()];
+        terminalVertexToDepartVertex = new int[digraph.getVertexAmount()];
+
+        for (int currentVertex = 0; currentVertex < digraph.getVertexAmount(); currentVertex++)
+            vertexToPathLength[currentVertex] = INFINITY;
+        validateVertex(startVertex);
+        markAdjacentVertexesViaBFS(digraph, startVertex);
+    }
+
+    /**
+     * Computes the shortest path from any one of the source vertices in {@code sources}
+     * to every other vertex in graph {@code G}.
+     *
+     * @param digraph       the digraph
+     * @param startVertexes the source vertices
+     * @throws IllegalArgumentException if {@code sources} is {@code null}
+     * @throws IllegalArgumentException if {@code sources} contains no vertices
+     * @throws IllegalArgumentException unless each vertex {@code v} in
+     *                                  {@code sources} satisfies {@code 0 <= v < V}
+     */
+    public BreadthFirstDirectedPaths(Digraph digraph, Iterable<Integer> startVertexes) {
+        vertexToIsMarked = new boolean[digraph.getVertexAmount()];
+        vertexToPathLength = new int[digraph.getVertexAmount()];
+        terminalVertexToDepartVertex = new int[digraph.getVertexAmount()];
+
+        for (int currentVertex = 0; currentVertex < digraph.getVertexAmount(); currentVertex++)
+            vertexToPathLength[currentVertex] = INFINITY;
+
+        validateVertices(startVertexes);
+
+        markAdjacentVertexesViaBFS(digraph, startVertexes);
+    }
+
+    // BFS from single source
+    private void markAdjacentVertexesViaBFS(Digraph digraph, int startVertex) {
+        Queue<Integer> vertexSequence = new Queue<Integer>();
+        vertexToIsMarked[startVertex] = true;
+        vertexToPathLength[startVertex] = 0;
+
+        vertexSequence.enqueue(startVertex);
+
+        while (!vertexSequence.isEmpty()) {
+            int currentVertex = vertexSequence.dequeue();
+
+            for (int currentAdjacentVertex : digraph.adjacentVertexesOf(currentVertex)) {
+                if (!vertexToIsMarked[currentAdjacentVertex]) {
+                    terminalVertexToDepartVertex[currentAdjacentVertex] = currentVertex;
+                    vertexToPathLength[currentAdjacentVertex] = vertexToPathLength[currentVertex] + 1;
+                    vertexToIsMarked[currentAdjacentVertex] = true;
+
+                    vertexSequence.enqueue(currentAdjacentVertex);
+                }
+            }
+        }
+    }
+
+    // BFS from multiple sources
+    private void markAdjacentVertexesViaBFS(Digraph digraph, Iterable<Integer> startVertexes) {
+        Queue<Integer> vertexSequence = new Queue<Integer>();
+
+        for (int startVertex : startVertexes) {
+            vertexToIsMarked[startVertex] = true;
+            vertexToPathLength[startVertex] = 0;
+            vertexSequence.enqueue(startVertex);
+        }
+
+        while (!vertexSequence.isEmpty()) {
+            int currentVertex = vertexSequence.dequeue();
+            for (int currentAdjacentVertex : digraph.adjacentVertexesOf(currentVertex)) {
+                if (!vertexToIsMarked[currentAdjacentVertex]) {
+                    terminalVertexToDepartVertex[currentAdjacentVertex] = currentVertex;
+                    vertexToPathLength[currentAdjacentVertex] = vertexToPathLength[currentVertex] + 1;
+                    vertexToIsMarked[currentAdjacentVertex] = true;
+
+                    vertexSequence.enqueue(currentAdjacentVertex);
+                }
+            }
+        }
+    }
+
+    /**
+     * Is there a directed path from the source {@code s} (or sources) to vertex {@code v}?
+     *
+     * @param passedVertex the vertex
+     * @return {@code true} if there is a directed path, {@code false} otherwise
+     * @throws IllegalArgumentException unless {@code 0 <= v < V}
+     */
+    public boolean doesStartVertexHasPathTo(int passedVertex) {
+        validateVertex(passedVertex);
+        return vertexToIsMarked[passedVertex];
+    }
+
+    /**
+     * Returns the number of edges in a shortest path from the source {@code s}
+     * (or sources) to vertex {@code v}?
+     *
+     * @param passedVertex the vertex
+     * @return the number of edges in such a shortest path
+     * (or {@code Integer.MAX_VALUE} if there is no such path)
+     * @throws IllegalArgumentException unless {@code 0 <= v < V}
+     */
+    public int pathLengthTo(int passedVertex) {
+        validateVertex(passedVertex);
+        return vertexToPathLength[passedVertex];
+    }
+
+    /**
+     * Returns a shortest path from {@code s} (or sources) to {@code v}, or
+     * {@code null} if no such path.
+     *
+     * @param passedVertex the vertex
+     * @return the sequence of vertices on a shortest path, as an Iterable
+     * @throws IllegalArgumentException unless {@code 0 <= v < V}
+     */
+    public Iterable<Integer> pathFromStartVertexTo(int passedVertex) {
+        validateVertex(passedVertex);
+
+        if (!doesStartVertexHasPathTo(passedVertex)) return null;
+
+        Stack<Integer> vertexPath = new Stack<Integer>();
+        int currentVertexInPath;
+
+        for (currentVertexInPath = passedVertex; vertexToPathLength[currentVertexInPath] != 0; currentVertexInPath = terminalVertexToDepartVertex[currentVertexInPath])
+            vertexPath.push(currentVertexInPath);
+        vertexPath.push(currentVertexInPath);
+
+        return vertexPath;
+    }
+
+    // throw an IllegalArgumentException unless {@code 0 <= v < V}
+    private void validateVertex(int passedVertex) {
+        int V = vertexToIsMarked.length;
+        if (passedVertex < 0 || passedVertex >= V)
+            throw new IllegalArgumentException("vertex " + passedVertex + " is not between 0 and " + (V - 1));
+    }
+
+    // throw an IllegalArgumentException if vertices is null, has zero vertices,
+    // or has a vertex not between 0 and V-1
+    private void validateVertices(Iterable<Integer> vertices) {
+        if (vertices == null) {
+            throw new IllegalArgumentException("argument is null");
+        }
+        int vertexCount = 0;
+        for (Integer currentVertex : vertices) {
+            vertexCount++;
+            if (currentVertex == null) {
+                throw new IllegalArgumentException("vertex is null");
+            }
+            validateVertex(currentVertex);
+        }
+        if (vertexCount == 0) {
+            throw new IllegalArgumentException("zero vertices");
+        }
+    }
+
+    /**
+     * Unit tests the {@code BreadthFirstDirectedPaths} data type.
+     *
+     * @param args the command-line arguments
+     */
+    public static void main(String[] args) {
+        In in = new In(args[0]);
+        Digraph digraph = new Digraph(in);
+        // StdOut.println(digraph);
+
+        int startVertex = Integer.parseInt(args[1]);
+        BreadthFirstDirectedPaths markedDigraph = new BreadthFirstDirectedPaths(digraph, startVertex);
+
+        for (int currentVertex = 0; currentVertex < digraph.getVertexAmount(); currentVertex++) {
+            if (markedDigraph.doesStartVertexHasPathTo(currentVertex)) {
+                StdOut.printf("%d to %d (%d):  ", startVertex, currentVertex, markedDigraph.pathLengthTo(currentVertex));
+                for (int currentVertexInPath : markedDigraph.pathFromStartVertexTo(currentVertex)) {
+                    if (currentVertexInPath == startVertex) StdOut.print(currentVertexInPath);
+                    else StdOut.print("->" + currentVertexInPath);
+                }
+                StdOut.println();
+            } else {
+                StdOut.printf("%d to %d (-):  not connected\n", startVertex, currentVertex);
+            }
+
+        }
+    }
+
+
+}
