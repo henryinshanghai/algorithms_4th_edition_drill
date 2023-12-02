@@ -45,8 +45,8 @@ import edu.princeton.cs.algs4.StdOut;
  *  @author Kevin Wayne
  */
 public class SymbolDigraph {
-    private ST<String, Integer> keyStrToVertexMap;  // string -> index/vertex
-    private String[] vertexToKeyStr;           // index/vertex  -> string
+    private ST<String, Integer> keyStrToVertexIndexMap;  // string -> index/vertex
+    private String[] vertexIndexToKeyStr;           // index/vertex  -> string
     private Digraph underlyingDigraph;           // the underlying digraph
 
     /**
@@ -58,7 +58,7 @@ public class SymbolDigraph {
      * @param delimiter the delimiter between fields
      */
     public SymbolDigraph(String filename, String delimiter) {
-        keyStrToVertexMap = new ST<String, Integer>();
+        keyStrToVertexIndexMap = new ST<String, Integer>();
 
         // First pass builds the index by reading strings to associate
         // distinct strings with an index
@@ -70,21 +70,21 @@ public class SymbolDigraph {
                 String currentKeyStr = keyStrArr[currentSpot];
                 if (mapNotContain(currentKeyStr))
                     // 为 keyStr 绑定 其所对应的 结点值（也就是 符号表中的 元素数量）
-                    keyStrToVertexMap.put(currentKeyStr, keyStrToVertexMap.size());
+                    keyStrToVertexIndexMap.put(currentKeyStr, keyStrToVertexIndexMap.size());
             }
         }
 
         // 构造 从 结点值 -> 结点字符串键 之间的映射关系
-        vertexToKeyStr = new String[keyStrToVertexMap.size()];
-        for (String keyStr : keyStrToVertexMap.keys()) {
-            Integer vertexOfKeyStr = keyStrToVertexMap.get(keyStr);
-            vertexToKeyStr[vertexOfKeyStr] = keyStr;
+        vertexIndexToKeyStr = new String[keyStrToVertexIndexMap.size()];
+        for (String keyStr : keyStrToVertexIndexMap.keys()) {
+            Integer vertexOfKeyStr = keyStrToVertexIndexMap.get(keyStr);
+            vertexIndexToKeyStr[vertexOfKeyStr] = keyStr;
         }
 
         // second pass builds the digraph by connecting first vertex on each
         // line to all others
         // 使用邻接的方式 从文件中构造出图
-        underlyingDigraph = new Digraph(keyStrToVertexMap.size());
+        underlyingDigraph = new Digraph(keyStrToVertexIndexMap.size());
         fileStream = new In(filename);
 
         while (fileStream.hasNextLine()) {
@@ -93,14 +93,14 @@ public class SymbolDigraph {
             // 获取第一个字符串
             String firstKeyStr = keyStrArr[0];
             // 获取到 该字符串所对应的结点值
-            int vertexOfFirstKeyStr = keyStrToVertexMap.get(firstKeyStr);
+            int vertexOfFirstKeyStr = keyStrToVertexIndexMap.get(firstKeyStr);
 
             // 使用 剩余的字符串 作为结点的字符串，并把 结点A的值 -> 结点B的值 添加到图中
             // 疑问：为什么没有一个叫做 Vertex的内部类？
             for (int currentSpot = 1; currentSpot < keyStrArr.length; currentSpot++) {
                 // 获取当前字符串对应的结点值
                 String currentKeyStr = keyStrArr[currentSpot];
-                int vertexOfCurrentKeyStr = keyStrToVertexMap.get(currentKeyStr);
+                int vertexOfCurrentKeyStr = keyStrToVertexIndexMap.get(currentKeyStr);
 
                 // 向图中添加 结点值所关联的边
                 underlyingDigraph.addEdge(vertexOfFirstKeyStr, vertexOfCurrentKeyStr);
@@ -109,7 +109,7 @@ public class SymbolDigraph {
     }
 
     private boolean mapNotContain(String currentKeyStr) {
-        return !keyStrToVertexMap.contains(currentKeyStr);
+        return !keyStrToVertexIndexMap.contains(currentKeyStr);
     }
 
     /**
@@ -118,18 +118,18 @@ public class SymbolDigraph {
      * @return {@code true} if {@code s} is the name of a vertex, and {@code false} otherwise
      */
     public boolean containsVertexWithName(String keyStr) { // vertex's name = vertex's keyStr
-        return keyStrToVertexMap.contains(keyStr);
+        return keyStrToVertexIndexMap.contains(keyStr);
     }
 
     /**
      * Returns the integer associated with the vertex named {@code s}.
      * @param s the name of a vertex
      * @return the integer (between 0 and <em>V</em> - 1) associated with the vertex named {@code s}
-     * @deprecated Replaced by {@link #vertexValueWithName(String)}.
+     * @deprecated Replaced by {@link #vertexIndexWithName(String)}.
      */
     @Deprecated
     public int index(String s) {
-        return keyStrToVertexMap.get(s);
+        return keyStrToVertexIndexMap.get(s);
     }
 
     /**
@@ -137,8 +137,8 @@ public class SymbolDigraph {
      * @param passedName the name of a vertex
      * @return the integer (between 0 and <em>V</em> - 1) associated with the vertex named {@code s}
      */
-    public int vertexValueWithName(String passedName) {
-        return keyStrToVertexMap.get(passedName);
+    public int vertexIndexWithName(String passedName) {
+        return keyStrToVertexIndexMap.get(passedName);
     }
 
     /**
@@ -146,23 +146,23 @@ public class SymbolDigraph {
      * @param  v the integer corresponding to a vertex (between 0 and <em>V</em> - 1)
      * @return the name of the vertex associated with the integer {@code v}
      * @throws IllegalArgumentException unless {@code 0 <= v < V}
-     * @deprecated Replaced by {@link #nameOf(int)}.
+     * @deprecated Replaced by {@link #nameOfVertexWith(int)}.
      */
     @Deprecated
     public String name(int v) {
         validateVertex(v);
-        return vertexToKeyStr[v];
+        return vertexIndexToKeyStr[v];
     }
 
     /**
      * Returns the name of the vertex associated with the integer {@code v}.
-     * @param  passedVertex the integer corresponding to a vertex (between 0 and <em>V</em> - 1)
+     * @param  passedIndex the integer corresponding to a vertex (between 0 and <em>V</em> - 1)
      * @return the name of the vertex associated with the integer {@code v}
      * @throws IllegalArgumentException unless {@code 0 <= v < V}
      */
-    public String nameOf(int passedVertex) {
-        validateVertex(passedVertex);
-        return vertexToKeyStr[passedVertex];
+    public String nameOfVertexWith(int passedIndex) {
+        validateVertex(passedIndex);
+        return vertexIndexToKeyStr[passedIndex];
     }
 
     /**
@@ -213,9 +213,9 @@ public class SymbolDigraph {
             // 读取标准输入流中的当前行键入
             String vertexName = StdIn.readLine();
             //
-            int vertexValue = symbolDigraph.vertexValueWithName(vertexName);
+            int vertexValue = symbolDigraph.vertexIndexWithName(vertexName);
             for (int currentAdjacentVertex : digraph.adjacentVertexesOf(vertexValue)) {
-                StdOut.println("   " + symbolDigraph.nameOf(currentAdjacentVertex));
+                StdOut.println("   " + symbolDigraph.nameOfVertexWith(currentAdjacentVertex));
             }
         }
     }
