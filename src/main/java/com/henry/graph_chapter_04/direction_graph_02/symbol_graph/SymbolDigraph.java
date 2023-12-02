@@ -170,7 +170,7 @@ public class SymbolDigraph {
      * not to mutate the digraph.
      *
      * @return the digraph associated with the symbol digraph
-     * @deprecated Replaced by {@link #digraph()}.
+     * @deprecated Replaced by {@link #underlyingDigraph()}.
      */
     @Deprecated
     public Digraph G() {
@@ -183,7 +183,7 @@ public class SymbolDigraph {
      *
      * @return the digraph associated with the symbol digraph
      */
-    public Digraph digraph() {
+    public Digraph underlyingDigraph() {
         return underlyingDigraph;
     }
 
@@ -207,7 +207,7 @@ public class SymbolDigraph {
         SymbolDigraph symbolDigraph = new SymbolDigraph(filename, delimiter);
 
         // 获取到 符号图 底层所使用的 图
-        Digraph digraph = symbolDigraph.digraph();
+        Digraph digraph = symbolDigraph.underlyingDigraph();
 
         while (!StdIn.isEmpty()) {
             // 读取标准输入流中的当前行键入
