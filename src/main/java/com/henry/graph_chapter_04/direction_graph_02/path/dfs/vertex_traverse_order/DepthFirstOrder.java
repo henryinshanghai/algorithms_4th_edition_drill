@@ -80,6 +80,7 @@ public class DepthFirstOrder {
 
         vertexToIsMarked = new boolean[digraph.getVertexAmount()];
 
+        // 🐖 DFS中标准的结点遍历方式 - 按照自然数的顺序 来 遍历 有向图中的结点
         for (int currentVertex = 0; currentVertex < digraph.getVertexAmount(); currentVertex++)
             if (isNotMarked(currentVertex))
                 markVertexesAndPickToSequenceViaDFS(digraph, currentVertex);

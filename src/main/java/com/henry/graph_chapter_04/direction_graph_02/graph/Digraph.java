@@ -53,7 +53,7 @@ public class Digraph {
 
     public Digraph reverseEdgeDirection() {
         Digraph edgeReversedGraph = new Digraph(vertexAmount);
-
+        // 🐖 DFS中标准的结点遍历方式 - 按照自然数的顺序 来 遍历 有向图中的结点
         for (int currentVertex = 0; currentVertex < vertexAmount; currentVertex++) {
             for (Integer currentAdjacentVertex : adjacentVertexesOf(currentVertex)) {
                 edgeReversedGraph.addEdge(currentAdjacentVertex, currentVertex);
