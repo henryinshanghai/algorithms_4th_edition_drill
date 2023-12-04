@@ -6,12 +6,15 @@ import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.Queue;
 import edu.princeton.cs.algs4.StdOut;
 
-// 结论：使用Kosaraju算法，在当前的dfs()调用中，会处理完成 同一个强连通分量中的所有结点
+// 结论：使用Kosaraju算法，其构造函数中的每一次dfs()递归调用，所标记的结点 都会在“同一个强连通分量”之中
+// 原理：#1 反向图 与 原始图 具有完全相同的强连通分量； #2 ??
+// 算法步骤：#1 获取原始有向图的反向图; #2 获取到反向图G'的逆后序遍历的结点序列; #3 顺序遍历#2序列中的结点，使用DFS对结点进行标记&分组；
+// 手段：使用一个名叫 vertexToItsComponentId的数组 来 指明“结点所属的强连通分量的id”（使用componentAmount来赋值）
 public class KosarajuStrongConnectedComponentsLite {
 
     private boolean[] vertexToIsMarked; // 已经访问过的顶点
     private int[] vertexToItsComponentId; // 强连通分量的标识符
-    private int componentAmount; // 强连通分量的数量
+    private int componentAmount; // 强连通分量的数量 - 用于 作为强连通分量的id
 
     public KosarajuStrongConnectedComponentsLite(Digraph digraph) {
         vertexToIsMarked = new boolean[digraph.getVertexAmount()];
