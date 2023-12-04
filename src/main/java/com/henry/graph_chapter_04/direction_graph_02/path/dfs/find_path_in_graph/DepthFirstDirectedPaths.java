@@ -52,6 +52,9 @@ import edu.princeton.cs.algs4.StdOut;
  *  @author Robert Sedgewick
  *  @author Kevin Wayne
  */
+// 结论：在有向图的DFS算法中，能够得到 “指定的起始结点” 到 “其可以到达的任意结点”的路径。
+// 手段：使用一个名叫  terminalVertexToDepartVertex的数组 来 记录下 路径中所经历的各个结点
+// 具体用法：在获取路径的API（pathFromStartVertexTo）中，使用一个for循环 来 从后往前读取数组中的结点，并添加到一个栈集合中。
 public class DepthFirstDirectedPaths {
     private boolean[] vertexToIsMarked;  // marked[v] = true iff v is reachable from s
     private int[] terminalVertexToDepartVertex;      // edgeTo[v] = last edge on path from s to v
@@ -138,6 +141,7 @@ public class DepthFirstDirectedPaths {
         for (int currentVertex = 0; currentVertex < digraph.getVertexAmount(); currentVertex++) {
             if (markedDigraph.doesStartVertexHasPathTo(currentVertex)) {
                 StdOut.printf("%d to %d:  ", startVertex, currentVertex);
+                // 从栈中读取结点 - 栈中结点的顺序 就是 路径中结点的顺序
                 for (int currentVertexInPath : markedDigraph.pathFromStartVertexTo(currentVertex)) {
                     if (currentVertexInPath == startVertex) StdOut.print(currentVertexInPath);
                     else        StdOut.print("-" + currentVertexInPath);
