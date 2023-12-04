@@ -1,4 +1,6 @@
-package com.henry.graph_chapter_04.direction_graph_02.symbol_graph; /******************************************************************************
+package com.henry.graph_chapter_04.direction_graph_02.symbol_graph;
+
+/******************************************************************************
  *  Compilation:  javac SymbolDigraph.java
  *  Execution:    java SymbolDigraph
  *  Dependencies: ST.java Digraph.java In.java
@@ -23,27 +25,30 @@ import edu.princeton.cs.algs4.StdIn;
 import edu.princeton.cs.algs4.StdOut;
 
 /**
- *  The {@code SymbolDigraph} class represents a digraph, where the
- *  vertex names are arbitrary strings.
- *  By providing mappings between string vertex names and integers,
- *  it serves as a wrapper around the
- *  {@link Digraph} data type, which assumes the vertex names are integers
- *  between 0 and <em>V</em> - 1.
- *  It also supports initializing a symbol digraph from a file.
- *  <p>
- *  This implementation uses an {@link ST} to map from strings to integers,
- *  an array to map from integers to strings, and a {@link Digraph} to store
- *  the underlying graph.
- *  The <em>indexOf</em> and <em>contains</em> operations take time
- *  proportional to log <em>V</em>, where <em>V</em> is the number of vertices.
- *  The <em>nameOf</em> operation takes constant time.
- *  <p>
- *  For additional documentation, see <a href="https://algs4.cs.princeton.edu/42digraph">Section 4.2</a> of
- *  <i>Algorithms, 4th Edition</i> by Robert Sedgewick and Kevin Wayne.
+ * The {@code SymbolDigraph} class represents a digraph, where the
+ * vertex names are arbitrary strings.
+ * By providing mappings between string vertex names and integers,
+ * it serves as a wrapper around the
+ * {@link Digraph} data type, which assumes the vertex names are integers
+ * between 0 and <em>V</em> - 1.
+ * It also supports initializing a symbol digraph from a file.
+ * <p>
+ * This implementation uses an {@link ST} to map from strings to integers,
+ * an array to map from integers to strings, and a {@link Digraph} to store
+ * the underlying graph.
+ * The <em>indexOf</em> and <em>contains</em> operations take time
+ * proportional to log <em>V</em>, where <em>V</em> is the number of vertices.
+ * The <em>nameOf</em> operation takes constant time.
+ * <p>
+ * For additional documentation, see <a href="https://algs4.cs.princeton.edu/42digraph">Section 4.2</a> of
+ * <i>Algorithms, 4th Edition</i> by Robert Sedgewick and Kevin Wayne.
  *
- *  @author Robert Sedgewick
- *  @author Kevin Wayne
+ * @author Robert Sedgewick
+ * @author Kevin Wayne
  */
+// 结论：对于“结点值为字符串”的 图用例，底层 可以使用 有向图 与 符号表 来实现它。
+// 原理：使用符号表(String -> int) 来 额外记录 结点所关联的字符串(对外) 与 结点的index(对内) 之间的映射关系；
+// 🐖 记录反向的映射关系(结点的index -> 结点的键字符串)是一个好主意 - 这样能够从另一个方面提供图的信息给用例使用,如 nameOfVertexWith()
 public class SymbolDigraph {
     private ST<String, Integer> keyStrToVertexIndexMap;  // string -> index/vertex
     private String[] vertexIndexToKeyStr;           // index/vertex  -> string
@@ -54,7 +59,8 @@ public class SymbolDigraph {
      * Each line in the file contains
      * the name of a vertex, followed by a list of the names
      * of the vertices adjacent to that vertex, separated by the delimiter.
-     * @param filename the name of the file
+     *
+     * @param filename  the name of the file
      * @param delimiter the delimiter between fields
      */
     public SymbolDigraph(String filename, String delimiter) {
@@ -114,6 +120,7 @@ public class SymbolDigraph {
 
     /**
      * Does the digraph contain the vertex named {@code s}?
+     *
      * @param keyStr the name of a vertex
      * @return {@code true} if {@code s} is the name of a vertex, and {@code false} otherwise
      */
@@ -123,6 +130,7 @@ public class SymbolDigraph {
 
     /**
      * Returns the integer associated with the vertex named {@code s}.
+     *
      * @param s the name of a vertex
      * @return the integer (between 0 and <em>V</em> - 1) associated with the vertex named {@code s}
      * @deprecated Replaced by {@link #vertexIndexWithName(String)}.
@@ -134,6 +142,7 @@ public class SymbolDigraph {
 
     /**
      * Returns the integer associated with the vertex named {@code s}.
+     *
      * @param passedName the name of a vertex
      * @return the integer (between 0 and <em>V</em> - 1) associated with the vertex named {@code s}
      */
@@ -143,7 +152,8 @@ public class SymbolDigraph {
 
     /**
      * Returns the name of the vertex associated with the integer {@code v}.
-     * @param  v the integer corresponding to a vertex (between 0 and <em>V</em> - 1)
+     *
+     * @param v the integer corresponding to a vertex (between 0 and <em>V</em> - 1)
      * @return the name of the vertex associated with the integer {@code v}
      * @throws IllegalArgumentException unless {@code 0 <= v < V}
      * @deprecated Replaced by {@link #nameOfVertexWith(int)}.
@@ -156,7 +166,8 @@ public class SymbolDigraph {
 
     /**
      * Returns the name of the vertex associated with the integer {@code v}.
-     * @param  passedIndex the integer corresponding to a vertex (between 0 and <em>V</em> - 1)
+     *
+     * @param passedIndex the integer corresponding to a vertex (between 0 and <em>V</em> - 1)
      * @return the name of the vertex associated with the integer {@code v}
      * @throws IllegalArgumentException unless {@code 0 <= v < V}
      */
@@ -191,7 +202,7 @@ public class SymbolDigraph {
     private void validateVertex(int vertex) {
         int vertexAmount = underlyingDigraph.getVertexAmount();
         if (vertex < 0 || vertex >= vertexAmount)
-            throw new IllegalArgumentException("vertex " + vertex + " is not between 0 and " + (vertexAmount-1));
+            throw new IllegalArgumentException("vertex " + vertex + " is not between 0 and " + (vertexAmount - 1));
     }
 
     /**
@@ -200,7 +211,7 @@ public class SymbolDigraph {
      * @param args the command-line arguments
      */
     public static void main(String[] args) {
-        String filename  = args[0];
+        String filename = args[0];
         String delimiter = args[1];
 
         // 从命令行输入中，构造出一个 符号图（图的结点 包含有 字符串键 & 整数的值）
