@@ -1,4 +1,6 @@
-package com.henry.graph_chapter_04.direction_graph_02.path.dfs.exist_loop; /******************************************************************************
+package com.henry.graph_chapter_04.direction_graph_02.path.dfs.exist_loop;
+
+/******************************************************************************
  *  Compilation:  javac DirectedCycle.java
  *  Execution:    java DirectedCycle input.txt
  *  Dependencies: Digraph.java Stack.java StdOut.java In.java
@@ -19,6 +21,7 @@ import com.henry.graph_chapter_04.direction_graph_02.graph.Digraph;
 import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.Stack;
 import edu.princeton.cs.algs4.StdOut;
+import edu.princeton.cs.algs4.Topological;
 
 /**
  * The {@code DirectedCycle} class represents a data type for
@@ -44,10 +47,15 @@ import edu.princeton.cs.algs4.StdOut;
  * @author Robert Sedgewick
  * @author Kevin Wayne
  */
+// 结论#1：在有向图的DFS算法中，能够得到 “有向图中是否存在有环”的答案。
+// 手段：使用一个名叫 vertexToIsBelongToCurrentPath的数组 来 记录“结点是不是属于当前路径”
+// 原理：在使用DFS对结点进行标记与查找时，如果在“当前查找路径”中，遇到了“已经被标记的结点”，则：说明有向图中存在有环
+// 结论#2：在有向图的DFS算法中，能够“获取到环中的所有结点”。
+// 手段：使用名为 terminalVertexToDepartVertex的数组，指定 正确的 backwardsVertexCursor 与 startVertex 就能用for循环，把所有结点收集到栈集合中
 public class DirectedCycle {
     private boolean[] vertexToIsMarked;        // marked[v] = has vertex v been marked?
     private int[] terminalVertexToDepartVertex;            // edgeTo[v] = previous vertex on path to v
-    private boolean[] vertexToIsInCurrentPath;       // onStack[v] = is vertex on the stack?
+    private boolean[] vertexToIsBelongToCurrentPath;       // onStack[v] = is vertex on the stack?
     private Stack<Integer> vertexesInCycle;    // directed cycle (or null if no such cycle)
 
     /**
@@ -58,18 +66,19 @@ public class DirectedCycle {
      */
     public DirectedCycle(Digraph digraph) {
         vertexToIsMarked = new boolean[digraph.getVertexAmount()];
-        vertexToIsInCurrentPath = new boolean[digraph.getVertexAmount()];
+        vertexToIsBelongToCurrentPath = new boolean[digraph.getVertexAmount()];
         terminalVertexToDepartVertex = new int[digraph.getVertexAmount()];
 
         for (int currentVertex = 0; currentVertex < digraph.getVertexAmount(); currentVertex++)
-            if (!vertexToIsMarked[currentVertex] && vertexesInCycle == null) markAdjacentVertexesAndFindCycleViaDFS(digraph, currentVertex);
+            if (!vertexToIsMarked[currentVertex] && vertexesInCycle == null)
+                markAdjacentVertexesAndFindCycleViaDFS(digraph, currentVertex);
     }
 
     // run DFS and find a directed cycle (if one exists)
     // 🐖  如果有向图中存在有环，则：vertexesInCycle 会不为空
     private void markAdjacentVertexesAndFindCycleViaDFS(Digraph digraph, int currentVertex) {
-        // 把 当前结点 设置为 “存在于当前路径中”
-        vertexToIsInCurrentPath[currentVertex] = true;
+        // 把 当前结点 设置为 “属于当前路径”
+        vertexToIsBelongToCurrentPath[currentVertex] = true;
         // 把 当前结点 设置为 “已标记”
         vertexToIsMarked[currentVertex] = true;
 
@@ -86,7 +95,7 @@ public class DirectedCycle {
             }
 
             // #3 // 如果当前邻居结点 #1 已经被标记； #2 且在当前路径中，说明 出现了环
-            else if (vertexToIsInCurrentPath[currentAdjacentVertex]) {
+            else if (vertexToIsBelongToCurrentPath[currentAdjacentVertex]) {
                 // 则：从 当前结点 开始，沿着路径，一直回溯到 它当前的邻居结点 - 得到环中所有的结点
                 vertexesInCycle = new Stack<Integer>();
                 for (int backwardsVertexCursor = currentVertex; backwardsVertexCursor != currentAdjacentVertex; backwardsVertexCursor = terminalVertexToDepartVertex[backwardsVertexCursor]) {
@@ -102,8 +111,8 @@ public class DirectedCycle {
             }
         }
 
-        // 递归结束后，把 当前结点 从当前路径中移除 - 栈元素被弹出
-        vertexToIsInCurrentPath[currentVertex] = false;
+        // 🐖 递归结束后，需要把 当前结点 从当前路径中移除 - 栈元素被弹出
+        vertexToIsBelongToCurrentPath[currentVertex] = false;
     }
 
     private boolean isNotMarked(int currentAdjacentVertex) {
