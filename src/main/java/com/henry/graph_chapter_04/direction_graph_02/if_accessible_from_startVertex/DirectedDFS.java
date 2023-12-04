@@ -1,10 +1,13 @@
-package com.henry.graph_chapter_04.direction_graph_02.if_accessible;
+package com.henry.graph_chapter_04.direction_graph_02.if_accessible_from_startVertex;
 
 import com.henry.graph_chapter_04.direction_graph_02.graph.Digraph;
 import edu.princeton.cs.algs4.Bag;
 import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.StdOut;
 
+// 结论：DFS算法 用于/能够标记 有向图中，从“指定的起始结点”可以到达的所有其他结点。
+// 手段：使用一个名叫 vertexToIsMarked的数组 来 记录“指定的结点”是否“被标记”；
+// 具体做法：对于 当前节点的所有相邻结点(可达结点)，如果它没有被标记，则：调用DFS对其进行标记（直到可达路径中的所有结点都被标记了，递归调用才会返回）。
 public class DirectedDFS {
     private boolean[] vertexToIsMarked;
 
