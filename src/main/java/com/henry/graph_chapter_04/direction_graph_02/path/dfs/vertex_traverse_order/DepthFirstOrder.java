@@ -1,4 +1,6 @@
-package com.henry.graph_chapter_04.direction_graph_02.path.dfs.vertex_traverse_order; /******************************************************************************
+package com.henry.graph_chapter_04.direction_graph_02.path.dfs.vertex_traverse_order;
+
+/******************************************************************************
  *  Compilation:  javac DepthFirstOrder.java
  *  Execution:    java DepthFirstOrder digraph.txt
  *  Dependencies: Digraph.java Queue.java Stack.java StdOut.java
@@ -56,6 +58,11 @@ import edu.princeton.cs.algs4.StdOut;
  * @author Robert Sedgewick
  * @author Kevin Wayne
  */
+// 结论：对于有向图这种非线性的数据结构，在DFS算法中，能够以各种顺序来收集图中的结点（前序、后序、逆后序）
+// 原理#1：图的前序遍历中结点的顺序 即为DFS中访问结点的顺序，后序遍历中结点的顺序 即为 DFS中节点处理完成(DFS调用完成)的顺序，逆后序 是后序的相反顺序
+// 原理#2：使用DFS对图中的所有结点进行标记时，DFS能够保证 每个结点都只会被访问一次 & 处理完成一次
+// 手段：使用一个名叫 vertexesInPreOrder的队列 来 收集前序遍历序列中的当前结点...
+// 🐖 记录结点在序列中的位置 会是一个好主意 - 这样能够从另一个方面提供图的信息给用例使用
 public class DepthFirstOrder {
     private boolean[] vertexToIsMarked;          // marked[v] = has v been marked in dfs?
     private Queue<Integer> vertexesInPreOrder;   // vertices in preorder
