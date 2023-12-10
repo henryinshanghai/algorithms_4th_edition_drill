@@ -9,7 +9,7 @@ import com.henry.graph_chapter_04.direction_graph_02.if_accessible_from_startVer
 public class TransitiveClosure {
     private DirectedDFS[] vertexToItsAccessibleVertexes;
 
-    TransitiveClosure(Digraph digraph) {
+    public TransitiveClosure(Digraph digraph) {
         vertexToItsAccessibleVertexes = new DirectedDFS[digraph.getVertexAmount()];
 
         for (int currentVertex = 0; currentVertex < digraph.getVertexAmount(); currentVertex++) {
