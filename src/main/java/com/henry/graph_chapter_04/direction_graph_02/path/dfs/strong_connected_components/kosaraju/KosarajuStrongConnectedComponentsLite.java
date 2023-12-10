@@ -1,4 +1,4 @@
-package com.henry.graph_chapter_04.direction_graph_02.path.dfs.strong_connected_components;
+package com.henry.graph_chapter_04.direction_graph_02.path.dfs.strong_connected_components.kosaraju;
 
 import com.henry.graph_chapter_04.direction_graph_02.graph.Digraph;
 import com.henry.graph_chapter_04.direction_graph_02.path.dfs.vertex_traverse_order.DepthFirstOrder;
