@@ -18,7 +18,7 @@ public class TransitiveClosure {
     }
 
     // 原始问题：判断图中的 v->w是否存在
-    boolean reachable(int vertexV, int vertexW) {
+    public boolean reachable(int vertexV, int vertexW) {
         int startVertex = vertexV;
         DirectedDFS markedDigraph = vertexToItsAccessibleVertexes[startVertex];
 
