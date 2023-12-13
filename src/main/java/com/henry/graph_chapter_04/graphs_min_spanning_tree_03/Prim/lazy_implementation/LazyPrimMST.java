@@ -1,4 +1,4 @@
-package com.henry.graph_chapter_04.graphs_min_spanning_tree_03.Prim; /******************************************************************************
+package com.henry.graph_chapter_04.graphs_min_spanning_tree_03.Prim.lazy_implementation; /******************************************************************************
  *  Compilation:  javac LazyPrimMST.java
  *  Execution:    java LazyPrimMST filename.txt
  *  Dependencies: EdgeWeightedGraph.java Edge.java Queue.java

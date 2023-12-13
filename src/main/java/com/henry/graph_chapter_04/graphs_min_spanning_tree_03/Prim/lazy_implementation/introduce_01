@@ -1,0 +1,15 @@
+We use a priority queue to hold the crossing edges and find one of minimal weight.
+
+Each time that we add an edge to the tree, we also add a vertex to the tree.
+
+To maintain the set of crossing edges, we need to
+add to the priority queue all edges from that vertex to any non-tree vertex.
+
+But we must do more:
+any edge
+connecting the vertex just added
+to a tree vertex that is already on the priority queue
+now becomes ineligible (it is no longer a crossing edge because it connects two tree vertices).
+
+The lazy implementation leaves such edges on the priority queue,
+deferring(延迟) the ineligibility test（无效性测试） to when we remove them.
