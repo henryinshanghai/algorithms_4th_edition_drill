@@ -1,0 +1,29 @@
+To improve the lazy implementation of Prim's algorithm,
+we might try to delete ineligible edges from the priority queue,
+so that the priority queue contains only the crossing edges.
+
+But we can eliminate even more edges.
+
+The key is to note that
+our only interest is in the minimal edge
+from each non-tree vertex to a tree vertex.
+
+When we add a vertex v to the tree,
+the only possible change with respect to each non-tree vertex w is that
+adding v brings w closer than before
+to the tree.
+
+In short, we do not need to keep on the priority queue
+all of the edges from w to vertices tree—
+
+we just need to keep track of the minimum-weight edge
+and check whether
+the addition of v to the tree
+necessitates(使成为必要) that we update that minimum
+(because of an edge v-w that has lower weight),
+which we can do as we process each edge in s adjacency list.
+
+In other words, we maintain on the priority queue
+just one edge for each non-tree vertex:
+the shortest edge that connects it to the tree.
+把该结点连接到树的最小边。
