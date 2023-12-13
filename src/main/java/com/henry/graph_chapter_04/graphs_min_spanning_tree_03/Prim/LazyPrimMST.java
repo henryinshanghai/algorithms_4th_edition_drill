@@ -39,13 +39,13 @@ package com.henry.graph_chapter_04.graphs_min_spanning_tree_03.Prim; /**********
  *
  ******************************************************************************/
 
+import com.henry.basic_chapter_01.specific_application.implementation.primary.QuickFind;
 import com.henry.graph_chapter_04.graphs_min_spanning_tree_03.Edge;
 import com.henry.graph_chapter_04.graphs_min_spanning_tree_03.EdgeWeightedGraph;
 import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.MinPQ;
 import edu.princeton.cs.algs4.Queue;
 import edu.princeton.cs.algs4.StdOut;
-import edu.princeton.cs.algs4.UF;
 
 /**
  * The {@code LazyPrimMST} class represents a data type for computing a
@@ -93,10 +93,13 @@ public class LazyPrimMST {
         crossEdgesPQ = new MinPQ<Edge>();
         vertexToIsInMST = new boolean[weightedGraph.getVertexAmount()];
 
-        // 对于每一个结点，对其执行Prim算法 来 得到“图的最小生成树”
-        for (int currentVertex = 0; currentVertex < weightedGraph.getVertexAmount(); currentVertex++)
-            if (isNotMSTVertex(currentVertex))
-                prim(weightedGraph, currentVertex);
+        // option01 - 直接从结点0开始BFS（BFS能够遍历 连通图中的每一个结点）
+        prim(weightedGraph, 0);
+
+        // option02 - 对于每一个结点，对其执行Prim算法 来 得到“图的最小生成树”
+//        for (int currentVertex = 0; currentVertex < weightedGraph.getVertexAmount(); currentVertex++)
+//            if (isNotMSTVertex(currentVertex))
+//                prim(weightedGraph, currentVertex);
 
         // check optimality conditions
         assert check(weightedGraph);
@@ -108,29 +111,52 @@ public class LazyPrimMST {
 
     // run Prim's algorithm
     private void prim(EdgeWeightedGraph weightedGraph, int currentVertex) {
-        addInAsMSTVertex(weightedGraph, currentVertex);
+        // #1 向MST中添加 结点 && 向优先队列中添加 横切边
+        addVertexInMSTAndAddItsCrossEdgesInPQ(weightedGraph, currentVertex);
 
-        while (!crossEdgesPQ.isEmpty()) {                        // better to stop when mst has V-1 edges
-            Edge minWeightEdge = crossEdgesPQ.delMin();                      // smallest edge on pq
-            int oneVertex = minWeightEdge.eitherVertex(), theOtherVertex = minWeightEdge.theOtherVertexAgainst(oneVertex);        // two endpoints
+        while (!crossEdgesPQ.isEmpty()) {
+            // 获取到 当前最小的横切边
+            Edge minWeightEdge = crossEdgesPQ.delMin();
 
-            assert vertexToIsInMST[oneVertex] || vertexToIsInMST[theOtherVertex];
+            if (isMSTEdge(minWeightEdge)) continue;
+            // #2 把 “最小的横切边” 添加到 MST中（切分定理：最小横切边总是会属于MST）
+            addEdgeInMST(minWeightEdge);
 
-            if (vertexToIsInMST[oneVertex] && vertexToIsInMST[theOtherVertex]) continue;      // lazy, both oneVertex and theOtherVertex already scanned
-            // 切分定理：把 当前权值最小的横切边 作为 最小生成树中的边。
-            edgesInMST.enqueue(minWeightEdge);                            // add minWeightEdge to MST
-
-            // 累计权值
-            weightOfMST += minWeightEdge.weight();
-
-            // 把 边中非树节点的结点，添加到树中，成为树节点
-            if (isNotMSTVertex(oneVertex)) addInAsMSTVertex(weightedGraph, oneVertex);               // oneVertex becomes part of tree
-            if (isNotMSTVertex(theOtherVertex)) addInAsMSTVertex(weightedGraph, theOtherVertex);               // theOtherVertex becomes part of tree
+            // #3 把 边中“非树结点”，添加到树中，成为树节点
+            addNonMSTVertexToMST(weightedGraph, minWeightEdge);
         }
     }
 
+    private void addNonMSTVertexToMST(EdgeWeightedGraph weightedGraph, Edge minWeightEdge) {
+        int oneVertex = minWeightEdge.eitherVertex(),
+                theOtherVertex = minWeightEdge.theOtherVertexAgainst(oneVertex);        // two endpoints
+
+        if (isNotMSTVertex(oneVertex)) {
+            addVertexInMSTAndAddItsCrossEdgesInPQ(weightedGraph, oneVertex);               // oneVertex becomes part of tree
+        }
+        if (isNotMSTVertex(theOtherVertex)) {
+            addVertexInMSTAndAddItsCrossEdgesInPQ(weightedGraph, theOtherVertex);               // theOtherVertex becomes part of tree
+        }
+    }
+
+    private void addEdgeInMST(Edge minWeightEdge) {
+        // 切分定理：把 当前权值最小的横切边 作为 最小生成树中的边。
+        edgesInMST.enqueue(minWeightEdge);                            // add minWeightEdge to MST
+
+        // 累计权值
+        weightOfMST += minWeightEdge.weight();
+    }
+
+    private boolean isMSTEdge(Edge minWeightEdge) {
+        int oneVertex = minWeightEdge.eitherVertex(),
+                theOtherVertex = minWeightEdge.theOtherVertexAgainst(oneVertex);        // two endpoints
+        assert vertexToIsInMST[oneVertex] || vertexToIsInMST[theOtherVertex];
+
+        return vertexToIsInMST[oneVertex] && vertexToIsInMST[theOtherVertex];
+    }
+
     // add all edges e incident to v onto pq if the other endpoint has not yet been scanned
-    private void addInAsMSTVertex(EdgeWeightedGraph weightedGraph, int currentVertex) { // scan?? visit??
+    private void addVertexInMSTAndAddItsCrossEdgesInPQ(EdgeWeightedGraph weightedGraph, int currentVertex) { // scan?? visit??
         assert !vertexToIsInMST[currentVertex];
         vertexToIsInMST[currentVertex] = true;
 
@@ -167,7 +193,7 @@ public class LazyPrimMST {
     // check optimality conditions (takes time proportional to E V lg* V)
     private boolean check(EdgeWeightedGraph weightedGraph) {
 
-        // check weight
+        // #1 check weight
         double totalWeight = 0.0;
         for (Edge currentEdge : edgesOfMST()) {
             totalWeight += currentEdge.weight();
@@ -177,52 +203,68 @@ public class LazyPrimMST {
             return false;
         }
 
-        // check that it is acyclic(非循环的??)
-        UF groups = new UF(weightedGraph.getVertexAmount());
+        // #2 check that it is acyclic(非循环的??)
+        QuickFind forest = new QuickFind(weightedGraph.getVertexAmount());
 
         for (Edge currentEdge : edgesOfMST()) {
-            int oneVertex = currentEdge.eitherVertex(), theOtherVertex = currentEdge.theOtherVertexAgainst(oneVertex);
-            if (groups.find(oneVertex) == groups.find(theOtherVertex)) {
+            int oneVertex = currentEdge.eitherVertex(),
+                theOtherVertex = currentEdge.theOtherVertexAgainst(oneVertex);
+            if (isInSameTree(forest, oneVertex, theOtherVertex)) {
                 System.err.println("Not a forest");
                 return false;
             }
-            groups.union(oneVertex, theOtherVertex);
+            forest.unionToSameComponent(oneVertex, theOtherVertex);
         }
 
-        // check that it is a spanning forest
+        // #3 check that it is a spanning(展开) forest
         for (Edge currentEdge : weightedGraph.edges()) {
-            int oneVertex = currentEdge.eitherVertex(), theOtherVertexAgainst = currentEdge.theOtherVertexAgainst(oneVertex);
-            if (groups.find(oneVertex) != groups.find(theOtherVertexAgainst)) {
+            int oneVertex = currentEdge.eitherVertex(),
+                theOtherVertexAgainst = currentEdge.theOtherVertexAgainst(oneVertex);
+
+            if (notInSameTree(forest, oneVertex, theOtherVertexAgainst)) {
                 System.err.println("Not a spanning forest");
                 return false;
             }
         }
 
-        // check that it is a minimal spanning forest (cut optimality conditions)
-        for (Edge currentEdge : edgesOfMST()) {
+        // #4 check that it is a minimal spanning forest (cut optimality conditions)
+        for (Edge currentMSTEdge : edgesOfMST()) {
 
-            // all edges in MST except currentEdge
-            groups = new UF(weightedGraph.getVertexAmount());
+            // all edges in MST except currentMSTEdge
+            forest = new QuickFind(weightedGraph.getVertexAmount());
 
-            for (Edge f : edgesInMST) {
-                int x = f.eitherVertex(), y = f.theOtherVertexAgainst(x);
-                if (f != currentEdge) groups.union(x, y);
+            for (Edge currentEdgeInMST : edgesInMST) {
+                int oneVertex = currentEdgeInMST.eitherVertex(),
+                    theOtherVertex = currentEdgeInMST.theOtherVertexAgainst(oneVertex);
+
+                if (currentEdgeInMST != currentMSTEdge) {
+                    forest.unionToSameComponent(oneVertex, theOtherVertex);
+                }
             }
 
-            // check that currentEdge is min weight edge in crossing cut
-            for (Edge f : weightedGraph.edges()) {
-                int x = f.eitherVertex(), y = f.theOtherVertexAgainst(x);
-                if (groups.find(x) != groups.find(y)) {
-                    if (f.weight() < currentEdge.weight()) {
-                        System.err.println("Edge " + f + " violates cut optimality conditions");
+            // #5 check that currentMSTEdge is min weight edge in crossing cut
+            for (Edge currentEdge : weightedGraph.edges()) {
+                int oneVertex = currentEdge.eitherVertex(),
+                    theOtherVertex = currentEdge.theOtherVertexAgainst(oneVertex);
+
+                if (notInSameTree(forest, oneVertex, theOtherVertex)) {
+                    if (currentEdge.weight() < currentMSTEdge.weight()) {
+                        System.err.println("Edge " + currentEdge + " violates cut optimality conditions");
                         return false;
                     }
                 }
             }
-
         }
 
         return true;
+    }
+
+    private boolean isInSameTree(QuickFind forest, int oneVertex, int theOtherVertex) {
+        return forest.findGroupIdOf(oneVertex) == forest.findGroupIdOf(theOtherVertex);
+    }
+
+    private boolean notInSameTree(QuickFind groups, int oneVertex, int theOtherVertexAgainst) {
+        return groups.findGroupIdOf(oneVertex) != groups.findGroupIdOf(theOtherVertexAgainst);
     }
 
 
@@ -242,5 +284,4 @@ public class LazyPrimMST {
 
         StdOut.printf("%.5f\n", graphsMST.weightOfMST());
     }
-
 }
