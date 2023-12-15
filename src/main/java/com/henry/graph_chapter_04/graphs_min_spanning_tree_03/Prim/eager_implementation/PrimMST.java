@@ -83,9 +83,12 @@ import edu.princeton.cs.algs4.StdOut;
 public class PrimMST {
     private static final double FLOATING_POINT_EPSILON = 1.0E-12;
 
+    // 维护 所有结点 其“连接到MST的最小边”
     private Edge[] vertexToItsMinEdgeToMST;        // edgeTo[v] = shortest edge from tree vertex to non-tree vertex
+    // 用于维护 所有结点 其“连接到MST的最小边”的权重值
     private double[] vertexToItsMinEdgeWeight;      // distTo[v] = weight of shortest such edge
     private boolean[] vertexToIsTreeVertex;     // marked[v] = true if v on tree, false otherwise
+    // 用于维护 所有“非树节点” 其“连接到MST的最小边”的权重值，并 找到 “当前能够以最小成本连接到MST”的结点 - 所以需要使用优先队列
     private IndexMinPQ<Double> vertexToItsMinEdgeWeightPQ;
 
     /**
@@ -118,32 +121,48 @@ public class PrimMST {
 
     // run Prim's algorithm in graph G, starting from vertex s
     private void prim(EdgeWeightedGraph weightedGraph, int passedVertex) {
+        // 把当前结点的 “距离MST的最小边的权重值” 从无穷大 更新为0
         vertexToItsMinEdgeWeight[passedVertex] = 0.0;
+        // 把 当前节点 -> 当前节点的“距离MST的最小边”的权重值 添加到 优先队列中
         vertexToItsMinEdgeWeightPQ.insert(passedVertex, vertexToItsMinEdgeWeight[passedVertex]);
 
         while (!vertexToItsMinEdgeWeightPQ.isEmpty()) {
+            // 获取到 优先队列 所有结点中，拥有最小的“距离MST最小边的权重值”权重值的 那个结点
             int vertexOfMinEdgeWeight = vertexToItsMinEdgeWeightPQ.delMin();
+
+            // 对于此结点：#1 标记为“树结点”； #2 对于其所有相邻的“非树节点”，更新其 数组值，并将之添加/更新到优先队列中
             scan(weightedGraph, vertexOfMinEdgeWeight);
         }
     }
 
     // scan vertex v
     private void scan(EdgeWeightedGraph weightedGraph, int passedVertex) {
+        // #1 把结点 标记为 “树结点”
         vertexToIsTreeVertex[passedVertex] = true;
 
+        // #2 对于 结点 所有关联的边...
         for (Edge currentEdge : weightedGraph.getAssociatedEdgesOf(passedVertex)) {
+            // 获取到 当前边的另一个顶点
             int theOtherVertex = currentEdge.theOtherVertexAgainst(passedVertex);
 
+            // ① 如果 另一个顶点 也是 树结点，则：当前边 无效，直接跳过它
             if (vertexToIsTreeVertex[theOtherVertex]) continue;         // v-theOtherVertex is obsolete edge
 
-            if (currentEdge.weight() < vertexToItsMinEdgeWeight[theOtherVertex]) { // ???
-                vertexToItsMinEdgeWeight[theOtherVertex] = currentEdge.weight();
-                vertexToItsMinEdgeToMST[theOtherVertex] = currentEdge;
+            // 如果另一个结点 不是 树结点 👇
+            // ② 如果 当前边的权值 小于 vertexToItsMinEdgeWeight数组中所记录的 此结点的“连接MST的最小边”的权重，说明 当前边是“连接MST的更小边”，则：
+            if (currentEdge.weight() < vertexToItsMinEdgeWeight[theOtherVertex]) {
+                // Ⅰ 更新 theOtherVertex的 “连接到MST的最小边” & “连接到MST的最小边”的权值
+                vertexToItsMinEdgeToMST[theOtherVertex] = currentEdge; // 用于维护 所有结点 其“连接到MST的最小边”
+                vertexToItsMinEdgeWeight[theOtherVertex] = currentEdge.weight(); // 用于维护 所有结点 其“连接到MST的最小边”的权重值
 
+                // Ⅱ 更新 theOtherVertex结点的 相关属性后，更新 优先队列vertexToItsMinEdgeWeightPQ（用于维护 所有“非树节点” 其“连接到MST的最小边”的权重值，并 找到 “当前能够以最小成本连接到MST”的结点）
+                // 如果此结点 已经存在于 优先队列中...
                 if (vertexToItsMinEdgeWeightPQ.contains(theOtherVertex))
-                    // i -> key | vertex -> weight, so it is decreaseWeight(xxx, ooo)
+                    // 则：更新优先队列中 此结点所对应的 最小边的权重值
+                    // 🐖 使用索引优先队列，是为了能够 方便地 更新 结点所对应的“连接到MST的最小边”的权重，这里使用 vertex 来 作为索引（vertex -> weight）
                     vertexToItsMinEdgeWeightPQ.decreaseKey(theOtherVertex, vertexToItsMinEdgeWeight[theOtherVertex]);
-                else
+                else // 如果 此结点还不存在于 优先队列中...
+                    // 则：把 结点 -> 结点对应的 最小边的权重值 添加到 优先队列中
                     vertexToItsMinEdgeWeightPQ.insert(theOtherVertex, vertexToItsMinEdgeWeight[theOtherVertex]);
             }
         }
