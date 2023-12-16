@@ -103,18 +103,18 @@ public class KruskalMST {
         // 执行贪心算法
         QuickFind forest = new QuickFind(weightedGraph.getVertexAmount());
         for (int currentEdgeCursor = 0; meet2Conditions(weightedGraph, currentEdgeCursor); currentEdgeCursor++) {
-            // 从排序后的数组中，获取到 当前边，当前边的两个端点
+            // 从排序后的数组中，获取到 当前边 & 当前边的两个端点
             Edge currentEdge = edges[currentEdgeCursor];
             int oneVertex = currentEdge.eitherVertex();
             int theOtherVertex = currentEdge.theOtherVertexAgainst(oneVertex);
 
             // oneVertex-theOtherVertex does not create a cycle
             // 当前边的两个端点 不会形成一个环
-            // 如果 边的两个端点 不在同一个连通分量中，说明 ???，则：
+            // 如果 边的两个端点 不在同一个连通分量中，说明 这条边 能够把两棵树连接成一棵更大的树，则：
             if (notInSameComponent(forest, oneVertex, theOtherVertex)) {
                 // #1 把两个顶点 合并到 同一个连通分量中
                 forest.unionToSameComponent(oneVertex, theOtherVertex);     // merge oneVertex and theOtherVertex components
-                // #2 把边添加到MST中
+                // #2 把这条边添加到MST中( 为什么这条边一定是MST中的边???)
                 edgesQueueInMST.enqueue(currentEdge);     // add edge currentEdge to mst
                 // #3 更新MST的权重值
                 weightOfMST += currentEdge.weight();
@@ -130,14 +130,14 @@ public class KruskalMST {
     }
 
     private boolean meet2Conditions(EdgeWeightedGraph weightedGraph, int currentEdgeCursor) {
-        return cursorIsLessThanGraphsEdgeAmount(weightedGraph, currentEdgeCursor) && edgesAmountInMSTIsLessThanGraphsVertexAmount(weightedGraph);
+        return cursorLessThanGraphsEdgeAmount(weightedGraph, currentEdgeCursor) && edgesAmountInMSTLessThanGraphsVertexAmount(weightedGraph);
     }
 
-    private boolean edgesAmountInMSTIsLessThanGraphsVertexAmount(EdgeWeightedGraph weightedGraph) {
+    private boolean edgesAmountInMSTLessThanGraphsVertexAmount(EdgeWeightedGraph weightedGraph) {
         return edgesQueueInMST.size() < weightedGraph.getVertexAmount() - 1;
     }
 
-    private boolean cursorIsLessThanGraphsEdgeAmount(EdgeWeightedGraph weightedGraph, int currentEdgeCursor) {
+    private boolean cursorLessThanGraphsEdgeAmount(EdgeWeightedGraph weightedGraph, int currentEdgeCursor) {
         return currentEdgeCursor < weightedGraph.getEdgeAmount();
     }
 
@@ -163,7 +163,7 @@ public class KruskalMST {
     // check optimality conditions (takes time proportional to E V lg* V)
     private boolean check(EdgeWeightedGraph weightedGraph) {
 
-        // check totalWeight weight
+        // 检查MST的总权重值 - 边的权重之和 是不是 与MST的权重值相等
         double totalWeight = 0.0;
         for (Edge currentEdge : edges()) {
             totalWeight += currentEdge.weight();
@@ -176,8 +176,10 @@ public class KruskalMST {
         // check that it is acyclic
         QuickFind forest = new QuickFind(weightedGraph.getVertexAmount());
         for (Edge currentEdge : edges()) {
-            int oneVertex = currentEdge.eitherVertex(), theOtherVertex = currentEdge.theOtherVertexAgainst(oneVertex);
+            int oneVertex = currentEdge.eitherVertex(),
+                theOtherVertex = currentEdge.theOtherVertexAgainst(oneVertex);
 
+            // 如果边的两个顶点 属于同一个连通分量，则：图就不是一个森林???
             if (forest.findGroupIdOf(oneVertex) == forest.findGroupIdOf(theOtherVertex)) {
                 System.err.println("Not a forest");
                 return false;
@@ -185,7 +187,7 @@ public class KruskalMST {
             forest.unionToSameComponent(oneVertex, theOtherVertex);
         }
 
-        // check that it is a spanning forest
+        // 是不是一个“生成树”（spanning tree）
         for (Edge currentEdge : weightedGraph.edges()) {
             int oneVertex = currentEdge.eitherVertex(), theOtherVertex = currentEdge.theOtherVertexAgainst(oneVertex);
             if (notInSameComponent(forest, oneVertex, theOtherVertex)) {
@@ -195,6 +197,7 @@ public class KruskalMST {
         }
 
         // check that it is a minimal spanning forest (cut optimality conditions)
+        // 检查是不是一个 最小生成树
         for (Edge currentMSTEdge : edges()) {
 
             // all edges in MST except currentMSTEdge
