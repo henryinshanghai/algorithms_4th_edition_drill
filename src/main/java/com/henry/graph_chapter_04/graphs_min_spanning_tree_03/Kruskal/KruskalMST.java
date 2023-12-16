@@ -91,30 +91,54 @@ public class KruskalMST {
     public KruskalMST(EdgeWeightedGraph weightedGraph) {
 
         // create array of edges, sorted by weight
+        // 获取 加权图的所有边（以可迭代集合的形式），然后 转换为数组形式
         Edge[] edges = new Edge[weightedGraph.getEdgeAmount()];
         int currentSpot = 0;
         for (Edge currentEdge : weightedGraph.edges()) {
             edges[currentSpot++] = currentEdge;
         }
+        // 根据 Edge对象compareTo()方法的定义，来 对数组中的Edge对象 进行排序
         Arrays.sort(edges);
 
-        // run greedy algorithm
+        // 执行贪心算法
         QuickFind forest = new QuickFind(weightedGraph.getVertexAmount());
-        for (int currentEdgeCursor = 0; currentEdgeCursor < weightedGraph.getEdgeAmount() && edgesQueueInMST.size() < weightedGraph.getVertexAmount() - 1; currentEdgeCursor++) {
+        for (int currentEdgeCursor = 0; meet2Conditions(weightedGraph, currentEdgeCursor); currentEdgeCursor++) {
+            // 从排序后的数组中，获取到 当前边，当前边的两个端点
             Edge currentEdge = edges[currentEdgeCursor];
             int oneVertex = currentEdge.eitherVertex();
             int theOtherVertex = currentEdge.theOtherVertexAgainst(oneVertex);
 
             // oneVertex-theOtherVertex does not create a cycle
-            if (forest.findGroupIdOf(oneVertex) != forest.findGroupIdOf(theOtherVertex)) {
+            // 当前边的两个端点 不会形成一个环
+            // 如果 边的两个端点 不在同一个连通分量中，说明 ???，则：
+            if (notInSameComponent(forest, oneVertex, theOtherVertex)) {
+                // #1 把两个顶点 合并到 同一个连通分量中
                 forest.unionToSameComponent(oneVertex, theOtherVertex);     // merge oneVertex and theOtherVertex components
+                // #2 把边添加到MST中
                 edgesQueueInMST.enqueue(currentEdge);     // add edge currentEdge to mst
+                // #3 更新MST的权重值
                 weightOfMST += currentEdge.weight();
             }
         }
 
         // check optimality conditions
         assert check(weightedGraph);
+    }
+
+    private boolean notInSameComponent(QuickFind forest, int oneVertex, int theOtherVertex) {
+        return forest.findGroupIdOf(oneVertex) != forest.findGroupIdOf(theOtherVertex);
+    }
+
+    private boolean meet2Conditions(EdgeWeightedGraph weightedGraph, int currentEdgeCursor) {
+        return cursorIsLessThanGraphsEdgeAmount(weightedGraph, currentEdgeCursor) && edgesAmountInMSTIsLessThanGraphsVertexAmount(weightedGraph);
+    }
+
+    private boolean edgesAmountInMSTIsLessThanGraphsVertexAmount(EdgeWeightedGraph weightedGraph) {
+        return edgesQueueInMST.size() < weightedGraph.getVertexAmount() - 1;
+    }
+
+    private boolean cursorIsLessThanGraphsEdgeAmount(EdgeWeightedGraph weightedGraph, int currentEdgeCursor) {
+        return currentEdgeCursor < weightedGraph.getEdgeAmount();
     }
 
     /**
@@ -164,7 +188,7 @@ public class KruskalMST {
         // check that it is a spanning forest
         for (Edge currentEdge : weightedGraph.edges()) {
             int oneVertex = currentEdge.eitherVertex(), theOtherVertex = currentEdge.theOtherVertexAgainst(oneVertex);
-            if (forest.findGroupIdOf(oneVertex) != forest.findGroupIdOf(theOtherVertex)) {
+            if (notInSameComponent(forest, oneVertex, theOtherVertex)) {
                 System.err.println("Not a spanning forest");
                 return false;
             }
@@ -188,7 +212,7 @@ public class KruskalMST {
                 int oneVertex = graphsCurrentEdge.eitherVertex(),
                         theOtherVertex = graphsCurrentEdge.theOtherVertexAgainst(oneVertex);
 
-                if (forest.findGroupIdOf(oneVertex) != forest.findGroupIdOf(theOtherVertex)) {
+                if (notInSameComponent(forest, oneVertex, theOtherVertex)) {
                     if (graphsCurrentEdge.weight() < currentMSTEdge.weight()) {
                         System.err.println("Edge " + graphsCurrentEdge + " violates cut optimality conditions");
                         return false;
@@ -208,9 +232,14 @@ public class KruskalMST {
      * @param args the command-line arguments
      */
     public static void main(String[] args) {
+        // 从 命令行参数中，读取 图的文件
         In in = new In(args[0]);
+        // 创建加权图对象
         EdgeWeightedGraph weightedGraph = new EdgeWeightedGraph(in);
+        // 使用Kruskal算法，得到 加权图的MST
         KruskalMST graphsMST = new KruskalMST(weightedGraph);
+
+        // 顺序打印MST中的边
         for (Edge currentMSTEdge : graphsMST.edges()) {
             StdOut.println(currentMSTEdge);
         }
