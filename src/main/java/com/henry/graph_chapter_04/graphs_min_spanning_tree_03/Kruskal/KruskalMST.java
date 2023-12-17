@@ -101,7 +101,7 @@ public class KruskalMST {
 
         // #3 执行贪心算法
         QuickFind forest = new QuickFind(weightedGraph.getVertexAmount());
-        for (int currentEdgeCursor = 0; meet2Conditions(weightedGraph, currentEdgeCursor); currentEdgeCursor++) {
+        for (int currentEdgeCursor = 0; meetEdgeCursorConditionAndMSTEdgeAmountCondition(weightedGraph, currentEdgeCursor); currentEdgeCursor++) {
             // #3-1 从排序后的数组中，获取到 当前边 & 当前边的两个端点
             Edge currentEdge = edges[currentEdgeCursor];
             int oneVertex = currentEdge.eitherVertex();
@@ -127,7 +127,7 @@ public class KruskalMST {
         return forest.findGroupIdOf(oneVertex) != forest.findGroupIdOf(theOtherVertex);
     }
 
-    private boolean meet2Conditions(EdgeWeightedGraph weightedGraph, int currentEdgeCursor) {
+    private boolean meetEdgeCursorConditionAndMSTEdgeAmountCondition(EdgeWeightedGraph weightedGraph, int currentEdgeCursor) {
         return cursorLessThanGraphsEdgeAmount(weightedGraph, currentEdgeCursor) && edgesAmountInMSTLessThanGraphsVertexAmount(weightedGraph);
     }
 
