@@ -131,12 +131,12 @@ public class PrimMST {
             int vertexOfMinEdgeWeight = vertexToItsMinEdgeWeightPQ.delMin();
 
             // 对于此结点：#1 标记为“树结点”； #2 对于其所有相邻的“非树节点”，更新其 数组值，并将之添加/更新到优先队列中
-            scan(weightedGraph, vertexOfMinEdgeWeight);
+            addVertexInMSTAndUpdateItsMinEdgeToMST(weightedGraph, vertexOfMinEdgeWeight);
         }
     }
 
     // scan vertex v
-    private void scan(EdgeWeightedGraph weightedGraph, int passedVertex) {
+    private void addVertexInMSTAndUpdateItsMinEdgeToMST(EdgeWeightedGraph weightedGraph, int passedVertex) {
         // #1 把结点 标记为 “树结点”
         vertexToIsTreeVertex[passedVertex] = true;
 
