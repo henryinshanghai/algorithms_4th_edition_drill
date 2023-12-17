@@ -91,32 +91,31 @@ public class KruskalMST {
     public KruskalMST(EdgeWeightedGraph weightedGraph) {
 
         // create array of edges, sorted by weight
-        // 获取 加权图的所有边（以可迭代集合的形式），然后 转换为数组形式
+        // #1 获取 加权图的所有边（以可迭代集合的形式），然后 转换为数组形式
         Edge[] edges = new Edge[weightedGraph.getEdgeAmount()];
         int currentSpot = 0;
         for (Edge currentEdge : weightedGraph.edges()) {
             edges[currentSpot++] = currentEdge;
         }
-        // 根据 Edge对象compareTo()方法的定义，来 对数组中的Edge对象 进行排序
+        // #2 根据 Edge对象compareTo()方法的定义，来 对数组中的Edge对象 进行排序
         Arrays.sort(edges);
 
-        // 执行贪心算法
+        // #3 执行贪心算法
         QuickFind forest = new QuickFind(weightedGraph.getVertexAmount());
         for (int currentEdgeCursor = 0; meet2Conditions(weightedGraph, currentEdgeCursor); currentEdgeCursor++) {
-            // 从排序后的数组中，获取到 当前边 & 当前边的两个端点
+            // #3-1 从排序后的数组中，获取到 当前边 & 当前边的两个端点
             Edge currentEdge = edges[currentEdgeCursor];
             int oneVertex = currentEdge.eitherVertex();
             int theOtherVertex = currentEdge.theOtherVertexAgainst(oneVertex);
 
-            // oneVertex-theOtherVertex does not create a cycle
-            // 当前边的两个端点 不会形成一个环
-            // 如果 边的两个端点 不在同一个连通分量中，说明 这条边 能够把两棵树连接成一棵更大的树，则：
+            /* 🐖 当前边的两个端点 不会形成一个环 */
+            // #3-2 如果 边的两个端点 不在同一个连通分量中，说明 这条边 能够把两棵树连接成一棵更大的树，则：
             if (notInSameComponent(forest, oneVertex, theOtherVertex)) {
-                // #1 把两个顶点 合并到 同一个连通分量中
+                // ① 把两个顶点 合并到 同一个连通分量中
                 forest.unionToSameComponent(oneVertex, theOtherVertex);     // merge oneVertex and theOtherVertex components
-                // #2 把这条边添加到MST中( 为什么这条边一定是MST中的边???)
+                // ② 把这条边添加到MST中( 为什么这条边一定是MST中的边???)
                 edgesQueueInMST.enqueue(currentEdge);     // add edge currentEdge to mst
-                // #3 更新MST的权重值
+                // ③ 更新MST的权重值
                 weightOfMST += currentEdge.weight();
             }
         }
