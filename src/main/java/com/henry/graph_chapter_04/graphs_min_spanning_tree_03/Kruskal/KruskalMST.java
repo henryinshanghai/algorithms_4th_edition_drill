@@ -90,7 +90,6 @@ public class KruskalMST {
      */
     public KruskalMST(EdgeWeightedGraph weightedGraph) {
 
-        // create array of edges, sorted by weight
         // #1 获取 加权图的所有边（以可迭代集合的形式），然后 转换为数组形式
         Edge[] edges = new Edge[weightedGraph.getEdgeAmount()];
         int currentSpot = 0;
@@ -109,7 +108,7 @@ public class KruskalMST {
             int theOtherVertex = currentEdge.theOtherVertexAgainst(oneVertex);
 
             /* 🐖 当前边的两个端点 不会形成一个环 */
-            // #3-2 如果 边的两个端点 不在同一个连通分量中，说明 这条边 能够把两棵树连接成一棵更大的树，则：
+            // #3-2 如果 边的两个端点 不在同一个连通分量中，说明 这条边 能够把两棵树连接成一棵更大的树（这是一个横切边?），则：
             if (notInSameComponent(forest, oneVertex, theOtherVertex)) {
                 // ① 把两个顶点 合并到 同一个连通分量中
                 forest.unionToSameComponent(oneVertex, theOtherVertex);     // merge oneVertex and theOtherVertex components
