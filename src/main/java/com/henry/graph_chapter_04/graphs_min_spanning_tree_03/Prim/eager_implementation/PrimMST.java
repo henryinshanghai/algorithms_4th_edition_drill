@@ -80,6 +80,10 @@ import edu.princeton.cs.algs4.StdOut;
  * @author Robert Sedgewick
  * @author Kevin Wayne
  */
+// 目标：计算出 图的最小生成树MST
+// 原理：对于MST来说，原始图中的每一个结点，都会有它的“距离MST的最小边”。
+// 步骤：#1 把某一个结点的“距离MST的最小边”设置为0 & 把vertex -> itsMinEdge添加到优先队列中；#2 从队列中获取“最小的”结点；
+// #3 把结点更新为“树结点” & 更新“theOtherVertex结点“ 它”距离MST的最小边”。
 public class PrimMST {
     private static final double FLOATING_POINT_EPSILON = 1.0E-12;
 
@@ -152,6 +156,7 @@ public class PrimMST {
             // ② 如果 当前边的权值 小于 vertexToItsMinEdgeWeight数组中所记录的 此结点的“连接MST的最小边”的权重，说明 当前边是“连接MST的更小边”，则：
             if (currentEdge.weight() < vertexToItsMinEdgeWeight[theOtherVertex]) {
                 // Ⅰ 更新 theOtherVertex的 “连接到MST的最小边” & “连接到MST的最小边”的权值
+                // 🐖 这里的代码 是更新 “theOtherVertex”的距离MST的最小边，而不是passedVertex - passedVertex已经是MST中的结点了，因此不存在 到MST的最小边
                 vertexToItsMinEdgeToMST[theOtherVertex] = currentEdge; // 用于维护 所有结点 其“连接到MST的最小边”
                 vertexToItsMinEdgeWeight[theOtherVertex] = currentEdge.weight(); // 用于维护 所有结点 其“连接到MST的最小边”的权重值
 

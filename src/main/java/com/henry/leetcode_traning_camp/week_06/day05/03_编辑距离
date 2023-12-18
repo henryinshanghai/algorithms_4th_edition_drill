@@ -42,7 +42,7 @@
     > delete:
         1 直接删除原始字符串的最后一个字符，得到一个 临时的字符序列；
         2 把1中的结果 transfer to 目标字符序列
-    there's high chance you might combine them together, so note each operation for each grid in dpTable[][]
+    there'startVertex high chance you might combine them together, so note each operation for each grid in dpTable[][]
 
     replace  |  insert
     delete

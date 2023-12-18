@@ -4,7 +4,7 @@
         if (root == null) return res;
 
         // 2 本级递归要做的事情：根 - 左 - 右
-        res.add(root.val);
+        res.add(root.value);
         preorderTraversal(root.left);
         preorderTraversal(root.right);
 
@@ -21,7 +21,7 @@ public preOrder(Node root){
 
     while(!stack.isEmpty()){
         root = stack.pop();
-        res.add(root.val);
+        res.add(root.value);
 
         if(root.right != null){
             stack.push(root.right);

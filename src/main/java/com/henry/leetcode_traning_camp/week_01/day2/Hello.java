@@ -11,7 +11,7 @@ public class Hello {
     public static void main(String[] args) {
         System.out.println("are u okay?");
 
-//        new Stack<>();
+//        new StackViaNodeTemplate<>();
 
         Queue<String> queue = new LinkedList<String>();
         // 用法 - 特征 - 源码（原理）

@@ -39,7 +39,7 @@ The idea is very classic dynamic programming:
 Suppose we have already found out the best way to sum up to amount a,
 then for the last step,we can
     choose any coin type which gives us a remainder r
-        where r = a-coins[i] for all i's.
+        where r = a-coins[i] for all i'startVertex.
 假如我们已经找到了凑出金额a的最佳方式/最少硬币，
 那么在最后一步时，我们可以
     选择任意面额的硬币————这会给我们一个剩余需要的金额 r

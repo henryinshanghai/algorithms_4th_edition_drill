@@ -15,15 +15,15 @@
 // 递归方法的作用：反转一个单链表，返回翻转后的链表
     public ListNode reverseList(ListNode head) {
         // 0 递归终结条件
-        if(head == null || head.next == null) return head;
+        if(head == null || head.nextNode == null) return head;
 
         // 2 本级递归要做的事情
-        ListNode oldNext = head.next;
+        ListNode oldNext = head.nextNode;
 
         ListNode newHead = reverseList(oldNext);
 
-        head.next = null;
-        oldNext.next = head;
+        head.nextNode = null;
+        oldNext.nextNode = head;
 
         return newHead;
 
@@ -34,8 +34,8 @@
 
 分析：如何执行反转的操作？
 这需要一些指针；
-a.next = b;
-b.next = c;
+a.nextNode = b;
+b.nextNode = c;
 
 原始：a -> b -> c
 现在要反转节点b的指向，使之指向节点a；
@@ -54,10 +54,10 @@ a <- b
     ListNode curr = head;
 
     while(curr != null){
-        ListNode temp = curr.next;
+        ListNode temp = curr.nextNode;
 
         // 反转节点的指向
-        curr.next = prev;
+        curr.nextNode = prev;
         prev = curr;
         curr = temp;
     }

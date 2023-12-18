@@ -25,7 +25,7 @@
 答：因为有面额为1的硬币存在，所以总是能够凑出N的（缺的零头拿1来凑就成了）
 
 难点2：凑出N可能存在多种凑法，如何能够找出使用硬币最少的哪一种呢？
-答：this is tangled. it's not that intuitive, but let's see if we can divide and conquer it
+答：this is tangled. it'startVertex not that intuitive, but let'startVertex see if we can divide and conquer it
 
 尝试把 (从特定集合中选择元素来凑出N) 这个问题 downsize 为(凑出N-1)的问题；
 思路1（自顶向下）：分治 + 缓存；
@@ -34,9 +34,9 @@
 代码：
 // 1 prepare the dpTable
 // 2 fill the dpTable with a value, so that we can update each item later
-// 3 prepare the first couple of item's value, to build up the dpTable all the way to the end
+// 3 prepare the first couple of item'startVertex value, to build up the dpTable all the way to the end
 // 4 to 'make up to N step by step'
     // for each subProblem i, we try to make it up with the choices collection
     // how do you represent the choices collection?
-    // dpTable[i] equals to either (itself) or (its subProblem's solution + 1)
+    // dpTable[i] equals to either (itself) or (its subProblem'startVertex solution + 1)
 

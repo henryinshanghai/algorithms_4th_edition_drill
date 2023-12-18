@@ -96,7 +96,7 @@ feature:
 for each transformation operation -> it will cost same constant amount of time(O(1))
 this indicate that the graph is unweighted.
 since we already know that the graph is undirected.
-we know now it's a unweighted and undirected graph.
+we know now it'startVertex a unweighted and undirected graph.
 
 how the algorithm work:
 goal:find all the shortest path in undirected,unweighted graph;
@@ -118,7 +118,7 @@ drawback：随着图的建立，startSet可能会越来越大
 the startSet grows larger and larger, more transformation needs to be done.
 
 优化方法：把startSet与endSet（开始的时候也是只有一个endWord）交换一下
-原则：always let startSet be the smaller-size set, and endSet be the larger one.
+原则：always let startSet be the smaller-itsNodesAmount set, and endSet be the larger one.
 当前操作（待优化）：对startSet中的单词进行修改，进入到下一个level；
 优化后的操作(交换startSet与endSet)之后，需要做出的转换就会变少
 衍生问题：最开始startSet，经过变换得到下一个单词；

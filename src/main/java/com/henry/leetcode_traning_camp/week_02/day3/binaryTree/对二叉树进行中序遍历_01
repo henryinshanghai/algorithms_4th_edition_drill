@@ -30,7 +30,7 @@ List<Integer> res = new ArrayList<>();
 
         // 2 本级递归要完成的事情
         inorderTraversal(root.left);
-        res.add(root.val);
+        res.add(root.value);
         inorderTraversal(root.right);
 
         return res;
@@ -50,7 +50,7 @@ expr: 在递归函数中，不断更新某个变量时，需要把这个变量�
         }
 
         root = stack.pop();
-        res.add(root.val);
+        res.add(root.value);
 
         root = root.right;
     }

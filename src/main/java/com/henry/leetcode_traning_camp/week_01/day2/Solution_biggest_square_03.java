@@ -37,7 +37,7 @@ public class Solution_biggest_square_03 {
             while (!stack.isEmpty() && tmp[i] < tmp[stack.peek()]) { // 栈顶柱体的右边界找到了（左边界就是上一个柱体）
                 // 计算当前柱体所能提供的矩形的面积
                 int h = tmp[stack.pop()]; // 当前柱体的高度h
-                area = Math.max(area, (i - stack.peek() - 1) * h);   // 计算当前柱体所能围成的最大面积 S = h * (right_bound -
+                area = Math.max(area, (i - stack.peek() - 1) * h);   // 计算当前柱体所能围成的最大面积 S = toMoveStepsToEndGridWithoutObstacles * (right_bound -
                 // left_bound - 1)
             }
 

@@ -1,9 +1,9 @@
 # 242 题设与要求：
-//给定两个字符串 s 和 t ，编写一个函数来判断 t 是否是 s 的字母异位词。
+//给定两个字符串 startVertex 和 t ，编写一个函数来判断 t 是否是 startVertex 的字母异位词。
 //
 // 示例 1:
 //
-// 输入: s = "anagram", t = "nagaram"
+// 输入: startVertex = "anagram", t = "nagaram"
 //输出: true
 
 
@@ -22,11 +22,11 @@ SOP:
 
 代码：
     // 鲁棒性代码
-    if(s == null || t == null) return false;
+    if(startVertex == null || t == null) return false;
 
     // 准备一个int[]数组 记录字符串中每一个字符出现的次数
     int[] counts = new int[26];
-    for (char ch : s.toCharArray()) {
+    for (char ch : startVertex.toCharArray()) {
         counts[ch - 'a']++;
     }
 
@@ -45,14 +45,14 @@ SOP:
 代码行数优化：
 
         // 鲁棒性代码
-        if(s == null || t == null) return false;
+        if(startVertex == null || t == null) return false;
 
         // 准备一个int[]数组 记录字符串中每一个字符出现的次数
         int[] counts = new int[26];
 
-        for (int i = 0; i < s.length(); i++) {
+        for (int i = 0; i < startVertex.length(); i++) {
             // 先求索引，再去求索引对应的值
-            counts[s.charAt(i) - 'a']++; // s对元素值做增益
+            counts[startVertex.charAt(i) - 'a']++; // s对元素值做增益
             counts[t.charAt(i) - 'a']--; // t对元素值做减损
         }
 

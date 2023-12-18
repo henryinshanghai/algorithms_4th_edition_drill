@@ -20,15 +20,15 @@
 // 递归方法的作用：两两交换链表中的节点，并返回交换后的链表的头节点
     public ListNode swapPairs(ListNode head) {
         // 0 终结条件
-        if(head == null || head.next == null) return head;
+        if(head == null || head.nextNode == null) return head;
 
         // 1 本级递归要做的事情  给定 1->2->3->4, 你应该返回 2->1->4->3.
-        ListNode second = head.next;
-        ListNode rest = second.next;
+        ListNode second = head.nextNode;
+        ListNode rest = second.nextNode;
 
         ListNode subListHead = swapPairs(rest);
-        head.next = subListHead;
-        second.next = head;
+        head.nextNode = subListHead;
+        second.nextNode = head;
 
         return second;
     }

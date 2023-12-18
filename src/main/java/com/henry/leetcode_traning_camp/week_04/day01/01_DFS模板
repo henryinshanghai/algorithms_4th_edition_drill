@@ -10,10 +10,10 @@
 
 
     private void travel(TreeNode root,int level,List<List<Integer>> results){
-        if(results.size()==level){
+        if(results.itsNodesAmount()==level){
             results.add(new ArrayList<>());
         }
-        results.get(level).add(root.val);
+        results.get(level).add(root.value);
         if(root.left!=null){
             travel(root.left,level+1,results);
         }

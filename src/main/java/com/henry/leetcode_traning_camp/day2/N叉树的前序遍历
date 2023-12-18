@@ -10,7 +10,7 @@
         if(root == null) return res;
 
         // 本级递归需要完成的事情
-        res.add(root.val);
+        res.add(root.value);
         for(Node child:root.children){
             preorder(child);
         }
@@ -33,10 +33,10 @@
             // expr1:这里pop()的返回值必须要绑定到root上，否则时间会超限
             // 原因：这种做法就只是一个更新操作 如果代码是:Node currentNode = stack.pop()的话，有3个操作：1 划分空间；2 预初始化； 3 真正初始化
             root = stack.pop();
-            res.add(root.val);
+            res.add(root.value);
 
             // trick:把当前节点的所有子节点以从右往左的顺序入栈（这样出栈时就能保证从左往右地添加-前序遍历）
-            for (int i = root.children.size() - 1; i >= 0; i--) {
+            for (int i = root.children.itsNodesAmount() - 1; i >= 0; i--) {
                 stack.push(root.children.get(i));
             }
         }

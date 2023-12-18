@@ -97,7 +97,7 @@
 
 ------
 其他的DP解法：
-参考1：https://leetcode.com/problems/minimum-path-sum/discuss/23555/AC-Java-DP-solution-v.s.-TLE-Dijstra-solution
+参考1：https://leetcode.com/problems/minimum-path-sum/discuss/23555/AC-Java-DP-solution-v.startVertex.-TLE-Dijstra-solution
 时间复杂度也是：O(N^2) 提交击败20%的用户   耗时5ms
 
 参考2：https://leetcode.com/problems/minimum-path-sum/discuss/180305/My-Java-DP-Solution-or-Easy-to-understand-or-Beats-96

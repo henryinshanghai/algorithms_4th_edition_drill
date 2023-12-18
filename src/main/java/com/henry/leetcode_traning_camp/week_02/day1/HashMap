@@ -14,7 +14,7 @@ HashMap；
          * (We also tolerate length zero in some operations to allow
          * bootstrapping mechanics that are currently not needed.)
          */
-        transient Node<K,V>[] table;
+        transient Node<K,vertexAmount>[] table;
 
     table数组在第一次被使用时进行初始化，并在需要的时候重新调整大小。
     在分配空间时，length的数值始终是2的指数值；
@@ -28,11 +28,11 @@ HashMap；
     1 put(key, value)
         putVal(xxx, xxx, xxx...)
 
-final V putVal(int hash, K key, V value, boolean onlyIfAbsent,
+final vertexAmount putVal(int hash, K key, vertexAmount value, boolean onlyIfAbsent,
                    boolean evict) {
     // 准备一堆的局部变量
-    Node<K,V>[] tab;  // Node[]类型的变量tab
-    Node<K,V> p; // Node类型的变量p
+    Node<K,vertexAmount>[] tab;  // Node[]类型的变量tab
+    Node<K,vertexAmount> p; // Node类型的变量p
     int n, i; // int类型的变量n、i
 
     // 为tab变量绑定table变量所引用的值，然后对tab进行判空      作用：其实就是在对table变量引用的值进行判空
@@ -42,16 +42,16 @@ final V putVal(int hash, K key, V value, boolean onlyIfAbsent,
     if ((p = tab[i = (n - 1) & hash]) == null)
         tab[i] = newNode(hash, key, value, null);
     else {
-        Node<K,V> e; K k;
+        Node<K,vertexAmount> e; K k;
         if (p.hash == hash &&
             ((k = p.key) == key || (key != null && key.equals(k))))
             e = p;
         else if (p instanceof TreeNode)
-            e = ((TreeNode<K,V>)p).putTreeVal(this, tab, hash, key, value);
+            e = ((TreeNode<K,vertexAmount>)p).putTreeVal(this, tab, hash, key, value);
         else {
             for (int binCount = 0; ; ++binCount) {
-                if ((e = p.next) == null) {
-                    p.next = newNode(hash, key, value, null);
+                if ((e = p.nextNode) == null) {
+                    p.nextNode = newNode(hash, key, value, null);
                     if (binCount >= TREEIFY_THRESHOLD - 1) // -1 for 1st
                         treeifyBin(tab, hash);
                     break;
@@ -63,7 +63,7 @@ final V putVal(int hash, K key, V value, boolean onlyIfAbsent,
             }
         }
         if (e != null) { // existing mapping for key
-            V oldValue = e.value;
+            vertexAmount oldValue = e.value;
             if (!onlyIfAbsent || oldValue == null)
                 e.value = value;
             afterNodeAccess(e);
@@ -71,7 +71,7 @@ final V putVal(int hash, K key, V value, boolean onlyIfAbsent,
         }
     }
     ++modCount;
-    if (++size > threshold)
+    if (++itsNodesAmount > threshold)
         resize();
     afterNodeInsertion(evict);
     return null;
@@ -82,7 +82,7 @@ final V putVal(int hash, K key, V value, boolean onlyIfAbsent,
 tab = resize()
 
 /*
-    Initializes or doubles table size.
+    Initializes or doubles table itsNodesAmount.
     If null, allocates in accord with initial capacity target held in field threshold.
     Otherwise, because we are using power-of-two expansion, the elements from each bin must either stay at same index,
     or move with a power of two offset in the new table.
@@ -91,9 +91,9 @@ tab = resize()
     如果为null，则根据存储在threshold字段中的初始目标容量来为table分配内存；
     否则的话，由于我们会使用2的指数值，每个桶中的元素要么呆在相同的索引处，要么在新的table中偏移2的指数个位置；
 */
-final Node<K,V>[] resize() {
+final Node<K,vertexAmount>[] resize() {
     /* 准备一些局部变量 */
-    Node<K,V>[] oldTab = table; // Node[]类型的oldTab变量    表示旧的table对象
+    Node<K,vertexAmount>[] oldTab = table; // Node[]类型的oldTab变量    表示旧的table对象
     int oldCap = (oldTab == null) ? 0 : oldTab.length; // 计算旧table的容量
     int oldThr = threshold; // 计算旧table的扩容门槛
     int newCap, newThr = 0; // 准备新的容量变量newCap、门槛变量newThr
@@ -142,7 +142,7 @@ final Node<K,V>[] resize() {
 
     // 根据前面计算得到的newCap来创建一个Node[]的对象，并绑定到table变量上 aka table的初始化
     @SuppressWarnings({"rawtypes","unchecked"})
-        Node<K,V>[] newTab = (Node<K,V>[])new Node[newCap];
+        Node<K,vertexAmount>[] newTab = (Node<K,vertexAmount>[])new Node[newCap];
     table = newTab;
 
 
@@ -154,32 +154,32 @@ final Node<K,V>[] resize() {
         // step1 遍历数组中的每一个位置上的桶
         for (int j = 0; j < oldCap; ++j) {
             // 准备一个局部变量，记录当前的桶元素
-            Node<K,V> e;
+            Node<K,vertexAmount> e;
             // 如果当前的桶元素不为null，说明桶中已经存储了键值对
             if ((e = oldTab[j]) != null) { // 1 把桶中的元素存储到局部变量e上
                 // 2 把这个位置的元素设置为null
                 oldTab[j] = null;
                 // 3 查看记录的当前桶元素的next属性是否为null,如果为null，说明当前桶的位置就只存储了一个键值对。则:...
-                if (e.next == null)
+                if (e.nextNode == null)
                     // 对键值对进行重新hash，并把hash值作为table数组中存储键值对的下标-来在新table中存储键值对
                     newTab[e.hash & (newCap - 1)] = e;
                 // 如果e.next不为null,说明当前桶中存储的是键值对集合，则：需要分类讨论
                 // 如果键值对集合为树...     手段：桶中的节点是否为树节点(TreeNode类型的节点)
                 else if (e instanceof TreeNode)
                     // 如果是树节点，则：调用split()方法完成“键值对的重新映射与存储”
-                    ((TreeNode<K,V>)e).split(this, newTab, j, oldCap);
+                    ((TreeNode<K,vertexAmount>)e).split(this, newTab, j, oldCap);
                 // 如果键值对集合不为树（说明是链表），则：对链表中的节点进行重新映射与存储
                 else { // preserve order
                     // 手段：
                     // 1 准备一堆的指针；
-                    Node<K,V> loHead = null, loTail = null;
-                    Node<K,V> hiHead = null, hiTail = null;
-                    Node<K,V> next;
+                    Node<K,vertexAmount> loHead = null, loTail = null;
+                    Node<K,vertexAmount> hiHead = null, hiTail = null;
+                    Node<K,vertexAmount> nextNode;
 
                     // 2 准备一个循环；    作用：遍历链表中的每一个节点；
                     do {
                         // 获取到当前节点的下一个节点，并绑定到next变量上
-                        next = e.next;
+                        nextNode = e.nextNode;
 
                         // 计算(e.hash & oldCap)的值【原理：？？？】
                         // 如果当前节点的计算结果等于0，说明当前节点在重新映射到新数组时，索引位置不变。则：...
@@ -191,7 +191,7 @@ final Node<K,V>[] resize() {
                                 // 当前节点也是链表的头节点
                                 loHead = e;
                             else
-                                loTail.next = e;
+                                loTail.nextNode = e;
                             // 2 更新链表尾节点指针loTail的指向位置
                             loTail = e;
                         }
@@ -201,22 +201,22 @@ final Node<K,V>[] resize() {
                             if (hiTail == null)
                                 hiHead = e;
                             else
-                                hiTail.next = e;
+                                hiTail.nextNode = e;
                             hiTail = e;
                         }
-                    } while ((e = next) != null); // 当循环执行完成后，两个新的链表loHead与hiHead就创建完成了
+                    } while ((e = nextNode) != null); // 当循环执行完成后，两个新的链表loHead与hiHead就创建完成了
 
                     // 3 把创建的两个新链表绑定到新的table中对应的桶位置上
                     if (loTail != null) {
                         // 为loHead链表收尾
-                        loTail.next = null;
+                        loTail.nextNode = null;
                         // 把loHead链表绑定到新桶数组预期的位置上去
                         newTab[j] = loHead;
                     }
 
                     // 同上
                     if (hiTail != null) {
-                        hiTail.next = null;
+                        hiTail.nextNode = null;
                         newTab[j + oldCap] = hiHead;
                     }
                 }
@@ -260,38 +260,38 @@ static final int MIN_TREEIFY_CAPACITY = 64;
 
 -
 树节点
-static final class TreeNode<K,V> extends LinkedHashMap.Entry<K,V> {
-    TreeNode<K,V> parent;  // red-black tree links
-    TreeNode<K,V> left;
-    TreeNode<K,V> right;
-    TreeNode<K,V> prev;    // needed to unlink next upon deletion
+static final class TreeNode<K,vertexAmount> extends LinkedHashMap.Entry<K,vertexAmount> {
+    TreeNode<K,vertexAmount> parent;  // red-black tree links
+    TreeNode<K,vertexAmount> left;
+    TreeNode<K,vertexAmount> right;
+    TreeNode<K,vertexAmount> prev;    // needed to unlink nextNode upon deletion
     boolean red;
-    TreeNode(int hash, K key, V val, Node<K,V> next) {
-        super(hash, key, val, next);
+    TreeNode(int hash, K key, vertexAmount value, Node<K,vertexAmount> nextNode) {
+        super(hash, key, value, nextNode);
     }
 }
 
 -
 把普通节点的链表转化成树节点的链表
-final void treeifyBin(Node<K,V>[] tab, int hash) {
-    int n, index; Node<K,V> e;
+final void treeifyBin(Node<K,vertexAmount>[] tab, int hash) {
+    int n, index; Node<K,vertexAmount> e;
     // 桶数组容量小于 MIN_TREEIFY_CAPACITY，优先进行扩容而不是树化
     if (tab == null || (n = tab.length) < MIN_TREEIFY_CAPACITY)
         resize();
     else if ((e = tab[index = (n - 1) & hash]) != null) {
         // hd 为头节点（head），tl 为尾节点（tail）
-        TreeNode<K,V> hd = null, tl = null;
+        TreeNode<K,vertexAmount> hd = null, tl = null;
         do {
             // 将普通节点替换成树形节点
-            TreeNode<K,V> p = replacementTreeNode(e, null);
+            TreeNode<K,vertexAmount> p = replacementTreeNode(e, null);
             if (tl == null)
                 hd = p;
             else {
                 p.prev = tl;
-                tl.next = p;
+                tl.nextNode = p;
             }
             tl = p;
-        } while ((e = e.next) != null);  // 将普通链表转成由树节点链表
+        } while ((e = e.nextNode) != null);  // 将普通链表转成由树节点链表
         if ((tab[index] = hd) != null)
             // 将树形链表转换成红黑树
             hd.treeify(tab);
@@ -313,24 +313,24 @@ hd.treeify(tab);
 // 红黑树转链表阈值
 static final int UNTREEIFY_THRESHOLD = 6;
 
-final void split(HashMap<K,V> map, Node<K,V>[] tab, int index, int bit) {
-    TreeNode<K,V> b = this;
+final void split(HashMap<K,vertexAmount> map, Node<K,vertexAmount>[] tab, int index, int bit) {
+    TreeNode<K,vertexAmount> b = this;
     // Relink into lo and hi lists, preserving order
-    TreeNode<K,V> loHead = null, loTail = null;
-    TreeNode<K,V> hiHead = null, hiTail = null;
+    TreeNode<K,vertexAmount> loHead = null, loTail = null;
+    TreeNode<K,vertexAmount> hiHead = null, hiTail = null;
     int lc = 0, hc = 0;
     /*
-     * 红黑树节点仍然保留了 next 引用，故仍可以按链表方式遍历红黑树。
+     * 红黑树节点仍然保留了 nextNode 引用，故仍可以按链表方式遍历红黑树。
      * 下面的循环是对红黑树节点进行分组，与上面类似
      */
-    for (TreeNode<K,V> e = b, next; e != null; e = next) {
-        next = (TreeNode<K,V>)e.next;
-        e.next = null;
+    for (TreeNode<K,vertexAmount> e = b, nextNode; e != null; e = nextNode) {
+        nextNode = (TreeNode<K,vertexAmount>)e.nextNode;
+        e.nextNode = null;
         if ((e.hash & bit) == 0) {
             if ((e.prev = loTail) == null)
                 loHead = e;
             else
-                loTail.next = e;
+                loTail.nextNode = e;
             loTail = e;
             ++lc;
         }
@@ -338,7 +338,7 @@ final void split(HashMap<K,V> map, Node<K,V>[] tab, int index, int bit) {
             if ((e.prev = hiTail) == null)
                 hiHead = e;
             else
-                hiTail.next = e;
+                hiTail.nextNode = e;
             hiTail = e;
             ++hc;
         }
@@ -383,23 +383,23 @@ final void split(HashMap<K,V> map, Node<K,V>[] tab, int index, int bit) {
 原理：数据结构既是一棵树，又是一个链表；
 方法：untreeify()
 方法实现：
-    final Node<K,V> untreeify(HashMap<K,V> map) {
-        Node<K,V> hd = null, tl = null;
+    final Node<K,vertexAmount> untreeify(HashMap<K,vertexAmount> map) {
+        Node<K,vertexAmount> hd = null, tl = null;
         // 遍历 TreeNode 链表，并用 Node 替换
-        for (Node<K,V> q = this; q != null; q = q.next) {
+        for (Node<K,vertexAmount> q = this; q != null; q = q.nextNode) {
             // 替换节点类型
-            Node<K,V> p = map.replacementNode(q, null);
+            Node<K,vertexAmount> p = map.replacementNode(q, null);
             if (tl == null)
                 hd = p;
             else
-                tl.next = p;
+                tl.nextNode = p;
             tl = p;
         }
         return hd;
     }
 
-    Node<K,V> replacementNode(Node<K,V> p, Node<K,V> next) {
-        return new Node<>(p.hash, p.key, p.value, next);
+    Node<K,vertexAmount> replacementNode(Node<K,vertexAmount> p, Node<K,vertexAmount> nextNode) {
+        return new Node<>(p.hash, p.key, p.value, nextNode);
     }
 
 ---

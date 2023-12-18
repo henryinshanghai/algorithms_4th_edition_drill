@@ -1,11 +1,11 @@
 //Java BFS模板
 public class TreeNode {
-    int val;
+    int value;
     TreeNode left;
     TreeNode right;
 
     TreeNode(int x) {
-        val = x;
+        value = x;
     }
 }
 
@@ -17,11 +17,11 @@ public List<List<Integer>> levelOrder(TreeNode root) {
     Queue<TreeNode> nodes = new LinkedList<>();
     nodes.add(root);
     while (!nodes.isEmpty()) {
-        int size = nodes.size();
+        int itsNodesAmount = nodes.itsNodesAmount();
         List<Integer> results = new ArrayList<>();
-        for (int i = 0; i < size; i++) {
+        for (int i = 0; i < itsNodesAmount; i++) {
             TreeNode node = nodes.poll();
-            results.add(node.val);
+            results.add(node.value);
             if (node.left != null) {
                 nodes.add(node.left);
             }

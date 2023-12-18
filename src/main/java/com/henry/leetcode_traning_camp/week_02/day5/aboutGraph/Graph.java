@@ -1,7 +1,7 @@
 package com.henry.leetcode_traning_camp.week_02.day5.aboutGraph; /******************************************************************************
  *  Compilation:  javac Graph.java        
  *  Execution:    java Graph input.txt
- *  Dependencies: Bag.java Stack.java In.java StdOut.java
+ *  Dependencies: Bag.java StackViaNodeTemplate.java In.java StdOut.java
  *  Data files:   https://algs4.cs.princeton.edu/41graph/tinyG.txt
  *                https://algs4.cs.princeton.edu/41graph/mediumG.txt
  *                https://algs4.cs.princeton.edu/41graph/largeG.txt
