@@ -75,6 +75,9 @@ import edu.princeton.cs.algs4.StdOut;
  * @author Robert Sedgewick
  * @author Kevin Wayne
  */
+// 目标：计算 图的最小生成树；
+// 原理：对于任意切分结果中，最小横切边 总是属于MST；
+// 步骤：#1 向MST中添加结点 & 向优先队列中添加横切边； #2 获取最小横切边，并添加到MST中； #3 对于横切边的“非树节点”，继续#1的操作。
 public class LazyPrimMST {
     private static final double FLOATING_POINT_EPSILON = 1.0E-12;
 
