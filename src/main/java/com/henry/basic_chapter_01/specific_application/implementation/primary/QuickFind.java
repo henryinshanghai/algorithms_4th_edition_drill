@@ -2,11 +2,11 @@ package com.henry.basic_chapter_01.specific_application.implementation.primary;
 
 import edu.princeton.cs.algs4.StdIn;
 
-public class QuickFindDrill {
+public class QuickFind {
     private int[] numToItsGroupIdArray;
     private int groupAmount;
 
-    public QuickFindDrill(int maxNumber) {
+    public QuickFind(int maxNumber) {
         groupAmount = maxNumber;
         numToItsGroupIdArray = new int[maxNumber];
 
@@ -32,7 +32,7 @@ public class QuickFindDrill {
         groupAmount--;
     }
 
-    private int findGroupIdOf(int num) {
+    public int findGroupIdOf(int num) {
         return numToItsGroupIdArray[num];
     }
 
@@ -46,7 +46,7 @@ public class QuickFindDrill {
 
     public static void main(String[] args) {
         int maxNumber = StdIn.readInt();
-        QuickFindDrill team = new QuickFindDrill(maxNumber);
+        QuickFind team = new QuickFind(maxNumber);
 
         while (!StdIn.isEmpty()) {
             int num1 = StdIn.readInt();

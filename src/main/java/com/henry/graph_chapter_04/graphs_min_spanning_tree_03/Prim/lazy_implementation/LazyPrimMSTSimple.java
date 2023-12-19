@@ -5,9 +5,10 @@ import com.henry.graph_chapter_04.graphs_min_spanning_tree_03.EdgeWeightedGraph;
 import edu.princeton.cs.algs4.MinPQ;
 import edu.princeton.cs.algs4.Queue;
 
+// 原理：对于图中的每一个结点，它都会有一组“有效的横切边” - 收集其中的最小横切边，就构成了MST
 // 结论：延迟Prim的算法步骤：
-// #1 把当前节点添加为父结点； #2 把当前节点的所有横切边添加到优先队列中；
-// #3 循环队列，取最小的横切边 添加到MST中；对非树节点，重复 #1，#2
+// #1 把当前节点添加为“树结点”； #2 把当前节点的所有横切边添加到优先队列中；
+// #3 循环队列，取最小的横切边 添加到MST中；对“横切边的非树节点”，重复 #1，#2
 public class LazyPrimMSTSimple {
     private boolean[] vertexToIsTreeVertex; // 最小生成树中的顶点
     private Queue<Edge> edgesQueueInMST; // 最小生成树中的边

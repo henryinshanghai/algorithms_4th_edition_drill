@@ -2,11 +2,13 @@ package com.henry.sort_chapter_02.priority_queue_04.pq_indexed_item_implement_04
 
 import edu.princeton.cs.algs4.StdOut;
 
+import java.util.NoSuchElementException;
+
 // 索引优先队列 - 能够通过索引 来 快速检索到队列中的元素
 // 原理: spot->IndexArray & index->ItemArray
 // 特性：#1 index->SpotArray用于支持与索引相关的操作(Simple版本中没有这一类的API);
 // #2 比较时，参与比较的是Item； #3 交换时，交换的是两个位置上的index；
-public class IndexMinPQSimpleTemplate<Element extends Comparable<Element>> {
+public class IndexMinPQ<Element extends Comparable<Element>> {
 
     private Element[] indexToElementArray;
     private int[] spotToIndexArray;
@@ -14,7 +16,7 @@ public class IndexMinPQSimpleTemplate<Element extends Comparable<Element>> {
     private int elementAmount;
     private int capacity;
 
-    public IndexMinPQSimpleTemplate(int initCapacity) {
+    public IndexMinPQ(int initCapacity) {
         indexToElementArray = (Element[]) new Comparable[initCapacity + 1];
         spotToIndexArray = new int[initCapacity + 1];
         indexToSpotArray = new int[initCapacity + 1];
@@ -69,6 +71,15 @@ public class IndexMinPQSimpleTemplate<Element extends Comparable<Element>> {
         return result > 0;
     }
 
+    // 获取指定索引对应的键
+    public Element keyOf(int index) {
+        if (!contains(index)) throw new NoSuchElementException("index is not in the priority queue");
+        else return indexToElementArray[index];
+    }
+
+    public boolean contains(int index) {
+        return indexToSpotArray[index] != -1;
+    }
 
     // 删除堆中的最小元素， 并返回其所关联的索引
     public int delMin() {
@@ -104,11 +115,13 @@ public class IndexMinPQSimpleTemplate<Element extends Comparable<Element>> {
         String[] strings = {"it", "was", "the", "best", "of", "times", "it", "was", "the", "worst"};
 
         // 初始化索引优先队列
-        IndexMinPQSimpleTemplate<String> pq = new IndexMinPQSimpleTemplate<String>(strings.length); // 10
+        IndexMinPQ<String> pq = new IndexMinPQ<String>(strings.length); // 10
 
         // 遍历字符串数组，并逐个插入数组元素到 索引优先队列中
-        for (int i = 0; i < strings.length; i++) {
-            pq.insert(i, strings[i]);
+        for (int currentIndex = 0; currentIndex < strings.length; currentIndex++) {
+            String currentItem = strings[currentIndex];
+
+            pq.insert(currentIndex, currentItem);
         }
 
         // 删除并打印 索引优先队列中的最小元素 及它的索引值
@@ -122,7 +135,7 @@ public class IndexMinPQSimpleTemplate<Element extends Comparable<Element>> {
 
     }
 
-    private boolean isEmpty() {
+    public boolean isEmpty() {
         return elementAmount == 0;
     }
 }
