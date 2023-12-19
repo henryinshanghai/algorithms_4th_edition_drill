@@ -132,15 +132,15 @@ public class PrimMST {
 
         while (!vertexToItsMinEdgeWeightPQ.isEmpty()) {
             // 获取到 优先队列 所有结点中，拥有最小的“距离MST最小边的权重值”权重值的 那个结点
-            int vertexOfMinEdgeWeight = vertexToItsMinEdgeWeightPQ.delMin();
+            int vertexWithMinEdgeWeight = vertexToItsMinEdgeWeightPQ.delMin();
 
             // 对于此结点：#1 标记为“树结点”； #2 对于其所有相邻的“非树节点”，更新其 数组值，并将之添加/更新到优先队列中
-            addVertexInMSTAndUpdateItsMinEdgeToMST(weightedGraph, vertexOfMinEdgeWeight);
+            addVertexInMSTAndUpdateTheOtherVertex(weightedGraph, vertexWithMinEdgeWeight);
         }
     }
 
     // scan vertex v
-    private void addVertexInMSTAndUpdateItsMinEdgeToMST(EdgeWeightedGraph weightedGraph, int passedVertex) {
+    private void addVertexInMSTAndUpdateTheOtherVertex(EdgeWeightedGraph weightedGraph, int passedVertex) {
         // #1 把结点 标记为 “树结点”
         vertexToIsTreeVertex[passedVertex] = true;
 
