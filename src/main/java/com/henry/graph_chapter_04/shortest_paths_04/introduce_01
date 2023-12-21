@@ -1,0 +1,15 @@
+edgeTo -> vertexToItsTowardsEdge
+distTo -> vertexToItsPathWeight
+
+== 边的放松 ==
+
+放松边 v->w意味着：检查从s->w的最短路径 是不是#1 先从s到v，#2 再从v到w，
+如果是的话，则 根据情况，更新 vertexToItsPathWeight[w]、vertexToItsTowardsEdge[w]的值。
+
+
+== 顶点的放松 ==
+
+aka 放松 由给定顶点所指出的所有边。
+
+== 为用例所准备的查询方法 ==
+???
