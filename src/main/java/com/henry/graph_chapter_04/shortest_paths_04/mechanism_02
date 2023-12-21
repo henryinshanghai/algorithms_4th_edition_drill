@@ -1,0 +1,74 @@
+边的放松操作 是 实现“最短路径算法”的基础。
+同时 也是 理解这个算法的理论基础，我们可以使用它 来 证明算法的正确性。
+
+== 最优性条件 ==
+结论：判断路径是否为最短路径的“全局条件” 与 放松一条边时所检测的“局部条件” 是等价的。
+
+最短路径的最优条件 命题：
+令 G为一幅加权有向图，顶点s 是图G中的起点。
+vertexToItsPathWeight[] 是一个 由顶点所索引的数组，
+保存的是 G中路径的长度/权重。
+
+对于 从s可达的任意顶点v，vertexToItsPathWeight[v]的值是
+从s到v的某条路径的长度/权重；
+对于 从s无法到达的任意节点v，vertexToItsPathWeight[v]的值是
+无穷大。
+
+条件👉 当且仅当 对于从v->w的任意一条边e，结点w、结点v、边e之间能够满足
+vertexToItsPathWeight[w] <= vertexToItsPathWeight[v] + e.weight()时（也就是不存在“有效边”），
+结论（命题P）👉 vertexToItsPathWeight[w]会是 “最短路径”的长度/权重。
+
+证明：
+假设 vertexToItsPathWeight[w] 是 s->w的最短路径。
+如果 对于某条从v->w的边e，存在有 vertexToItsPathWeight[w] > vertexToItsPathWeight[v] + e.weight()，
+则：从s->w（经过v）且经过e的路径，其长度 必然小于 vertexToItsPathWeight[w]，矛盾。
+所以 最优性条件 是必要的。
+
+要证明“最优性条件”是充分的，假设w是 从s可达的，并且 路径 s=v0->v1->v2...->vk=w 是 从s到w的最短路径，
+路径的权重是 OPTsw。
+对于[1,k]之间的任意i，令ei 表示 vi-1到vi的边。
+根据最优性条件，可以得到以下不等式：
+    vertexToItsPathWeight[w] = vertexToItsPathWeight[vk] <= vertexToItsPathWeight[vk-1] + ek.weight()
+                                ...
+                                ...
+                               vertexToItsPathWeight[v1] <= vertexToItsPathWeight[s] + e1.weight()
+综合以上这些个不等式，并去掉 vertexToItsPathWeight[s]=0.0,可以得到：
+    vertexToItsPathWeight[w]<=e1.weight() + ... + ek.weight() = OPTsw. （1）
+
+其中，vertexToItsPathWeight[w] 表示 从s->w的某条路径的长度/权重，所以 它不可能 比起“最短路径”更短。
+所以会得到以下不等式👇
+    OPTsw <= vertexToItsPathWeight[w]; （2）
+
+结合（1），（2）可知：
+    OPTsw <= vertexToItsPathWeight[w] <= OPTsw; （3）
+故 等号必然成立。
+
+== 验证“算法所得到的最短路径”是不是正确的 ==
+命题P的一个重要应用就是：最短路径的验证。
+
+无论一种算法如何计算 vertexToItsPathWeight[],都只需要：
+#1 遍历图中的所有边一遍； #2 并检查“最优性条件”是否被满足，就能够
+知道 vertexToItsPathWeight[]数组中的元素值 是不是 最短路径的长度/权重。
+
+最短路径的算法可能会很复杂，所以 “快速验证得到的最短路径是否正确”就变得非常重要。
+
+所以再本书网站上的实现中，包含有一个check()方法。
+这个方法 会检查 vertexToItsTowardsEdge[]所指示的路径，并验证 它与 vertexToItsPathWeight[]是否一致。
+
+== 通用算法 ==
+使用“最优性条件”，能够得到一个 可以涵盖 所有已经学习过的 所有最短路径算法 的通用算法。
+🐖 现在研究的范围 仅限于 “非负权重边”。
+
+结论/命题Q：
+在 把vertexToItsPathWeight[s]初始化为0，其他结点的vertexToItsPathWeight[x]初始化为无穷大时，
+继续如下操作：
+    放松G中的任意边，直到不存在“有效边”为止。
+
+对于任意 从s可达的结点w，在进行这样的操作之后，vertexToItsPathWeight[w]的值 就等于
+从s到w的最短路径的长度（并且 vertexToItsTowardsEdge[w]就是 该最短路径上的 最后一条边）
+
+证明：???
+
+🐖 把最优性条件 与 通用算法 放在一起学习的原因是：通用算法中，并没有指定 边的放松顺序。
+因此，要证明 这些算法 都的确能够 通过计算来得到最短路径，只需要证明
+它们 都会 放松所有的边，直到 所有的边都失效 就可以了。
