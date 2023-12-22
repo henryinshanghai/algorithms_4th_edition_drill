@@ -67,7 +67,19 @@ vertexToItsPathWeight[w] <= vertexToItsPathWeight[v] + e.weight()时（也就是
 对于任意 从s可达的结点w，在进行这样的操作之后，vertexToItsPathWeight[w]的值 就等于
 从s到w的最短路径的长度（并且 vertexToItsTowardsEdge[w]就是 该最短路径上的 最后一条边）
 
-证明：???
+证明：
+放松边v->w后，不管 vertexToItsPathWeight[w]的值是否被更新，它都必然是  从s->w的某条路径的长度/权重，
+并且 vertexToItsTowardsEdge[w] 会是这条路径上的最后一条边。
+
+对于从s可达的任意顶点w，只要 vertexToItsPathWeight[w]仍然是无穷大，则：
+到达w的最短路径上的某条边 肯定仍然是有效的。
+因此 算法的操作 会不断继续，直到 由s可达的每个顶点的 vertexToItsPathWeight[]的值 都变成 “到达该顶点的 某条路径的长度/权重”。
+
+对于“已经找到最短路径的任意结点x”，
+在算法计算的过程中，vertexToItsPathWeight[x]的值 都是 从s->x的某条(简单)路径的长度/权重，并且必然是 单调递减的(因为算法决定，它要么不变，要么变小)。
+
+因此，它递减的次数必然是有限的（每切换一条 s->v的简单路径，就会递减一次）。
+当不再存在有效边的时候，命题P就成立了 （vertexToItsPathWeight[w]会是 “最短路径”的长度/权重）
 
 🐖 把最优性条件 与 通用算法 放在一起学习的原因是：通用算法中，并没有指定 边的放松顺序。
 因此，要证明 这些算法 都的确能够 通过计算来得到最短路径，只需要证明
