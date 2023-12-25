@@ -116,9 +116,10 @@ public class DijkstraSP {
     }
 
     // relax edge e and update pq if changed
+    // 放松指定的边，并更新 底层的三个数据
     private void relax(DirectedEdge passedEdge) {
         int departVertex = passedEdge.departVertex(),
-                terminalVertex = passedEdge.terminalVertex();
+            terminalVertex = passedEdge.terminalVertex();
 
         if (vertexToItsPathWeight[terminalVertex] > vertexToItsPathWeight[departVertex] + passedEdge.weight()) {
             // 更新 “从起始结点到当前结点的最短路径”的权重
