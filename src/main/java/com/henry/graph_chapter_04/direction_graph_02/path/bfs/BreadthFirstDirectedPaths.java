@@ -61,7 +61,7 @@ public class BreadthFirstDirectedPaths {
     private static final int INFINITY = Integer.MAX_VALUE;
     private boolean[] vertexToIsMarked;  // marked[v] = is there an s->v path?
     private int[] terminalVertexToDepartVertex;      // edgeTo[v] = last edge on shortest s->v path
-    private int[] vertexToPathLength;      // distTo[v] = length of shortest s->v path
+    private int[] vertexToItsMinPathLength;      // distTo[v] = length of shortest s->v path
 
     /**
      * Computes the shortest path from {@code s} and every other vertex in graph {@code G}.
@@ -72,11 +72,11 @@ public class BreadthFirstDirectedPaths {
      */
     public BreadthFirstDirectedPaths(Digraph digraph, int startVertex) {
         vertexToIsMarked = new boolean[digraph.getVertexAmount()];
-        vertexToPathLength = new int[digraph.getVertexAmount()];
+        vertexToItsMinPathLength = new int[digraph.getVertexAmount()];
         terminalVertexToDepartVertex = new int[digraph.getVertexAmount()];
 
         for (int currentVertex = 0; currentVertex < digraph.getVertexAmount(); currentVertex++)
-            vertexToPathLength[currentVertex] = INFINITY;
+            vertexToItsMinPathLength[currentVertex] = INFINITY;
         validateVertex(startVertex);
         markAdjacentVertexesViaBFS(digraph, startVertex);
     }
@@ -94,11 +94,11 @@ public class BreadthFirstDirectedPaths {
      */
     public BreadthFirstDirectedPaths(Digraph digraph, Iterable<Integer> startVertexes) {
         vertexToIsMarked = new boolean[digraph.getVertexAmount()];
-        vertexToPathLength = new int[digraph.getVertexAmount()];
+        vertexToItsMinPathLength = new int[digraph.getVertexAmount()];
         terminalVertexToDepartVertex = new int[digraph.getVertexAmount()];
 
         for (int currentVertex = 0; currentVertex < digraph.getVertexAmount(); currentVertex++)
-            vertexToPathLength[currentVertex] = INFINITY;
+            vertexToItsMinPathLength[currentVertex] = INFINITY;
 
         validateVertices(startVertexes);
 
@@ -107,22 +107,25 @@ public class BreadthFirstDirectedPaths {
 
     // BFS from single source
     private void markAdjacentVertexesViaBFS(Digraph digraph, int startVertex) {
-        Queue<Integer> vertexSequence = new Queue<Integer>();
+        Queue<Integer> vertexQueue = new Queue<Integer>();
         vertexToIsMarked[startVertex] = true;
-        vertexToPathLength[startVertex] = 0;
+        vertexToItsMinPathLength[startVertex] = 0;
 
-        vertexSequence.enqueue(startVertex);
+        vertexQueue.enqueue(startVertex);
 
-        while (!vertexSequence.isEmpty()) {
-            int currentVertex = vertexSequence.dequeue();
+        while (!vertexQueue.isEmpty()) {
+            int currentVertex = vertexQueue.dequeue();
 
             for (int currentAdjacentVertex : digraph.adjacentVertexesOf(currentVertex)) {
                 if (!vertexToIsMarked[currentAdjacentVertex]) {
-                    terminalVertexToDepartVertex[currentAdjacentVertex] = currentVertex;
-                    vertexToPathLength[currentAdjacentVertex] = vertexToPathLength[currentVertex] + 1;
+                    // #1 标记结点
                     vertexToIsMarked[currentAdjacentVertex] = true;
+                    // #2 更新结点对应的底层成员变量
+                    terminalVertexToDepartVertex[currentAdjacentVertex] = currentVertex;
+                    vertexToItsMinPathLength[currentAdjacentVertex] = vertexToItsMinPathLength[currentVertex] + 1;
 
-                    vertexSequence.enqueue(currentAdjacentVertex);
+                    // #3 把节点添加到队列中
+                    vertexQueue.enqueue(currentAdjacentVertex);
                 }
             }
         }
@@ -134,7 +137,7 @@ public class BreadthFirstDirectedPaths {
 
         for (int startVertex : startVertexes) {
             vertexToIsMarked[startVertex] = true;
-            vertexToPathLength[startVertex] = 0;
+            vertexToItsMinPathLength[startVertex] = 0;
             vertexSequence.enqueue(startVertex);
         }
 
@@ -143,7 +146,7 @@ public class BreadthFirstDirectedPaths {
             for (int currentAdjacentVertex : digraph.adjacentVertexesOf(currentVertex)) {
                 if (!vertexToIsMarked[currentAdjacentVertex]) {
                     terminalVertexToDepartVertex[currentAdjacentVertex] = currentVertex;
-                    vertexToPathLength[currentAdjacentVertex] = vertexToPathLength[currentVertex] + 1;
+                    vertexToItsMinPathLength[currentAdjacentVertex] = vertexToItsMinPathLength[currentVertex] + 1;
                     vertexToIsMarked[currentAdjacentVertex] = true;
 
                     vertexSequence.enqueue(currentAdjacentVertex);
@@ -175,7 +178,7 @@ public class BreadthFirstDirectedPaths {
      */
     public int pathLengthTo(int passedVertex) {
         validateVertex(passedVertex);
-        return vertexToPathLength[passedVertex];
+        return vertexToItsMinPathLength[passedVertex];
     }
 
     /**
@@ -194,7 +197,7 @@ public class BreadthFirstDirectedPaths {
         Stack<Integer> vertexPath = new Stack<Integer>();
         int currentVertexInPath;
 
-        for (currentVertexInPath = passedVertex; vertexToPathLength[currentVertexInPath] != 0; currentVertexInPath = terminalVertexToDepartVertex[currentVertexInPath])
+        for (currentVertexInPath = passedVertex; vertexToItsMinPathLength[currentVertexInPath] != 0; currentVertexInPath = terminalVertexToDepartVertex[currentVertexInPath])
             vertexPath.push(currentVertexInPath);
         vertexPath.push(currentVertexInPath);
 
