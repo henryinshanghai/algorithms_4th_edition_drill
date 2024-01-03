@@ -50,16 +50,16 @@ import edu.princeton.cs.algs4.StdOut;
  * <i>Algorithms, 4th Edition</i> by Robert Sedgewick and Kevin Wayne.
  */
 public class TrieSTWebsite<Value> {
-    private static final int R = 256;        // extended ASCII
+    private static final int characterOptionsAmount = 256;        // extended ASCII
 
 
-    private Node root;      // root of trie
+    private Node rootNode;      // root of trie
     private int keysAmount;          // number of keys in trie
 
     // R-way trie node
     private static class Node {
         private Object value;
-        private Node[] characterToNodeArr = new Node[R]; // successorNodes
+        private Node[] characterToSuccessorNode = new Node[characterOptionsAmount]; // successorNodes
     }
 
     /**
@@ -72,36 +72,46 @@ public class TrieSTWebsite<Value> {
     /**
      * Returns the value associated with the given key.
      *
-     * @param key the key
+     * @param passedKey the key
      * @return the value associated with the given key if the key is in the symbol table
      * and {@code null} if the key is not in the symbol table
      * @throws IllegalArgumentException if {@code key} is {@code null}
      */
-    public Value get(String key) {
-        if (key == null) throw new IllegalArgumentException("argument to get() is null");
-        Node x = getLastNodeOfPathThatStartFrom(root, key, 0);
-        if (x == null) return null;
-        return (Value) x.value;
+    public Value getAssociatedValueOf(String passedKey) {
+        if (passedKey == null) throw new IllegalArgumentException("argument to get() is null");
+
+        Node lastNodeInPath = getLastNodeOfPathThatStartFrom(rootNode, passedKey, 0);
+
+        if (lastNodeInPath == null) return null;
+        return (Value) lastNodeInPath.value;
     }
 
     /**
      * Does this symbol table contain the given key?
      *
-     * @param key the key
+     * @param passedKey the key
      * @return {@code true} if this symbol table contains {@code key} and
      * {@code false} otherwise
      * @throws IllegalArgumentException if {@code key} is {@code null}
      */
-    public boolean contains(String key) {
-        if (key == null) throw new IllegalArgumentException("argument to contains() is null");
-        return get(key) != null;
+    public boolean contains(String passedKey) {
+        if (passedKey == null) throw new IllegalArgumentException("argument to contains() is null");
+        return getAssociatedValueOf(passedKey) != null;
     }
 
-    private Node getLastNodeOfPathThatStartFrom(Node currentNode, String passedKey, int currentCharacterSpot) {
-        if (currentNode == null) return null;
-        if (currentCharacterSpot == passedKey.length()) return currentNode;
-        char currentCharacter = passedKey.charAt(currentCharacterSpot);
-        return getLastNodeOfPathThatStartFrom(currentNode.characterToNodeArr[currentCharacter], passedKey, currentCharacterSpot + 1);
+    private Node getLastNodeOfPathThatStartFrom(Node currentRootNode, String passedKey, int currentStartCharacterSpot) {
+        if (currentRootNode == null) return null;
+        // 查询到了 键字符串的最后一个字符
+        if (currentStartCharacterSpot == passedKey.length())
+            return currentRootNode;
+
+        // 键字符串”当前起始位置上的字符“
+        char currentCharacter = passedKey.charAt(currentStartCharacterSpot);
+        // 字符所链接到的”后继结点“
+        Node successorNodeForCharacter = currentRootNode.characterToSuccessorNode[currentCharacter];
+
+        // 在子树中，查询”新的子字符串“所对应的路径
+        return getLastNodeOfPathThatStartFrom(successorNodeForCharacter, passedKey, currentStartCharacterSpot + 1);
     }
 
     /**
@@ -109,26 +119,34 @@ public class TrieSTWebsite<Value> {
      * with the new value if the key is already in the symbol table.
      * If the value is {@code null}, this effectively deletes the key from the symbol table.
      *
-     * @param key the key
-     * @param val the value
+     * @param passedKey       the key
+     * @param associatedValue the value
      * @throws IllegalArgumentException if {@code key} is {@code null}
      */
-    public void put(String key, Value val) {
-        if (key == null) throw new IllegalArgumentException("first argument to put() is null");
-        if (val == null) delete(key);
-        else root = put(root, key, val, 0);
+    public void putInPairOf(String passedKey, Value associatedValue) {
+        if (passedKey == null) throw new IllegalArgumentException("first argument to put() is null");
+
+        if (associatedValue == null) deletePairOf(passedKey);
+        else rootNode = putInNodesOfPathThatStartFrom(rootNode, passedKey, associatedValue, 0);
     }
 
-    private Node put(Node x, String key, Value val, int d) {
-        if (x == null) x = new Node();
-        if (d == key.length()) {
-            if (x.value == null) keysAmount++;
-            x.value = val;
-            return x;
+    private Node putInNodesOfPathThatStartFrom(Node currentRootNode, String passedKey, Value associatedValue, int currentStartCharacterSpot) {
+        if (currentRootNode == null)
+            currentRootNode = new Node();
+
+        if (currentStartCharacterSpot == passedKey.length()) {
+            if (currentRootNode.value == null)
+                keysAmount++;
+
+            currentRootNode.value = associatedValue;
+            return currentRootNode;
         }
-        char c = key.charAt(d);
-        x.characterToNodeArr[c] = put(x.characterToNodeArr[c], key, val, d + 1);
-        return x;
+
+        char currentCharacter = passedKey.charAt(currentStartCharacterSpot);
+        Node successorNodeForCharacter = currentRootNode.characterToSuccessorNode[currentCharacter];
+
+        currentRootNode.characterToSuccessorNode[currentCharacter] = putInNodesOfPathThatStartFrom(successorNodeForCharacter, passedKey, associatedValue, currentStartCharacterSpot + 1);
+        return currentRootNode;
     }
 
     /**
@@ -169,22 +187,29 @@ public class TrieSTWebsite<Value> {
      */
     public Iterable<String> keysWithPrefixOf(String passedPrefix) {
         Queue<String> keysCollection = new Queue<String>();
-        Node lastNodeOfPrefixStr = getLastNodeOfPathThatStartFrom(root, passedPrefix, 0);
+        Node lastNodeOfPrefixStr = getLastNodeOfPathThatStartFrom(rootNode, passedPrefix, 0);
         collectKeysStartWithPrefixInto(lastNodeOfPrefixStr, new StringBuilder(passedPrefix), keysCollection);
         return keysCollection;
     }
 
-    private void collectKeysStartWithPrefixInto(Node currentNode, StringBuilder currentPrefix, Queue<String> keysCollection) {
-        if (currentNode == null) return;
-        if (currentNode.value != null) {
+    private void collectKeysStartWithPrefixInto(Node currentRootNode, StringBuilder currentPrefix, Queue<String> keysCollection) {
+        if (currentRootNode == null) return;
+
+        if (currentRootNode.value != null) {
             String currentKey = currentPrefix.toString();
             keysCollection.enqueue(currentKey);
         }
-        for (char currentAlphabetCharacter = 0; currentAlphabetCharacter < R; currentAlphabetCharacter++) {
-            currentPrefix.append(currentAlphabetCharacter);
-            collectKeysStartWithPrefixInto(currentNode.characterToNodeArr[currentAlphabetCharacter], currentPrefix, keysCollection);
 
-            // ???
+        for (char currentAlphabetCharacter = 0; currentAlphabetCharacter < characterOptionsAmount; currentAlphabetCharacter++) {
+            // 使用当前字符(option) 来 结合prefix进一步构造 potential key
+            currentPrefix.append(currentAlphabetCharacter);
+
+            // 查询 当前构造出的 potential key 是不是一个 valid key，如果是的话，则：添加到集合中
+            Node successorNodeForCharacter = currentRootNode.characterToSuccessorNode[currentAlphabetCharacter];
+            collectKeysStartWithPrefixInto(successorNodeForCharacter, currentPrefix, keysCollection);
+
+            // 删除"当前所选择的字符" - 这样才能够在 原始的prefix的基础上，使用新的字符 来 构造出新的potential key
+            // 🐖 这个过程有点像 尝试不同的路径：anchorNode + dynamicNode
             currentPrefix.deleteCharAt(currentPrefix.length() - 1);
         }
     }
@@ -199,7 +224,7 @@ public class TrieSTWebsite<Value> {
      */
     public Iterable<String> keysThatMatch(String patternStr) {
         Queue<String> validKeysCollection = new Queue<String>();
-        collectKeysStartWithPrefixThatMatchingPatternInto(root, new StringBuilder(), patternStr, validKeysCollection);
+        collectKeysStartWithPrefixThatMatchingPatternInto(rootNode, new StringBuilder(), patternStr, validKeysCollection);
         return validKeysCollection;
     }
 
@@ -222,20 +247,23 @@ public class TrieSTWebsite<Value> {
         // 与书上提供的代码不一样 👇
         // 如果当前字符是 一个通配字符, 说明 当前字符在单词查找树中匹配成功，则：
         if (currentCharacterOfPatternStr == '.') {
-            for (char currentCharacterOfAlphabet = 0; currentCharacterOfAlphabet < R; currentCharacterOfAlphabet++) {
-                // 把字母表中的每一个字符，分别追加到 prefixStr上。
+            for (char currentCharacterOfAlphabet = 0; currentCharacterOfAlphabet < characterOptionsAmount; currentCharacterOfAlphabet++) {
+                // 把字母表中的当前字符，追加到 prefixStr上 来 构造potential key
                 currentPrefixStr.append(currentCharacterOfAlphabet);
                 // 子问题：在（每一个）子树中，收集匹配模式字符串的key
-                collectKeysStartWithPrefixThatMatchingPatternInto(currentNode.characterToNodeArr[currentCharacterOfAlphabet], currentPrefixStr, patternStr, validKeysCollection);
-
+                Node successorNodeForCharacter = currentNode.characterToSuccessorNode[currentCharacterOfAlphabet];
+                collectKeysStartWithPrefixThatMatchingPatternInto(successorNodeForCharacter, currentPrefixStr, patternStr, validKeysCollection);
+                // 从当前前缀字符串中移除”当前选择的字符“ - 这样才能够在 原始的prefix的基础上，使用新的字符 来 构造出新的potential key
                 currentPrefixStr.deleteCharAt(currentPrefixStr.length() - 1);
             }
-        } else { // 如果不是通配字符的话，说明 我们已经知道 需要在哪一个具体的子树中查找与收集，则：
-            // 把 patternStr的当前字符 直接追加到 prefixStr的后面，然后
+        } else { // 如果不是通配字符的话，说明 我们已经知道 需要在哪一个具体的子树中进行”查找与收集“，则：
+            // 把 patternStr的当前字符 直接追加到 prefixStr的后面 来 构造出一个potential key
             currentPrefixStr.append(currentCharacterOfPatternStr);
             // 子问题：在（特定的）子树中，收集匹配模式字符串的key
-            collectKeysStartWithPrefixThatMatchingPatternInto(currentNode.characterToNodeArr[currentCharacterOfPatternStr], currentPrefixStr, patternStr, validKeysCollection);
+            Node successorNodeForCharacter = currentNode.characterToSuccessorNode[currentCharacterOfPatternStr];
+            collectKeysStartWithPrefixThatMatchingPatternInto(successorNodeForCharacter, currentPrefixStr, patternStr, validKeysCollection);
 
+            // 移除”当前选择的字符“ 来 尝试其他的 potential key
             currentPrefixStr.deleteCharAt(currentPrefixStr.length() - 1);
         }
     }
@@ -251,11 +279,11 @@ public class TrieSTWebsite<Value> {
      */
     public String longestKeyThatPrefixOf(String passedStr) {
         if (passedStr == null) throw new IllegalArgumentException("argument to longestPrefixOf() is null");
-        int keyStrLength = longestKeysLengthThatPrefixOf(root, passedStr, 0, -1);
+        int keyStrLength = longestKeysLengthThatPrefixOf(rootNode, passedStr, 0, -1);
 
         // 返回-1，表示 不存在 满足条件的键字符串
         if (keyStrLength == -1) return null;
-        // 如果存在满足条件的键字符串，则：从传入的字符串中切取出 最长的“键字符串”
+            // 如果存在满足条件的键字符串，则：从传入的字符串中切取出 最长的“键字符串”
         else return passedStr.substring(0, keyStrLength);
     }
 
@@ -272,7 +300,7 @@ public class TrieSTWebsite<Value> {
         // 获取字符
         char currentCharacterInPassedStr = passedStr.charAt(currentCharacterSpot);
         // 字符对应的子查找树
-        Node charactersSubTree = currentNode.characterToNodeArr[currentCharacterInPassedStr];
+        Node charactersSubTree = currentNode.characterToSuccessorNode[currentCharacterInPassedStr];
         return longestKeysLengthThatPrefixOf(charactersSubTree, passedStr, currentCharacterSpot + 1, keysLength);
     }
 
@@ -282,32 +310,34 @@ public class TrieSTWebsite<Value> {
      * @param passedKey the key
      * @throws IllegalArgumentException if {@code key} is {@code null}
      */
-    public void delete(String passedKey) {
+    public void deletePairOf(String passedKey) {
         if (passedKey == null) throw new IllegalArgumentException("argument to delete() is null");
-        root = deleteNodesOfPathFrom(root, passedKey, 0);
+        rootNode = deleteNodesOfPathThatStartFrom(rootNode, passedKey, 0);
     }
 
-    private Node deleteNodesOfPathFrom(Node currentNode, String passedKey, int currentCharacterSpot) {
-        if (currentNode == null) return null;
+    private Node deleteNodesOfPathThatStartFrom(Node currentRootNode, String passedKey, int currentStartCharacterSpot) {
+        if (currentRootNode == null) return null;
 
         /* #1 把“键字符串的尾字符”所对应的结点的value 设置为null */
         // 如果当前结点 是 键字符串尾字符所对应的结点，则：把结点的value 设置为null
-        if (currentCharacterSpot == passedKey.length()) {
-            if (currentNode.value != null) keysAmount--;
-            currentNode.value = null;
-        } else { // 如果还不是“尾字符结点”的话，则：递归地在树中查找下一个字符对应地结点
-            char currentCharacterOfPassedKey = passedKey.charAt(currentCharacterSpot);
-            Node successorSubTree = currentNode.characterToNodeArr[currentCharacterOfPassedKey];
-            currentNode.characterToNodeArr[currentCharacterOfPassedKey] = deleteNodesOfPathFrom(successorSubTree, passedKey, currentCharacterSpot + 1);
+        if (currentStartCharacterSpot == passedKey.length()) {
+            if (currentRootNode.value != null)
+                keysAmount--;
+            currentRootNode.value = null;
+        } else { // 如果还不是“尾字符结点”的话，则：递归地在树中查找下一个字符所对应的结点
+            char currentCharacter = passedKey.charAt(currentStartCharacterSpot);
+            Node successorNodeForCharacter = currentRootNode.characterToSuccessorNode[currentCharacter];
+
+            currentRootNode.characterToSuccessorNode[currentCharacter] = deleteNodesOfPathThatStartFrom(successorNodeForCharacter, passedKey, currentStartCharacterSpot + 1);
         }
 
         /* #2 如果当前节点 既没有value，又没有子链接，则：物理删除当前结点（返回null） */
         // 如果当前节点 “非空值”，则：保留当前结点
-        if (currentNode.value != null) return currentNode;
+        if (currentRootNode.value != null) return currentRootNode;
         // 如果当前节点 存在“非空链接”，则：保留当前结点
-        for (int currentCharacterOfAlphabet = 0; currentCharacterOfAlphabet < R; currentCharacterOfAlphabet++)
-            if (currentNode.characterToNodeArr[currentCharacterOfAlphabet] != null)
-                return currentNode;
+        for (int currentCharacterOfAlphabet = 0; currentCharacterOfAlphabet < characterOptionsAmount; currentCharacterOfAlphabet++)
+            if (currentRootNode.characterToSuccessorNode[currentCharacterOfAlphabet] != null)
+                return currentRootNode;
 
         // 对于其他情况，返回null 来 从单词查找树中物理删除当前结点
         return null;
@@ -324,14 +354,14 @@ public class TrieSTWebsite<Value> {
         TrieSTWebsite<Integer> st = new TrieSTWebsite<Integer>();
         for (int i = 0; !StdIn.isEmpty(); i++) {
             String key = StdIn.readString();
-            st.put(key, i);
+            st.putInPairOf(key, i);
         }
 
         // print results
         if (st.size() < 100) {
             StdOut.println("keys(\"\"):");
             for (String key : st.getIterableKeys()) {
-                StdOut.println(key + " " + st.get(key));
+                StdOut.println(key + " " + st.getAssociatedValueOf(key));
             }
             StdOut.println();
         }
