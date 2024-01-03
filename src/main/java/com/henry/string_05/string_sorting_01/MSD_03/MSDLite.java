@@ -3,80 +3,84 @@ package com.henry.string_05.string_sorting_01.MSD_03;
 // 算法：从左往右，对特定区间中的 所有字符串的 当前字符，进行键索引计数。
 // 原理：把原始任务（把所有的字符串按照字母表顺序 完全排序） 分解成为 #1 对首字符执行键索引计数操作（得到有序的首字符）; #2 对各个子组进行同样的操作。
 // 递归方法：将 指定闭区间中的所有字符串，从 指定字符开始 完全排序；
+// 手段：使用 字符串中的字符 来 作为”键索引计数法“中的”索引“，使用 字符串本身 作为”键“
 // 可以使用递归的特征：更小规模问题的答案 能够帮助解决 原始问题。
 public class MSDLite {
-    private static int biggestGroupNoPlus1 = 256;
+    private static int biggestIndexPlus1 = 256;
     private static final int thresholdToSwitch = 15;
     private static String[] aux;
 
     // 字符 -> 字符的数字表示    手段：把字符以int类型的值返回
-    private static int charAt(String word, int slot) {
-        if (slot < word.length()) // 字符串范围内
-            return word.charAt(slot); // 返回对应的字符
-        else // 字符串的末尾'\0'
-            return -1; // 使用-1
+    private static int charAt(String word, int characterSlot) {
+        if (characterSlot < word.length()) // 如果参数 在有效的字符范围内
+            return word.charAt(characterSlot); // 返回对应的字符
+        else // 否则
+            return -1; // 返回-1
     }
 
-    public static void sort(String[] wordArr) {
-        int wordAmount = wordArr.length;
-        aux = new String[wordAmount];
-        sort(wordArr, 0, wordAmount - 1, 0);
+    public static void sort(String[] wordsArr) {
+        int wordsAmount = wordsArr.length;
+        aux = new String[wordsAmount];
+        sortWordRangesFromGivenCharacter(wordsArr, 0, wordsAmount - 1, 0);
     }
 
     // 将 [a[wordLeftBar], a[wordRightBar]]这个区间中的所有字符串，从 currentCharacterCursor个字符开始 完全排序
-    private static void sort(String[] wordArr, int wordLeftBar, int wordRightBar, int currentCharacterCursor) {
-        // 当区间比较小时: #1 切换到 插入排序（更新版）; #2 递归结束，表示排序工作完成
+    private static void sortWordRangesFromGivenCharacter(String[] originalWordArr, int wordLeftBar, int wordRightBar, int currentStartCharacterCursor) {
+        // 〇 当区间比较小时: #1 切换到 插入排序（更新版）; #2 递归结束，表示排序工作完成
         if (wordRightBar <= wordLeftBar + thresholdToSwitch) {
-            insertion(wordArr, wordLeftBar, wordRightBar, currentCharacterCursor);
+            insertion(originalWordArr, wordLeftBar, wordRightBar, currentStartCharacterCursor);
             return;
         }
 
-        // 🐖 每次对sort()的调用，都会产生一个新的 keyToItsStartIndexArr[]数组
-        // 准备 keyToItsStartIndex[] - #1 key = 字符的数字表示 + 1; 用于避免出现值为-1的key  #2 多预留出一个位置，用于 累加得到 startIndex
-        int[] keyToItsStartIndexArr = new int[biggestGroupNoPlus1 + 2];
+        // 🐖 每次对sort()的调用，都会产生一个新的 indexToItsStartSpotInResultSequence[]数组
+        // Ⅰ 准备 indexToItsStartSpotInResultSequence[] - #1 index = 字符的数字表示 + 1; 用于避免出现值为-1的index  #2 多预留出一个位置，用于 累加得到 startSpot
+        int[] indexToItsStartSpotInResultSequence = new int[biggestIndexPlus1 + 2];
         for (int currentWordCursor = wordLeftBar; currentWordCursor <= wordRightBar; currentWordCursor++) {
-            // #1 构造出 keyPlus1ToItsSize[] key = 字符的数字表示 + 1; KeyPlus1 = key + 1 👇
-            int key = charAt(wordArr[currentWordCursor], currentCharacterCursor) + 2;
+            // #1 构造出 keyPlus1ToItsSize[] indexOfCurrentWord = 字符的数字表示 + 1; KeyPlus1 = indexOfCurrentWord + 1 👇
+            int indexOfCurrentWord = charAt(originalWordArr[currentWordCursor], currentStartCharacterCursor) + 2;
             // 累计
-            keyToItsStartIndexArr[key]++;
+            indexToItsStartSpotInResultSequence[indexOfCurrentWord]++;
         }
 
-        // 把key->itsSize 转换为 key->itsStartIndex
-        for (int currentKey = 0; currentKey < biggestGroupNoPlus1 + 1; currentKey++) {
-            // 手段：使用当前元素 与 它的下一个元素 累加以更新 它的下一个元素的值
-            keyToItsStartIndexArr[currentKey + 1] += keyToItsStartIndexArr[currentKey];
+        // Ⅱ 把index->itsSize 转换为 index->itsStartSpot
+        for (int currentIndex = 0; currentIndex < biggestIndexPlus1 + 1; currentIndex++) {
+            // 递推公式：当前元素的值 = 当前元素的“当前值” + “其前一个元素”的值
+            indexToItsStartSpotInResultSequence[currentIndex + 1] += indexToItsStartSpotInResultSequence[currentIndex];
         }
 
-        // 从[a[wordLeftBar], wordRightBar]]区间中的所有字符串中，构造出 第currentCharacterCursor个字符有序的 aux[]
+        // Ⅲ 从[a[wordLeftBar], wordRightBar]]区间中的所有字符串中，构造出 第currentCharacterCursor个字符有序的 aux[]
         for (int currentWordCursor = wordLeftBar; currentWordCursor <= wordRightBar; currentWordCursor++) {
             // 获取当前单词在当前位置上的字符的数字表示
-            int charsIntForm = charAt(wordArr[currentWordCursor], currentCharacterCursor);
+            int characterInInt = charAt(originalWordArr[currentWordCursor], currentStartCharacterCursor);
             // 由数字表示 得到 对应的key
-            int currentKey = charsIntForm + 1;
+            int indexOfCurrentWord = characterInInt + 1;
             // 得到该字符 在最终结果中的起始索引
-            int keysStartIndex = keyToItsStartIndexArr[currentKey];
-            // 把当前字符串 排定到 预期的索引位置上
-            aux[keysStartIndex] = wordArr[currentWordCursor];
+            int currentWordCorrectSpot = indexToItsStartSpotInResultSequence[indexOfCurrentWord];
+            // 把当前单词 排定到 预期的索引位置上
+            aux[currentWordCorrectSpot] = originalWordArr[currentWordCursor];
 
-            // 把当前key -> 起始索引位置+1，方便将 此key对应的下一个字符串 排定到正确的位置上
-            keyToItsStartIndexArr[currentKey]++;
+            // 把当前key -> 起始索引位置+1，来 把此index所对应的下一个字符串 排定到正确的位置上
+            indexToItsStartSpotInResultSequence[indexOfCurrentWord]++;
         }
 
-        // 把aux[]中的字符串，逐个写回到 原始数组wordArr[]中
+        // Ⅳ 把aux[]中的字符串，逐个写回到 原始数组wordArr[]中
         // 示例aux[]： 0 1 2 2 2 ... 14 14 .. 14
         for (int currentWordCursor = wordLeftBar; currentWordCursor <= wordRightBar; currentWordCursor++) {
-            wordArr[currentWordCursor] = aux[currentWordCursor - wordLeftBar];
+            originalWordArr[currentWordCursor] = aux[currentWordCursor - wordLeftBar];
         }
 
-        // 递归的以每个字符作为键 进行排序
-        // 针对 当前的keyToItsStartIndexArr 中存在的每一个key...
-        // 🐖 原始数组根据第一个字符产生几个分组，这里就会对应的 有多少次循环（需要排序的次数）
-        for (int currentKey = 0; currentKey < biggestGroupNoPlus1; currentKey++) {
-            // 🐖 如果 currentKey 与 currentKey+1 在 当前的keyToItsStartIndexArr中的值相同，说明 不需要执行排序 - sort()会直接return
-            // 对于当前key的分组，进行 其所对应的区间内的字符串的排序（实现 从下一个字符开始 完全有序）
-            // 当前key的分组所对应的区间：[wordLeftBar, wordLeftBar + offset]???
-            // 从下一个字符开始 完全有序：currentCharacterCursor + 1
-            sort(wordArr, wordLeftBar + keyToItsStartIndexArr[currentKey], wordLeftBar + keyToItsStartIndexArr[currentKey + 1] - 1, currentCharacterCursor + 1);
+        // 对于”使用首字符进行键索引计数操作后“所得到的 多个 索引不同的子集合，获取到 index在当前结果序列中的子集合区间
+        // 特征：结果序列中，index存在有多个，且不确定具体是哪些index（字符）；
+        // 手段：对所有可能的字符进行遍历，找到那些个 能够产生有效子集合的index
+        // 🐖 原始数组根据”首字符“产生几个分组/子集合，这里就会对应的 有多少次循环（需要排序的次数）
+        for (int currentIndex = 0; currentIndex < biggestIndexPlus1; currentIndex++) {
+            // 当前index 在”结果序列“中，所对应的 有效子集合/区间 leftBar = X[index], rightBar = X[index + 1] - 1.
+            // 🐖 如果index对应的区间[leftBar, rightBar] 不是一个有效区间，说明 index不存在对应的子集合，则：sort()会直接return
+            int wordLeftBarForCurrentIndex = wordLeftBar + indexToItsStartSpotInResultSequence[currentIndex];
+            int wordRightBarForCurrentIndex = wordLeftBar + indexToItsStartSpotInResultSequence[currentIndex + 1] - 1;
+
+            // 从下一个字符开始 完全有序 / 子集合中的”首字符“：currentCharacterCursor + 1
+            sortWordRangesFromGivenCharacter(originalWordArr, wordLeftBarForCurrentIndex, wordRightBarForCurrentIndex, currentStartCharacterCursor + 1);
         }
     }
 
