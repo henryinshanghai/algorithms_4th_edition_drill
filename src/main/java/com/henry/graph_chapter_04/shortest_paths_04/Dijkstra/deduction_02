@@ -1,0 +1,13 @@
+===
+命题R Dijkstra算法 能够解决 边的权重非负的加权有向图 的 “单点最短路径问题”。
+
+证明：
+如果v是从起点可达的，那么 所有v->w的边 都只会被放松一次。
+当v被放松时，必然有 vertexToItsPathWeight[w] <= vertexToItsPathWeight[v] + e.weight().
+
+这个不等式 在算法结束之前 都会成立，所以 vertexToItsPathWeight[w]只会逐渐变小。
+🐖 放松操作 只会减少 vertexToItsPathWeight[]元素的值。
+而 vertexToItsPathWeight[v]不会改变（因为 #1 边的权重为非负；#2 在每一步中，算法都会选择
+vertexToItsPathWeight[]中的最小顶点，所以之后的操作 不可能会导致 任何vertexToItsPathWeight[]的值 小于 vertexToItsPathWeight[v]）
+
+综上，在 由s可达的所有顶点 都被添加到树中 后，“最短路径的最优性条件”成立，即 命题P成立。

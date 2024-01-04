@@ -1,0 +1,12 @@
+Prim算法：用于 寻找 加权无向图中的最小生成树；
+步骤：构造最小生成树的每一个步骤，都会向 这棵树中添加一条新的边。
+
+Dijkstra算法 使用了 类似的方式 来 计算“图中指定起始结点到其所有可达结点的最短路径树”。
+
+#1 首先，把 vertexToItsPathWeight[s]初始化为0，
+并把 vertexToItsPathWeight[]的其他元素 初始化为 正无穷大。
+
+#2 然后，把 vertexToItsPathWeight[]中 最小的“非树顶点” 放松，并 把该结点 添加到树中。
+
+#3 重复操作，直到 所有的顶点 都被添加到树中，或者
+所有的 非树顶点的vertexToItsPathWeight[]值 都为无穷大。

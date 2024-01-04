@@ -1,0 +1,10 @@
+如前所述，思考 Dijkstra算法的另一种方式 就是 将它与4.3节的Prim算法 相比较。
+#1 两种算法 都会 使用添加边的方式 来 构造一棵树：
+    Prim算法 每次添加的都是 离树最近的“非树节点”；
+    Dijkstra算法 每次添加的都是 离起点最近的“非树节点”；
+#2 它们都不需要使用 vertexToIsMarked[]数组，因为
+    !marked[w] 等价于 distTo[w] == 无穷大（vertexToItsPathWeight）
+    换句话说，把 Dijkstra算法中的 有向图 换成无向图，并 忽略 relax()方法中的 distTo[v]（vertexToItsPathWeight）部分的代码，
+    就会得到算法4.7(Prim算法的即时版本)
+
+    同样地，根据 LazyPrimMST 来 实现Dijkstra算哒的延时版本 也不困难。

@@ -1,0 +1,9 @@
+== 数据结构 ==
+为了实现 Dijkstra算法，除了 vertexToItsPathWeight[] 与 vertexToItsTowardsEdge[]之外，
+还需要一条 索引优先队列pq 来 保存“需要被放松的顶点”，并 确认“下一个被放松的顶点”。
+
+IndexMinPQ 能够用于 #1 把索引与键（优先级）关联起来； #2 删除并返回 优先级最低的索引。
+具体到 Dijkstra算法中，我们只需要 把顶点v 与 vertexToItsPathWeight[v]关联起来，
+就能够得到 Dijkstra算法的实现。
+
+推论：vertexToItsTowardsEdge[]中元素所对应的可达顶点，构成了 一棵最短路径树。
