@@ -18,7 +18,7 @@ public class DepthFirstSearch {
     // 在构造方法中，调用dfs()。  作用：创建graph对象时，连通的顶点就已经被标记了
     public DepthFirstSearch(Graph graph, int startVertex) {
         // 初始化 boolean数组 起始默认为false
-        vertexToIsMarkedArr = new boolean[graph.V()];
+        vertexToIsMarkedArr = new boolean[graph.vertexAmount()];
         // 调用dfs 在遍历的同时：标记顶点、检查顶点
         markVertexAndCountsViaDFS(graph, startVertex);
     }
@@ -32,7 +32,7 @@ public class DepthFirstSearch {
         // 记录“被标记的节点”的数量
         markedVertexAmount++;
         // 对于 当前节点v的每一个相邻节点w
-        for (int currentAdjacentVertex : graph.adj(currentVertex)) {
+        for (int currentAdjacentVertex : graph.adjacentVertexesOf(currentVertex)) {
             // 如果节点w还没有被标记过，就对它进行深度搜索
             if(isNotMarked(currentAdjacentVertex)) markVertexAndCountsViaDFS(graph, currentAdjacentVertex);
         }
@@ -64,7 +64,7 @@ public class DepthFirstSearch {
         DepthFirstSearch markedGraph = new DepthFirstSearch(graph, startVertex);
 
         // 2 调用API来获取图的性质
-        for (int currentVertex = 0; currentVertex < graph.V(); currentVertex++) {
+        for (int currentVertex = 0; currentVertex < graph.vertexAmount(); currentVertex++) {
             // 打印出图中，所有可以到达（aka 与顶点连通）的顶点
             if (markedGraph.doesConnectedWithStartVertex(currentVertex)) {
                 StdOut.print(currentVertex + " ");
@@ -73,7 +73,7 @@ public class DepthFirstSearch {
         StdOut.println();
 
         // 如果 与起点连通的顶点的数量 不等于 图中所有顶点的数量
-        if (markedGraph.vertexAmountConnectToStartVertex() != graph.V()) {
+        if (markedGraph.vertexAmountConnectToStartVertex() != graph.vertexAmount()) {
             StdOut.print("NOT ");
         }
         StdOut.print("connected");

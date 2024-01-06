@@ -11,10 +11,10 @@ public class CycleExistOrNot {
 
     public CycleExistOrNot(Graph graph) {
         // 初始化成员变量
-        vertexToIsMarked = new boolean[graph.V()];
+        vertexToIsMarked = new boolean[graph.vertexAmount()];
 
         // 对于图中的每一个节点，判断节点所在的连通分量中是否存在环
-        for (int currentVertex = 0; currentVertex < graph.V(); currentVertex++) {
+        for (int currentVertex = 0; currentVertex < graph.vertexAmount(); currentVertex++) {
             if (isNotMarked(currentVertex)) {
                 // 由于当前结点是“起始结点”，所以 它不存在自己的“parentVertex”，这里 书上把它设置为“当前结点自身”，
                 // 而网站上 把它设置为“-1”（似乎更容易理解一些）
@@ -35,7 +35,7 @@ public class CycleExistOrNot {
         vertexToIsMarked[currentVertex] = true;
 
         // 对于当前节点的每一个相邻节点
-        for (int currentAdjacentVertex : graph.adj(currentVertex)) {
+        for (int currentAdjacentVertex : graph.adjacentVertexesOf(currentVertex)) {
             if (isNotMarked(currentAdjacentVertex)) { // 对于未被标记的邻居结点...
                 markVertexAndDecideExistLoopViaDFS(graph, currentAdjacentVertex, currentVertex);
             // 如果“当前节点的邻居节点”已经被标记...

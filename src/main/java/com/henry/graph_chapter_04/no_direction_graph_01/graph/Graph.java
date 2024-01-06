@@ -58,7 +58,7 @@ import java.util.NoSuchElementException;
  *  It uses &Theta;(<em>E</em> + <em>V</em>) space, where <em>E</em> is
  *  the number of edges and <em>V</em> is the number of vertices.
  *  All instance methods take &Theta;(1) time. (Though, iterating over
- *  the vertices returned by {@link #adj(int)} takes time proportional
+ *  the vertices returned by {@link #adjacentVertexesOf(int)} takes time proportional
  *  to the degree of the vertex.)
  *  Constructing an empty graph with <em>V</em> vertices takes
  *  &Theta;(<em>V</em>) time; constructing a graph with <em>E</em> edges
@@ -74,24 +74,25 @@ import java.util.NoSuchElementException;
 public class Graph {
     private static final String NEWLINE = System.getProperty("line.separator");
 
-    private final int V;
-    private int E;
-    private Bag<Integer>[] adj;
+    private final int vertexAmount;
+    private int edgesAmount;
+    private Bag<Integer>[] vertexToItsAdjacentVertexes;
 
     /**
      * Initializes an empty graph with {@code V} vertices and 0 edges.
      * param V the number of vertices
      *
-     * @param  V number of vertices
+     * @param  vertexAmount number of vertices
      * @throws IllegalArgumentException if {@code V < 0}
      */
-    public Graph(int V) {
-        if (V < 0) throw new IllegalArgumentException("Number of vertices must be non-negative");
-        this.V = V;
-        this.E = 0;
-        adj = (Bag<Integer>[]) new Bag[V];
-        for (int v = 0; v < V; v++) {
-            adj[v] = new Bag<Integer>();
+    public Graph(int vertexAmount) {
+        if (vertexAmount < 0) throw new IllegalArgumentException("Number of vertices must be non-negative");
+        this.vertexAmount = vertexAmount;
+        this.edgesAmount = 0;
+        vertexToItsAdjacentVertexes = (Bag<Integer>[]) new Bag[vertexAmount];
+
+        for (int currentVertex = 0; currentVertex < vertexAmount; currentVertex++) {
+            vertexToItsAdjacentVertexes[currentVertex] = new Bag<Integer>();
         }
     }
 
@@ -110,20 +111,22 @@ public class Graph {
     public Graph(In in) {
         if (in == null) throw new IllegalArgumentException("argument is null");
         try {
-            this.V = in.readInt();
-            if (V < 0) throw new IllegalArgumentException("number of vertices in a Graph must be non-negative");
-            adj = (Bag<Integer>[]) new Bag[V];
-            for (int v = 0; v < V; v++) {
-                adj[v] = new Bag<Integer>();
+            this.vertexAmount = in.readInt();
+            if (vertexAmount < 0) throw new IllegalArgumentException("number of vertices in a Graph must be non-negative");
+            vertexToItsAdjacentVertexes = (Bag<Integer>[]) new Bag[vertexAmount];
+            for (int currentVertex = 0; currentVertex < vertexAmount; currentVertex++) {
+                vertexToItsAdjacentVertexes[currentVertex] = new Bag<Integer>();
             }
-            int E = in.readInt();
-            if (E < 0) throw new IllegalArgumentException("number of edges in a Graph must be non-negative");
-            for (int i = 0; i < E; i++) {
-                int v = in.readInt();
-                int w = in.readInt();
-                validateVertex(v);
-                validateVertex(w);
-                addEdge(v, w);
+
+            int edgeAmount = in.readInt();
+            if (edgeAmount < 0) throw new IllegalArgumentException("number of edges in a Graph must be non-negative");
+
+            for (int currentEdgeCursor = 0; currentEdgeCursor < edgeAmount; currentEdgeCursor++) {
+                int vertexV = in.readInt();
+                int vertexW = in.readInt();
+                validateVertex(vertexV);
+                validateVertex(vertexW);
+                addEdge(vertexV, vertexW);
             }
         }
         catch (NoSuchElementException e) {
@@ -135,28 +138,30 @@ public class Graph {
     /**
      * Initializes a new graph that is a deep copy of {@code G}.
      *
-     * @param  G the graph to copy
+     * @param  passedGraph the graph to copy
      * @throws IllegalArgumentException if {@code G} is {@code null}
      */
-    public Graph(Graph G) {
-        this.V = G.V();
-        this.E = G.E();
-        if (V < 0) throw new IllegalArgumentException("Number of vertices must be non-negative");
+    public Graph(Graph passedGraph) {
+        this.vertexAmount = passedGraph.vertexAmount();
+        this.edgesAmount = passedGraph.edgeAmount();
+        if (vertexAmount < 0) throw new IllegalArgumentException("Number of vertices must be non-negative");
 
         // update adjacency lists
-        adj = (Bag<Integer>[]) new Bag[V];
-        for (int v = 0; v < V; v++) {
-            adj[v] = new Bag<Integer>();
+        vertexToItsAdjacentVertexes = (Bag<Integer>[]) new Bag[vertexAmount];
+        for (int currentVertex = 0; currentVertex < vertexAmount; currentVertex++) {
+            vertexToItsAdjacentVertexes[currentVertex] = new Bag<Integer>();
         }
 
-        for (int v = 0; v < G.V(); v++) {
+        for (int currentVertex = 0; currentVertex < passedGraph.vertexAmount(); currentVertex++) {
             // reverse so that adjacency list is in same order as original
-            Stack<Integer> reverse = new Stack<Integer>();
-            for (int w : G.adj[v]) {
-                reverse.push(w);
+            Stack<Integer> adjacentVertexesInReverseOrder = new Stack<Integer>();
+
+            for (int currentAdjacentVertex : passedGraph.vertexToItsAdjacentVertexes[currentVertex]) {
+                adjacentVertexesInReverseOrder.push(currentAdjacentVertex);
             }
-            for (int w : reverse) {
-                adj[v].add(w);
+
+            for (int currentAdjacentVertex : adjacentVertexesInReverseOrder) {
+                vertexToItsAdjacentVertexes[currentVertex].add(currentAdjacentVertex);
             }
         }
     }
@@ -166,8 +171,8 @@ public class Graph {
      *
      * @return the number of vertices in this graph
      */
-    public int V() {
-        return V;
+    public int vertexAmount() {
+        return vertexAmount;
     }
 
     /**
@@ -175,14 +180,14 @@ public class Graph {
      *
      * @return the number of edges in this graph
      */
-    public int E() {
-        return E;
+    public int edgeAmount() {
+        return edgesAmount;
     }
 
     // throw an IllegalArgumentException unless {@code 0 <= v < V}
     private void validateVertex(int v) {
-        if (v < 0 || v >= V)
-            throw new IllegalArgumentException("vertex " + v + " is not between 0 and " + (V-1));
+        if (v < 0 || v >= vertexAmount)
+            throw new IllegalArgumentException("vertex " + v + " is not between 0 and " + (vertexAmount -1));
     }
 
     /**
@@ -195,22 +200,22 @@ public class Graph {
     public void addEdge(int v, int w) {
         validateVertex(v);
         validateVertex(w);
-        E++;
-        adj[v].add(w);
-        adj[w].add(v);
+        edgesAmount++;
+        vertexToItsAdjacentVertexes[v].add(w);
+        vertexToItsAdjacentVertexes[w].add(v);
     }
 
 
     /**
      * Returns the vertices adjacent to vertex {@code v}.
      *
-     * @param  v the vertex
+     * @param  passedVertex the vertex
      * @return the vertices adjacent to vertex {@code v}, as an iterable
      * @throws IllegalArgumentException unless {@code 0 <= v < V}
      */
-    public Iterable<Integer> adj(int v) {
-        validateVertex(v);
-        return adj[v];
+    public Iterable<Integer> adjacentVertexesOf(int passedVertex) {
+        validateVertex(passedVertex);
+        return vertexToItsAdjacentVertexes[passedVertex];
     }
 
     /**
@@ -222,7 +227,7 @@ public class Graph {
      */
     public int degree(int v) {
         validateVertex(v);
-        return adj[v].size();
+        return vertexToItsAdjacentVertexes[v].size();
     }
 
 
@@ -234,10 +239,10 @@ public class Graph {
      */
     public String toString() {
         StringBuilder s = new StringBuilder();
-        s.append(V + " vertices, " + E + " edges " + NEWLINE);
-        for (int v = 0; v < V; v++) {
+        s.append(vertexAmount + " vertices, " + edgesAmount + " edges " + NEWLINE);
+        for (int v = 0; v < vertexAmount; v++) {
             s.append(v + ": ");
-            for (int w : adj[v]) {
+            for (int w : vertexToItsAdjacentVertexes[v]) {
                 s.append(w + " ");
             }
             s.append(NEWLINE);

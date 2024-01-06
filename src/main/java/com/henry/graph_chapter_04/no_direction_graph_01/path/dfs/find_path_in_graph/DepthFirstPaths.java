@@ -21,9 +21,9 @@ public class DepthFirstPaths {
     // 构造方法的语法中不能够添加返回值类型
     public DepthFirstPaths(Graph graph, int startVertex) {
         // 初始状态都是未标记
-        vertexToIsMarked = new boolean[graph.V()];
+        vertexToIsMarked = new boolean[graph.vertexAmount()];
         // 数组中所有位置的值初始都是0 -  路径的长度 不会超过 图中总节点的数量
-        terminalVertexToDepartVertex = new int[graph.V()];
+        terminalVertexToDepartVertex = new int[graph.vertexAmount()];
         // 初始化起点s
         this.startVertex = startVertex;
 
@@ -36,7 +36,7 @@ public class DepthFirstPaths {
         // 标记当前顶点
         vertexToIsMarked[currentVertex] = true;
         // 对于当前顶点的所有相邻节点
-        for (int currentAdjacentVertex : graph.adj(currentVertex)) {
+        for (int currentAdjacentVertex : graph.adjacentVertexesOf(currentVertex)) {
             // 如果相邻节点还没有被标记过...
             if (isNotMarked(currentAdjacentVertex)) {
                 // 记录 当前路径中的结点    手段：记录下"当前邻居节点"(terminalVertex) 到 “当前结点”(departVertex)的连接关系
@@ -86,7 +86,7 @@ public class DepthFirstPaths {
         DepthFirstPaths markedGraph = new DepthFirstPaths(graph, startVertex);
 
         // 对于图中的每一个顶点
-        for (int currentVertex = 0; currentVertex < graph.V(); currentVertex++) {
+        for (int currentVertex = 0; currentVertex < graph.vertexAmount(); currentVertex++) {
             // 从起点到 当前顶点的路径为...
             StdOut.print(startVertex + " -> " + currentVertex + ": ");
 

@@ -77,10 +77,10 @@ public class CCWebsite {
      * @param G the undirected graph
      */
     public CCWebsite(Graph G) {
-        marked = new boolean[G.V()];
-        id = new int[G.V()];
-        size = new int[G.V()];
-        for (int v = 0; v < G.V(); v++) {
+        marked = new boolean[G.vertexAmount()];
+        id = new int[G.vertexAmount()];
+        size = new int[G.vertexAmount()];
+        for (int v = 0; v < G.vertexAmount(); v++) {
             if (!marked[v]) {
                 dfs(G, v);
                 count++;
@@ -110,7 +110,7 @@ public class CCWebsite {
         marked[v] = true;
         id[v] = count;
         size[count]++;
-        for (int w : G.adj(v)) {
+        for (int w : G.adjacentVertexesOf(v)) {
             if (!marked[w]) {
                 dfs(G, w);
             }
@@ -226,7 +226,7 @@ public class CCWebsite {
         for (int i = 0; i < m; i++) {
             components[i] = new Queue<Integer>();
         }
-        for (int v = 0; v < G.V(); v++) {
+        for (int v = 0; v < G.vertexAmount(); v++) {
             components[cc.id(v)].enqueue(v);
         }
 

@@ -17,11 +17,11 @@ public class ConnectedComponentsLite {
     // 构造器
     public ConnectedComponentsLite(Graph graph) {
         // 初始化成员变量 count的初始值为0 已经初始化完成
-        vertexToIsMarked = new boolean[graph.V()];
-        vertexToItsComponentId = new int[graph.V()];
+        vertexToIsMarked = new boolean[graph.vertexAmount()];
+        vertexToItsComponentId = new int[graph.vertexAmount()];
 
         // 对于图中的每一个顶点
-        for(int currentVertex = 0; currentVertex < graph.V(); currentVertex++) {
+        for(int currentVertex = 0; currentVertex < graph.vertexAmount(); currentVertex++) {
             // 如果当前顶点还没有标记过...
             if (isNotMarked(currentVertex)) {
                 // 找到当前节点所连通的所有顶点 然后成组
@@ -44,7 +44,7 @@ public class ConnectedComponentsLite {
         vertexToItsComponentId[currentVertex] = componentAmount;
 
         // 对所有当前节点邻接表中的所有节点：标记 + 添加组名
-        for (int currentAdjacentVertex : graph.adj(currentVertex)) {
+        for (int currentAdjacentVertex : graph.adjacentVertexesOf(currentVertex)) {
             if (isNotMarked(currentAdjacentVertex)) {
                 markVertexAndAssignItsComponentIdViaDFS(graph, currentAdjacentVertex);
             }
@@ -88,7 +88,7 @@ public class ConnectedComponentsLite {
         }
 
         // 调用API，为components中的item逐一赋值
-        for (int currentVertex = 0; currentVertex < graph.V(); currentVertex++) {
+        for (int currentVertex = 0; currentVertex < graph.vertexAmount(); currentVertex++) {
             // 把节点v添加到它所属的分组中 - 获取分组id的手段：dividedGraph.ids[顶点]
             componentIdToComponent[dividedGraph.vertexToItsComponentId[currentVertex]].add(currentVertex);
         }
