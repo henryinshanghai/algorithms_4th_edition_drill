@@ -1,4 +1,4 @@
-package com.henry.sort_chapter_02.merge_sort_algorithm_02.marge_bottom_to_up_03;
+package com.henry.sort_chapter_02.merge_sort_algorithm_02.marge_bottom_to_up_02;
 
 /*
     分治思想的方式：用更小规模的问题的解 来 解决原始问题。

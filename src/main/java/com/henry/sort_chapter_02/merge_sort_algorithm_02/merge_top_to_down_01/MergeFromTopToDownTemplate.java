@@ -1,4 +1,4 @@
-package com.henry.sort_chapter_02.merge_sort_algorithm_02.merge_top_to_down_02;
+package com.henry.sort_chapter_02.merge_sort_algorithm_02.merge_top_to_down_01;
 
 /*
 任务描述：得到“完整排序的数组” = 把数组中的每一个元素都“排定到其正确的位置”
