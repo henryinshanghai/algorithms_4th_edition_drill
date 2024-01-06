@@ -24,7 +24,6 @@ import edu.princeton.cs.algs4.StdRandom;
  *  作用：在线性对数时间内计算出两个排列之间的Kendall Tau距离
  *
  */
-
 public class KendallTauDistanceTemplate {
 
     // 计算并返回两个排列之间的 Kendall tau distance
@@ -35,10 +34,10 @@ public class KendallTauDistanceTemplate {
         int itemAmount = permutation01.length;
 
         // #1 对permutation01，记录其 item -> spot的关系 - 相当于snapshot01
-        int[] itemToSpotIn01Array = new int[itemAmount];
+        int[] itemToItsSpotInPermu01 = new int[itemAmount];
         for (int currentSpot = 0; currentSpot < itemAmount; currentSpot++) {
             int itemOfCurrentSpot = permutation01[currentSpot];
-            itemToSpotIn01Array[itemOfCurrentSpot] = currentSpot;
+            itemToItsSpotInPermu01[itemOfCurrentSpot] = currentSpot;
         }
 
         // #2 记录 某个元素 “在排列02中的位置” -> “在排列01中的位置” 的关系 - 相当于从排列01，变换到排列02。
@@ -47,7 +46,7 @@ public class KendallTauDistanceTemplate {
         for (int currentSpotIn02 = 0; currentSpotIn02 < itemAmount; currentSpotIn02++){
             int itemIn02 = permutation02[currentSpotIn02];
             // itemIn02元素 “在排列02中的位置” 👇   itemIn02元素 “在排列01中的位置”👇
-            spotIn02ToSpotIn01Array[currentSpotIn02] = itemToSpotIn01Array[itemIn02];
+            spotIn02ToSpotIn01Array[currentSpotIn02] = itemToItsSpotInPermu01[itemIn02];
         }
 
         /* 返回 “从排列1 变化到 排列2”所产生的“逆序对”数量 */
