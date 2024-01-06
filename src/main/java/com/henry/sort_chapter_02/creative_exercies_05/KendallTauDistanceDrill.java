@@ -20,7 +20,7 @@ public class KendallTauDistanceDrill {
         }
 
         // 3 get the inversion numbers of 'spotIn02ToSpotIn01Array'
-        return HelperUtil.getInversionNumber(spotIn02ToSpotIn01Array);
+        return ArrayUtil.getInversionNumber(spotIn02ToSpotIn01Array);
     }
 
     private static void show(int[] a) {
@@ -37,7 +37,7 @@ public class KendallTauDistanceDrill {
             permutation[currentSpot] = currentSpot;
         }
 
-        HelperUtil.shuffle(permutation);
+        ArrayUtil.shuffle(permutation);
 
         return permutation;
     }
