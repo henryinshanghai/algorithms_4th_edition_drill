@@ -5,14 +5,16 @@ import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.Stack;
 import edu.princeton.cs.algs4.StdOut;
 
-// 目标：从图中，获取到 从起始顶点到其所有可达顶点的 所有路径。
+// 验证：可以使用在图中从指定起点开始进行DFS（标记结点）的方式 + terminalVertexToDepartVertex 来
+// 获取到 起始结点 到 其所有可达结点的对应路径。
+// 目标：从图中，获取到 从起始顶点到其所有可达顶点的 对应路径。
 // 命令行参数：E:\development_project\algorithms_4th_edition_drill\src\main\java\com\henry\graph_chapter_04\no_direction_graph_01\path\dfs\go_through_graph\tinyCG 0
 public class DepthFirstPaths {
     /* 根据具体任务进行成员变量的设置 */
     // 当前变量有没有被标记过
     private boolean[] vertexToIsMarked;
     // 记录路径 - 手段：一个记录节点的数组
-    private int[] vertexToVertex;
+    private int[] terminalVertexToDepartVertex;
     // 起始顶点 - 为什么这里的起点s需要作为成员变量？   因为路径中需要这个顶点s，而且使用成员变量方便在方法中使用它
     private final int startVertex;
 
@@ -21,26 +23,26 @@ public class DepthFirstPaths {
         // 初始状态都是未标记
         vertexToIsMarked = new boolean[graph.V()];
         // 数组中所有位置的值初始都是0 -  路径的长度 不会超过 图中总节点的数量
-        vertexToVertex = new int[graph.V()];
+        terminalVertexToDepartVertex = new int[graph.V()];
         // 初始化起点s
         this.startVertex = startVertex;
 
         // 处理“单点路径”的任务
-        markAdjacentVertexesViaDFS(graph, startVertex);
+        markVertexesAndRecordVertexInPathViaDFS(graph, startVertex);
     }
 
     // 作用：标记节点 + 记录路径中的节点
-    private void markAdjacentVertexesViaDFS(Graph graph, int currentVertex) {
+    private void markVertexesAndRecordVertexInPathViaDFS(Graph graph, int currentVertex) {
         // 标记当前顶点
         vertexToIsMarked[currentVertex] = true;
         // 对于当前顶点的所有相邻节点
         for (int currentAdjacentVertex : graph.adj(currentVertex)) {
             // 如果相邻节点还没有被标记过...
             if (isNotMarked(currentAdjacentVertex)) {
-                // 记录 "当前邻居节点" 到 “当前结点”的连接关系
-                vertexToVertex[currentAdjacentVertex] = currentVertex;
+                // 记录 当前路径中的结点    手段：记录下"当前邻居节点"(terminalVertex) 到 “当前结点”(departVertex)的连接关系
+                terminalVertexToDepartVertex[currentAdjacentVertex] = currentVertex;
                 // 对当前节点进行同样的操作
-                markAdjacentVertexesViaDFS(graph, currentAdjacentVertex);
+                markVertexesAndRecordVertexInPathViaDFS(graph, currentAdjacentVertex);
             }
         }
     }
@@ -55,7 +57,7 @@ public class DepthFirstPaths {
         return vertexToIsMarked[passedVertex];
     }
 
-    // 获取到从起点s 到 指定顶点v的路径 - 具体方式：一个可迭代的数据
+    // 获取到从起点s 到 指定顶点v的路径 - 具体方式：从数组中得到 一个可迭代的数据
     public Iterable<Integer> pathFromStartVertexTo(int endVertex) {
         if (!doesStartVertexHasPathTo(endVertex)) return null;
 
@@ -64,7 +66,7 @@ public class DepthFirstPaths {
         Stack<Integer> vertexSequence = new Stack<>();
         // 从路径的最后一个节点，往前回溯 从而得到整个路径（有序）
         // 手段：vertexToVertex[]中记录了 路径中，从 尾结点 到 ”其上一个结点“的连接关系
-        for (int backwardsVertexCursor = endVertex; backwardsVertexCursor != startVertex; backwardsVertexCursor = vertexToVertex[backwardsVertexCursor]) {
+        for (int backwardsVertexCursor = endVertex; backwardsVertexCursor != startVertex; backwardsVertexCursor = terminalVertexToDepartVertex[backwardsVertexCursor]) {
             // 把当前节点添加到栈数据中
             vertexSequence.push(backwardsVertexCursor);
         }
