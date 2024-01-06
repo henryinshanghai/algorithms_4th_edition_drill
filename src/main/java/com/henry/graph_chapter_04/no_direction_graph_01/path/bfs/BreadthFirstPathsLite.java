@@ -6,6 +6,7 @@ import edu.princeton.cs.algs4.Queue;
 import edu.princeton.cs.algs4.Stack;
 import edu.princeton.cs.algs4.StdOut;
 
+// 验证：可以使用在图中从指定起点开始进行BFS（广度优先搜索）的方式 来 得到图中“指定起始结点” 到 “其所有可达结点” 对应的“最短路径”
 // 广度优先搜索的应用：找到 图中，起始，到指定目的顶点结束的最短路径；
 // 原理/BFS的特征：在图中搜索边时，BFS会按照距离 起始顶点的远近 来 递进地遍历顶点。
 public class BreadthFirstPathsLite {
@@ -14,15 +15,15 @@ public class BreadthFirstPathsLite {
     private final int startVertex;
 
     public BreadthFirstPathsLite(Graph graph, int startVertex) {
-        vertexToIsMarked = new boolean[graph.V()];
-        terminalVertexToDepartVertex = new int[graph.V()];
+        vertexToIsMarked = new boolean[graph.vertexAmount()];
+        terminalVertexToDepartVertex = new int[graph.vertexAmount()];
         this.startVertex = startVertex;
 
-        markAdjacentVertexesViaBFS(graph, startVertex);
+        markVertexesAndRecordEdgesInSPViaBFS(graph, startVertex);
     }
 
     // BFS - 先添加到数据结构中的边，先处理
-    private void markAdjacentVertexesViaBFS(Graph graph, int passedVertex) {
+    private void markVertexesAndRecordEdgesInSPViaBFS(Graph graph, int passedVertex) {
         // 准备一个队列
         Queue<Integer> queue = new Queue<>();
 
@@ -38,7 +39,7 @@ public class BreadthFirstPathsLite {
             // 出队节点
             int currentVertex = queue.dequeue();
             // 处理当前节点的所有相邻节点
-            for (int currentAdjacentVertex : graph.adj(currentVertex)) {
+            for (int currentAdjacentVertex : graph.adjacentVertexesOf(currentVertex)) {
                 if (isNotMarked(currentAdjacentVertex)) {
                     // 标记
                     vertexToIsMarked[currentAdjacentVertex] = true;
@@ -82,7 +83,7 @@ public class BreadthFirstPathsLite {
 
         BreadthFirstPathsLite markedGraph = new BreadthFirstPathsLite(graph, startVertex);
 
-        for (int currentVertex = 0; currentVertex < graph.V(); currentVertex++) {
+        for (int currentVertex = 0; currentVertex < graph.vertexAmount(); currentVertex++) {
             StdOut.print("shortest path from " + startVertex + " to " + currentVertex + ": ");
 
             if (markedGraph.doesStartVertexHasPathTo(currentVertex)) {
