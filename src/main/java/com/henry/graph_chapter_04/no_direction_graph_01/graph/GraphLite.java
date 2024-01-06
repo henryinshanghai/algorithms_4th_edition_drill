@@ -4,6 +4,7 @@ import com.henry.graph_chapter_04.no_direction_graph_01.Bag;
 import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.StdOut;
 
+// 验证：可以使用 结点 -> 与结点相邻的所有结点集合（顺序无所谓） 来 表示一幅图
 public class GraphLite {
     private static final String NEWLINE = System.getProperty("line.separator");
 
