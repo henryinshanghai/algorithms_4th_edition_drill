@@ -5,11 +5,12 @@ import edu.princeton.cs.algs4.Bag;
 import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.StdOut;
 
+// 验证：可以使用在图中从指定起点开始进行DFS（递归地标记结点）的方式 来 获取到图中存在几个连通分量，以及各个连通分量中的结点
 public class ConnectedComponentsLite {
     // 记录节点有没有被标记过
     private boolean[] vertexToIsMarked;
     // 记录顶点所属的分组 id[顶点x] = groupNum
-    private int[] vertexToItsComponentId;
+    private int[] vertexToItsComponentId; // 这里的componentId 使用 componentAmount来设置
     // 记录当前组的Num index
     private int componentAmount;
 
@@ -24,7 +25,7 @@ public class ConnectedComponentsLite {
             // 如果当前顶点还没有标记过...
             if (isNotMarked(currentVertex)) {
                 // 找到当前节点所连通的所有顶点 然后成组
-                dfs(graph, currentVertex);
+                markVertexAndAssignItsComponentIdViaDFS(graph, currentVertex);
                 // 得到一个组之后，把groupNum+1
                 componentAmount++;
             }
@@ -36,16 +37,16 @@ public class ConnectedComponentsLite {
     }
 
     // 作用：把图G中 当前顶点v所连通的所有顶点成组
-    private void dfs(Graph group, int currentVertex) {
+    private void markVertexAndAssignItsComponentIdViaDFS(Graph graph, int currentVertex) {
         // 标记当前节点
         vertexToIsMarked[currentVertex] = true;
         // 为当前节点添加组名  当前节点所属的分组/子图/连通分量的ID为count - 第0组、第1组...
         vertexToItsComponentId[currentVertex] = componentAmount;
 
         // 对所有当前节点邻接表中的所有节点：标记 + 添加组名
-        for (int currentAdjacentVertex : group.adj(currentVertex)) {
+        for (int currentAdjacentVertex : graph.adj(currentVertex)) {
             if (isNotMarked(currentAdjacentVertex)) {
-                dfs(group, currentAdjacentVertex);
+                markVertexAndAssignItsComponentIdViaDFS(graph, currentAdjacentVertex);
             }
         }
     }
