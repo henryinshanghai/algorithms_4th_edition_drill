@@ -9,7 +9,7 @@ import edu.princeton.cs.algs4.In;
 public class Digraph {
     private final int vertexAmount;
     private int edgeAmount;
-    private Bag<Integer>[] vertexToAdjacentVertexes;
+    private Bag<Integer>[] vertexToAdjacentVertexes; // 结点->相邻节点的集合
 
     public Digraph(In in) {
         this(in.readInt()); // 🐖 this()语句（对其他构造方法调用的快捷方式） 必须作为 构造方法中的第一个语句
