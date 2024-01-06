@@ -33,61 +33,62 @@ public class MergeFromTopToDownTemplate {
 
     public static void sort(Comparable[] a) {
         // 🐖 初始化辅助数组的大小
-        aux = new Comparable[a.length];
+        int itemAmount = a.length;
+        aux = new Comparable[itemAmount];
 
-        // 对数组的指定区间进行排序 - 这里是全部区间
-        sortRange(a, 0, a.length - 1);
+        // 对数组的指定闭区间进行排序 - 🐖 用例处指定全部区间，用于对整个数组进行排序
+        sortGivenRangeOf(a, 0, itemAmount - 1);
     }
 
-    // 排序数组的指定区间 a[leftBar, rightBar] 闭区间
-    private static void sortRange(Comparable[] a, int leftBar, int rightBar) {
+    // 排序数组的指定闭区间 a[leftBar, rightBar]
+    private static void sortGivenRangeOf(Comparable[] originalArr, int leftBar, int rightBar) {
         // 递归终结的条件：区间变窄为0 aka 数组已经有序
         if(leftBar >= rightBar) return;
 
         // 计算当前区间的中间位置
-        int middle = leftBar + (rightBar - leftBar) / 2;
+        int middleSpot = leftBar + (rightBar - leftBar) / 2;
 
-        // 使左区间有序
-        sortRange(a, leftBar, middle);
-        // 使右区间有序
-        sortRange(a, middle+1, rightBar);
+        // 使左半区间有序
+        sortGivenRangeOf(originalArr, leftBar, middleSpot);
+        // 使右半区间有序
+        sortGivenRangeOf(originalArr, middleSpot+1, rightBar);
 
         // 有了两个有序的子数组后，使用归并操作 得到一个 元素完全有序的数组
-        mergeSorterdRange(a, leftBar, middle, rightBar);
+        mergeSortedRange(originalArr, leftBar, middleSpot, rightBar);
     }
 
     // 归并 a[leftBar, middle] 与 a[middle+1, rightBar] - 特征：两个子区间都已经是有序数组了
-    private static void mergeSorterdRange(Comparable[] a, int leftBar, int middle, int rightBar) {
-        // 准备左区间的指针 与 右区间的指针 - 初始位置放在最左侧
-        int leftHalfCursor = leftBar;
-        int rightHalfCursor = middle + 1;
-
-        // 拷贝区间[leftBar, rightBar](闭区间)之间的元素 到 aux
-        for (int cursor = leftBar; cursor <= rightBar; cursor++) {
-            aux[cursor] = a[cursor];
+    private static void mergeSortedRange(Comparable[] originalArr, int leftBar, int middleSpot, int rightBar) {
+        // #1 拷贝区间[leftBar, rightBar](闭区间)之间的元素 到 aux
+        for (int currentSpot = leftBar; currentSpot <= rightBar; currentSpot++) {
+            aux[currentSpot] = originalArr[currentSpot];
         }
 
-        // 比较aux中的左右两半部分, 并逐个拷贝元素回去原数组
+        // #2 准备左区间的指针 与 右区间的指针 - 用于比较元素，得到“正确的元素”
+        int leftHalfCursor = leftBar;
+        int rightHalfCursor = middleSpot + 1;
+
+        // #3 对于原始数组中的“当前待排定的位置”...
         for (int cursor = leftBar; cursor <= rightBar; cursor++) {
+            /* 比较辅助数组中，左右指针所指向的元素。然后把“较小的元素” 绑定到 原始数组“待排定的位置”上 */
             // 左半部分元素用尽
-            if(leftHalfCursor > middle) a[cursor] = aux[rightHalfCursor++];
+            if(leftHalfCursor > middleSpot) originalArr[cursor] = aux[rightHalfCursor++];
             // 右半部分元素用尽
-            else if(rightHalfCursor > rightBar) a[cursor] = aux[leftHalfCursor++];
+            else if(rightHalfCursor > rightBar) originalArr[cursor] = aux[leftHalfCursor++];
             // 比较左右指针指向的元素，并拷贝 较小值 到原数组中 并移动指针到下一位置
-            else if(less(aux[leftHalfCursor], aux[rightHalfCursor])) a[cursor] = aux[leftHalfCursor++];
-            // 拷贝较小值 并移动指针到下一位置
-            else a[cursor] = aux[rightHalfCursor++];
+            else if(less(aux[leftHalfCursor], aux[rightHalfCursor])) originalArr[cursor] = aux[leftHalfCursor++];
+            else originalArr[cursor] = aux[rightHalfCursor++];
         }
     }
 
-    private static boolean less(Comparable v, Comparable w) {
-        return v.compareTo(w) < 0;
+    private static boolean less(Comparable itemV, Comparable itemW) {
+        return itemV.compareTo(itemW) < 0;
     }
 
     private static void show(Comparable[] a) {
         int N = a.length;
-        for (int i = 0; i < N; i++) {
-            System.out.print(a[i] + " ");
+        for (int currentSpot = 0; currentSpot < N; currentSpot++) {
+            System.out.print(a[currentSpot] + " ");
         }
 
         System.out.println();
