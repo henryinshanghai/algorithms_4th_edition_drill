@@ -56,7 +56,7 @@ public class DirectedCycle {
     private boolean[] vertexToIsMarked;        // marked[v] = has vertex v been marked?
     private int[] terminalVertexToDepartVertex;            // edgeTo[v] = previous vertex on path to v
     private boolean[] vertexToIsBelongToCurrentPath;       // onStack[v] = is vertex on the stack?
-    private Stack<Integer> vertexesInCycle;    // directed cycle (or null if no such cycle)
+    private Stack<Integer> vertexesInCycleVidStack;    // directed cycle (or null if no such cycle)
 
     /**
      * Determines whether the digraph {@code G} has a directed cycle and, if so,
@@ -70,7 +70,7 @@ public class DirectedCycle {
         terminalVertexToDepartVertex = new int[digraph.getVertexAmount()];
 
         for (int currentVertex = 0; currentVertex < digraph.getVertexAmount(); currentVertex++)
-            if (!vertexToIsMarked[currentVertex] && vertexesInCycle == null)
+            if (!vertexToIsMarked[currentVertex] && vertexesInCycleVidStack == null)
                 markAdjacentVertexesAndFindCycleViaDFS(digraph, currentVertex);
     }
 
@@ -86,27 +86,28 @@ public class DirectedCycle {
         for (int currentAdjacentVertex : digraph.adjacentVertexesOf(currentVertex)) {
 
             // #1 如果发现了环，则：short circuit(短路/提前返回)
-            if (vertexesInCycle != null) return;
+            if (vertexesInCycleVidStack != null) return;
 
-                // #2 如果发现了未被标记的结点，则：继续标记
+            // #2 如果发现了未被标记的结点，则：继续标记
             else if (isNotMarked(currentAdjacentVertex)) {
+                // 在搜索过程中，记录下搜索路径上的结点
                 terminalVertexToDepartVertex[currentAdjacentVertex] = currentVertex;
                 markAdjacentVertexesAndFindCycleViaDFS(digraph, currentAdjacentVertex);
             }
 
-            // #3 // 如果当前邻居结点 #1 已经被标记； #2 且在当前路径中，说明 出现了环
+            // #3 如果在搜索过程中，当前邻居结点 ① 已经被标记； ② 且属于当前路径中，说明 图中出现了环
             else if (vertexToIsBelongToCurrentPath[currentAdjacentVertex]) {
                 // 则：从 当前结点 开始，沿着路径，一直回溯到 它当前的邻居结点 - 得到环中所有的结点
-                vertexesInCycle = new Stack<Integer>();
+                vertexesInCycleVidStack = new Stack<Integer>();
                 for (int backwardsVertexCursor = currentVertex; backwardsVertexCursor != currentAdjacentVertex; backwardsVertexCursor = terminalVertexToDepartVertex[backwardsVertexCursor]) {
-                    vertexesInCycle.push(backwardsVertexCursor);
+                    vertexesInCycleVidStack.push(backwardsVertexCursor);
                 }
 
                 // 手动添加 环中的“起始结点”
-                vertexesInCycle.push(currentAdjacentVertex);
+                vertexesInCycleVidStack.push(currentAdjacentVertex);
 
-                // 手动添加“当前结点”，得到 字符形式意义上的环
-                vertexesInCycle.push(currentVertex);
+                // 手动添加“当前结点”，得到 字符形式上/物理意义上的环
+                vertexesInCycleVidStack.push(currentVertex);
                 assert check();
             }
         }
@@ -125,7 +126,7 @@ public class DirectedCycle {
      * @return {@code true} if the digraph has a directed cycle, {@code false} otherwise
      */
     public boolean hasCycle() {
-        return vertexesInCycle != null;
+        return vertexesInCycleVidStack != null;
     }
 
     /**
@@ -135,7 +136,7 @@ public class DirectedCycle {
      * and {@code null} otherwise
      */
     public Iterable<Integer> getVertexesInCycle() {
-        return vertexesInCycle;
+        return vertexesInCycleVidStack;
     }
 
 
