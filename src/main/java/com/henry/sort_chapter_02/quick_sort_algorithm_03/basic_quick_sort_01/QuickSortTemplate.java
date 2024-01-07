@@ -50,105 +50,101 @@ public class QuickSortTemplate {
     /**
      * 对数组中的元素进行排序
      *
-     * @param a
+     * @param originalArr
      */
-    public static void sort(Comparable[] a) {
+    public static void sort(Comparable[] originalArr) {
         // 快速排序
-        StdRandom.shuffle(a);
-        sort(a, 0, a .length - 1);
+        StdRandom.shuffle(originalArr);
+        sortGivenRangeOf(originalArr, 0, originalArr.length - 1);
     }
 
     /**
      * 对数组进行排序
      * 手段：快速排序
-     *
-     * @param a
+     *  @param originalArr
      * @param leftBar
      * @param rightBar
      */
-    private static void sort(Comparable[] a, int leftBar, int rightBar) {
+    private static void sortGivenRangeOf(Comparable[] originalArr, int leftBar, int rightBar) {
         // 1 排序区间只有一个元素时，数组已经有序。这时应该return
         if (rightBar <= leftBar) {
             return;
         }
 
         // 2 选择一个切分元素，并把它放到正确的位置
-        int arrangedPosition = partition(a, leftBar, rightBar); // 选取一个元素作为切分元素————把该元素放到正确的位置上
+        int arrangedSpot = arrangePivotViaPartition(originalArr, leftBar, rightBar); // 选取一个元素作为切分元素————把该元素放到正确的位置上
 
         // 3 对左半区间进行排序
-        sort(a, leftBar, arrangedPosition - 1);
+        sortGivenRangeOf(originalArr, leftBar, arrangedSpot - 1);
         // 对右半区间进行排序
-        sort(a, arrangedPosition + 1, rightBar);
+        sortGivenRangeOf(originalArr, arrangedSpot + 1, rightBar);
     }
 
     // 在数组的指定区间（闭区间）中，排定一个切分元素，并返回排定的位置
-    private static int partition(Comparable[] a, int leftBar, int rightBar) {
+    private static int arrangePivotViaPartition(Comparable[] arrayToSort, int leftBar, int rightBar) {
         // #1 准备左右边界的指针
-        int leftCursor = leftBar;
-        int rightBackwardsCursor = rightBar + 1;
+        int lessZoneBoundary = leftBar;
+        int greaterZoneBoundary = rightBar + 1;
 
         // #2 准备基准元素
-        Comparable pivot = a[leftBar];
+        Comparable pivotItem = arrayToSort[leftBar];
 
         // #3 把剩余的其他元素（除了基准元素）分拣到左半区间、右半区间中  特征：死循环 + 执行体break
         while (true) {
             // #1 让左指针停在 从左往右第一个比基准元素更大的元素上
             // 🐖 如果所有元素都比基准元素小的话，则：左指针会一直向右移动，直到等于rightBar 这种情况下，需要停止移动指针
-            while (less(a[++leftCursor], pivot)) if (leftCursor == rightBar) break;
-
+            while (less(arrayToSort[++lessZoneBoundary], pivotItem)) if (lessZoneBoundary == rightBar) break;
 
             // #2 让右指针停在 从右往左第一个比基准元素小的元素上
             // 如果基准元素大于其他的任何元素，则：循环条件直接不成立，右指针不会向左移动
-            while (less(pivot, a[--rightBackwardsCursor])) if (rightBackwardsCursor == leftBar) break;
+            while (less(pivotItem, arrayToSort[--greaterZoneBoundary])) if (greaterZoneBoundary == leftBar) break;
 
             // #3 判断元素的分拣工作是否已经完成
             // 当左指针与右指针相遇时，说明元素分拣已经完成 - 小于基准元素的元素都在左侧区间、大于基准元素的元素都在右侧区间
-            if (leftCursor >= rightBackwardsCursor) {
+            if (lessZoneBoundary >= greaterZoneBoundary) {
                 break;
             }
 
             // #4 对元素进行分拣 手段：交换 两个位置上的元素
             // 特征：如果左右指针刚好遇到了两个 与pivot相同的元素，那么 这两个元素也会被交换 - 这其实是多余的操作
-            exch(a, leftCursor, rightBackwardsCursor);
+            exch(arrayToSort, lessZoneBoundary, greaterZoneBoundary);
         }
 
-        // #4 排定基准元素 aka 把基准元素放到它正确的位置上     手段: 把基准元素 与 左边数组的最后一个元素 交换位置
-        exch(a, leftBar, rightBackwardsCursor);
+        // #4 排定基准元素 aka 把基准元素放到它正确的位置上     手段: 把基准元素 与 greaterZoneBoundary所指向的元素 交换位置
+        exch(arrayToSort, leftBar, greaterZoneBoundary);
 
-        int arrangedPosition = rightBackwardsCursor;
-        return arrangedPosition;
+        return greaterZoneBoundary;
     }
 
     @SuppressWarnings("unchecked")
-    private static boolean less(Comparable v, Comparable w) {
-        return v.compareTo(w) < 0;
+    private static boolean less(Comparable itemV, Comparable itemW) {
+        return itemV.compareTo(itemW) < 0;
     }
 
     /**
      * 交换i、j这两个位置的元素
-     *
-     * @param a
-     * @param i
-     * @param j
+     *  @param a
+     * @param spotI
+     * @param spotJ
      */
-    private static void exch(Comparable[] a, int i, int j) {
-        Comparable t = a[i];
-        a[i] = a[j];
-        a[j] = t;
+    private static void exch(Comparable[] a, int spotI, int spotJ) {
+        Comparable t = a[spotI];
+        a[spotI] = a[spotJ];
+        a[spotJ] = t;
     }
 
     private static void show(Comparable[] a) {
         // 在单行中打印数组
-        for (int i = 0; i < a.length; i++) {
-            StdOut.print(a[i] + " ");
+        for (int currentSpot = 0; currentSpot < a.length; currentSpot++) {
+            StdOut.print(a[currentSpot] + " ");
         }
         System.out.println();
     }
 
     public static boolean isSorted(Comparable[] a) {
         // 测试数组中的元素是否有序
-        for (int i = 0; i < a.length; i++) {
-            if (less(a[i], a[i - 1])) {
+        for (int currentSpot = 1; currentSpot < a.length; currentSpot++) {
+            if (less(a[currentSpot], a[currentSpot - 1])) {
                 return false;
             }
         }
