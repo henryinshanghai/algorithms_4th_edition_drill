@@ -2,6 +2,7 @@ package com.henry.sort_chapter_02.primary_algorithm_01;
 
 import edu.princeton.cs.algs4.StdOut;
 
+// 排序算法的用例模板：#1 获取到待排序的数组; #2 对“待排序的数组”执行排序； #3 打印排序后的结果，并验证“排序结果”是否真的有序
 public class SortExampleTemplate {
     /**
      * 对数组中的元素进行排序
@@ -12,20 +13,20 @@ public class SortExampleTemplate {
     }
 
     @SuppressWarnings("unchecked")
-    private static boolean less(Comparable v, Comparable w) {
-        return v.compareTo(w) < 0;
+    private static boolean less(Comparable itemV, Comparable itemW) {
+        return itemV.compareTo(itemW) < 0;
     }
 
     /**
      * 交换i、j这两个位置的元素
      * @param a
-     * @param i
-     * @param j
+     * @param spotI
+     * @param spotJ
      */
-    private static void exch(Comparable[] a, int i, int j) {
-        Comparable t = a[i];
-        a[i] = a[j];
-        a[j] = t;
+    private static void exch(Comparable[] a, int spotI, int spotJ) {
+        Comparable t = a[spotI];
+        a[spotI] = a[spotJ];
+        a[spotJ] = t;
     }
 
     private static void show(Comparable[] a){
@@ -38,7 +39,7 @@ public class SortExampleTemplate {
 
     public static boolean isSorted(Comparable[] a){
         // 测试数组中的元素是否有序
-        for (int i = 0; i < a.length; i++) {
+        for (int i = 1; i < a.length; i++) {
             if (less(a[i], a[i - 1])) {
                 return false;
             }
