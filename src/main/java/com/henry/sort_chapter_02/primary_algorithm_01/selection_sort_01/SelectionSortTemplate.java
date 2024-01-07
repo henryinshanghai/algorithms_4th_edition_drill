@@ -26,6 +26,7 @@ import edu.princeton.cs.algs4.StdOut;
 
 特征：使用扑克牌模拟选择排序过程时，无法有效模拟比较的过程。只能模拟交换的过程
  */
+// 验证：选择排序的算法是 对于当前“待排定的位置”，选择剩余元素中的最小元素 来排定/填充它。
 public class SelectionSortTemplate {
 
     /**
@@ -35,17 +36,19 @@ public class SelectionSortTemplate {
      */
     public static void sort(Comparable[] a) {
         int itemAmount = a.length;
-        for (int currentSpotToArrange = 0; currentSpotToArrange < itemAmount; currentSpotToArrange++) {
 
+        // 对于“当前待排定的位置”...
+        for (int currentSpotToArrange = 0; currentSpotToArrange < itemAmount; currentSpotToArrange++) {
             // #1 找到 “未排定区间”中的最小元素 - 确保cursorToMinItem指针指向的是最小元素
-            int cursorToMinItem = currentSpotToArrange; // 初始化 “最小元素指针”
+            int cursorToMinItem = currentSpotToArrange; // 初始化 “最小元素指针” 为 “当前元素”
+
             for (int dynamicCursor = currentSpotToArrange + 1; dynamicCursor < itemAmount; dynamicCursor++) {
                 if (less(a[dynamicCursor], a[cursorToMinItem])) {
                     cursorToMinItem = dynamicCursor;
                 }
             }
 
-            // #2 排定“最小元素” - 定锚指针（待排定位置）, 最小元素指针（待排定元素）
+            // #2 排定“最小元素” - 手段：交换 定锚指针（待排定位置）, 最小元素指针（待排定元素所在的位置）所指向的元素
             exch(a, currentSpotToArrange, cursorToMinItem);
 
             // 断言 从[0, currentSpotToArrange] 区间内的所有元素都已经是有序的
@@ -78,15 +81,14 @@ public class SelectionSortTemplate {
     /**
      * 交换i、j这两个位置的元素
      * 手段： 借助中间元素
-     *
-     * @param a
-     * @param i
-     * @param j
+     *  @param a
+     * @param spotI
+     * @param spotJ
      */
-    private static void exch(Comparable[] a, int i, int j) {
-        Comparable t = a[i];
-        a[i] = a[j];
-        a[j] = t;
+    private static void exch(Comparable[] a, int spotI, int spotJ) {
+        Comparable temp = a[spotI];
+        a[spotI] = a[spotJ];
+        a[spotJ] = temp;
     }
 
     private static void show(Comparable[] a) {
