@@ -38,6 +38,7 @@ import edu.princeton.cs.algs4.StdOut;
 流程中的debug：
     assert <预期目标>
  */
+// 验证：插入排序的算法就是 对于当前待插入的元素，把它插入到有序区中正确的位置上（保持有序区的有序性）
 public class InsertSortTemplate {
     /**
      * 对数组中的元素进行排序
@@ -81,27 +82,26 @@ public class InsertSortTemplate {
     }
 
     @SuppressWarnings("unchecked")
-    private static boolean less(Comparable v, Comparable w) {
-        return v.compareTo(w) < 0;
+    private static boolean less(Comparable itemV, Comparable itemW) {
+        return itemV.compareTo(itemW) < 0;
     }
 
     /**
      * 交换i、j这两个位置的元素
-     *
-     * @param a
-     * @param i
-     * @param j
+     *  @param a
+     * @param spotI
+     * @param spotJ
      */
-    private static void exch(Comparable[] a, int i, int j) {
-        Comparable t = a[i];
-        a[i] = a[j];
-        a[j] = t;
+    private static void exch(Comparable[] a, int spotI, int spotJ) {
+        Comparable t = a[spotI];
+        a[spotI] = a[spotJ];
+        a[spotJ] = t;
     }
 
     private static void show(Comparable[] a) {
         // 在单行中打印数组
-        for (int i = 0; i < a.length; i++) {
-            StdOut.print(a[i] + " ");
+        for (int currentSpot = 0; currentSpot < a.length; currentSpot++) {
+            StdOut.print(a[currentSpot] + " ");
         }
         System.out.println();
     }
