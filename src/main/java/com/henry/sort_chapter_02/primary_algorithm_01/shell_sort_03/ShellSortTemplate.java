@@ -38,38 +38,49 @@ import edu.princeton.cs.algs4.StdOut;
 public class ShellSortTemplate {
 
     public static void sort(Comparable[] a) {
+        System.out.print("before any operations, the original array's items are : ");
+        show(a);
+        System.out.println("====================");
+
         // 先把序列元素更新到 最大元素
         int itemAmount = a.length;
-        int blockSize = initBlockSize(itemAmount);
+        int segmentSize = initSegmentSize(itemAmount); // segment、block、unit
 
         // 完成对数组中所有元素的排序
-        // 手段：#1 对于当前的 blockSize, 得到“分隔有序的元素序列”； #2 调整当前的blockSize，得到 “完全有序的元素序列”
-        while (blockSize >= 1) { // 当N=1（子数组尺寸为1）时，整个数组排序完成
+        // 手段：#1 对于当前的 segmentSize, 得到“分隔有序的元素序列”； #2 调整当前的blockSize，得到 “完全有序的元素序列”
+        while (segmentSize >= 1) { // 当N=1（子数组尺寸为1）时，整个数组排序完成
             // #2 按照当前blockSize分组后，得到“分隔有序的元素序列”
-            // 手段：从 startPointOfDisorder 开始到原始数组的最后一个元素为止，对每个元素，把它插入到“其对应的序列”
-            int startPointOfDisorder = blockSize;
+            // 手段：对于无序区(a[startPointOfDisorder, itemAmount - 1])中的每一个元素...
+            int startPointOfDisorder = segmentSize;
             for (int anchorOfItemToInsert = startPointOfDisorder; anchorOfItemToInsert < itemAmount; anchorOfItemToInsert++) { // 内循环的次数
-                // #3 把a[anchorOfItemToInsert]插入到a[anchorOfItemToInsert-blockSize],a[anchorOfItemToInsert-2*blockSize],a[anchorOfItemToInsert-3*blockSize]...之中
-                // 手段：插入排序
-                insertWithStepPitch(a, anchorOfItemToInsert, blockSize);
+                // 把它插入到“其对应的序列的正确位置”上    手段：插入排序
+                // #3 把a[anchorOfItemToInsert]插入到a[anchorOfItemToInsert-segmentSize],a[anchorOfItemToInsert-2*segmentSize],a[anchorOfItemToInsert-3*segmentSize]...之中
+                insertWithStepPitch(a, anchorOfItemToInsert, segmentSize);
             }
 
-            // 两层for循环结束后，就得到了 “分割有序的元素序列”
-            // #4 缩小 blockSize，来 最终得到 “完全排序的数组”。
-            blockSize = blockSize / 3;
+            // 对无序区中的每个元素执行插入排序后，各个元素离“它最终会被排定的位置”更近了一些👇
+            System.out.println("current segmentSize is：" + segmentSize);
+            System.out.print("after this round's insertion, current array's items are：");
+            show(a);
+            System.out.println("~~~~~~~~~~~~~~~~~~");
+
+            // #4 缩小 segmentSize，来 最终得到 “完全排序的数组”。
+            segmentSize = segmentSize / 3;
         }
     }
 
-    private static void insertWithStepPitch(Comparable[] a, int anchorOfItemToInsert, int stepPitch) {
+    // 以stepPitch作为步距，对原始数组中指定位置上的元素 执行插入排序
+    // 🐖 比较 与 交换的单位都是 stepPitch（而不是1），这就是 shellsort 高效的原因
+    private static void insertWithStepPitch(Comparable[] originalArr, int anchorOfItemToInsert, int stepPitch) {
         for (int backwardsCursor = anchorOfItemToInsert; backwardsCursor >= stepPitch; backwardsCursor -= stepPitch) {
 
-            if (less(a[backwardsCursor], a[backwardsCursor - stepPitch])) {
-                exch(a, backwardsCursor, backwardsCursor - stepPitch);
+            if (less(originalArr[backwardsCursor], originalArr[backwardsCursor - stepPitch])) {
+                exch(originalArr, backwardsCursor, backwardsCursor - stepPitch);
             }
         }
     }
 
-    private static int initBlockSize(int itemAmount) {
+    private static int initSegmentSize(int itemAmount) {
         int blockSize = 1;
 
         // #1 按照一个公式，生成一个比较大的N值（小于itemAmount） 用于分割原始数组为子数组
@@ -80,35 +91,34 @@ public class ShellSortTemplate {
     }
 
     @SuppressWarnings("unchecked")
-    private static boolean less(Comparable v, Comparable w) {
-        return v.compareTo(w) < 0;
+    private static boolean less(Comparable itemV, Comparable itemW) {
+        return itemV.compareTo(itemW) < 0;
     }
 
     /**
      * 交换i、j这两个位置的元素
-     *
-     * @param a
-     * @param i
-     * @param j
+     *  @param a
+     * @param spotI
+     * @param spotJ
      */
-    private static void exch(Comparable[] a, int i, int j) {
-        Comparable t = a[i];
-        a[i] = a[j];
-        a[j] = t;
+    private static void exch(Comparable[] a, int spotI, int spotJ) {
+        Comparable t = a[spotI];
+        a[spotI] = a[spotJ];
+        a[spotJ] = t;
     }
 
     private static void show(Comparable[] a) {
         // 在单行中打印数组
-        for (int i = 0; i < a.length; i++) {
-            StdOut.print(a[i] + " ");
+        for (int currentSpot = 0; currentSpot < a.length; currentSpot++) {
+            StdOut.print(a[currentSpot] + " ");
         }
         System.out.println();
     }
 
     public static boolean isSorted(Comparable[] a) {
         // 测试数组中的元素是否有序
-        for (int i = 0; i < a.length; i++) {
-            if (less(a[i], a[i - 1])) {
+        for (int currentSpot = 1; currentSpot < a.length; currentSpot++) {
+            if (less(a[currentSpot], a[currentSpot - 1])) {
                 return false;
             }
         }
@@ -123,6 +133,7 @@ public class ShellSortTemplate {
 
         // 断言数组元素已经有序了
         assert isSorted(a);
+        System.out.println("=== final sorted result 👇 ===");
         show(a);
     }
 }
