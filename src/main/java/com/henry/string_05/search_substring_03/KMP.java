@@ -47,6 +47,11 @@ import edu.princeton.cs.algs4.StdOut;
  * see <a href="https://algs4.cs.princeton.edu/53substring">Section 5.3</a> of
  * <i>Algorithms, 4th Edition</i> by Robert Sedgewick and Kevin Wayne.
  */
+
+// 验证：KMP的构造函数会 根据模式字符串来创建出一个DFA，并 使用search()方法 来 在给定的文本中查找该模式字符串
+// DFA创建的关键词：current_spot、restart_spot、nextSpot[character_option][current_spot]
+// 关键判断：字符是不是“模式字符串”当前位置上的字符；
+// 关键性质：当字符不是“模式字符”时，当前位置的dfa[][]值就等于 当前位置的重启位置（X(i) < i）的dfa[][]值
 public class KMP {
     private final int characterOptionsAmount;       // the radix??
     private final int patStrLength;       // length of pattern
@@ -67,6 +72,7 @@ public class KMP {
 
         // build DFA from pattern - dfa[][]的值 <-> 回答“匹配失败时，下一个状态是什么？”
         nextCursorSpotOnCondition = new int[characterOptionsAmount][patStrLength];
+
         int initCursorSpot = 0;
         char characterOnSpot = patStr.charAt(0);
         nextCursorSpotOnCondition[characterOnSpot][initCursorSpot] = 1;
@@ -148,15 +154,20 @@ public class KMP {
      * in the text string; N if no such match
      */
     public int searchWithIn(String passedTxtStr) {
-
         // simulate operation of DFA on text
+        // 使用DFA[][] 来 模拟 在文本字符串中对模式字符串的匹配过程
         int txtCharacterAmount = passedTxtStr.length();
         int currentTxtCursor, currentPatCursor;
-        for (currentTxtCursor = 0, currentPatCursor = 0; currentTxtCursor < txtCharacterAmount && currentPatCursor < patStrLength; currentTxtCursor++) {
+
+        for (currentTxtCursor = 0, currentPatCursor = 0;
+             currentTxtCursor < txtCharacterAmount && currentPatCursor < patStrLength; currentTxtCursor++) {
+            // 用“模式字符串的指针” 来 匹配文本字符串的字符
             currentPatCursor = nextCursorSpotOnCondition[passedTxtStr.charAt(currentTxtCursor)][currentPatCursor];
         }
 
+        // 如果匹配成功，则：返回 匹配的左字符
         if (currentPatCursor == patStrLength) return currentTxtCursor - patStrLength;    // found
+        // 如果匹配不成功，则：返回文本字符串的长度
         return txtCharacterAmount;                    // not found
     }
 

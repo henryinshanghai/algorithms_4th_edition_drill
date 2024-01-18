@@ -1,0 +1,38 @@
+DFA应该如何处理下一个字符?
+和回退时的处理方式相同，除非 在pat.charAt(j)处匹配成功，这时 DFA应该前进到 状态j+1；
+
+比如，对于 A B A B A C，
+如果想要判断 j=5时匹配失败后，DFA应该怎么做。
+通过DFA 就可以知道 完全回退之后，算法会扫描 B A B A，并到达 状态3.
+所以我们 可以：
+#1 把dfa[][3]复制到 dfa[][5]；
+#2 把C对应的dfa[][]元素值设置为6 = 5+1；因为C是“模式字符串”当前位置上的字符
+
+关键判断：字符是不是模式字符串在当前位置上的字符？
+
+因为 在计算DFA的第j个状态时，只需要知道 DFA是如何处理 前j-1个字符的，
+所以 总能够从 尚不完整的DFA中 得到所需的信息。
+
+观察到的最后一个关键细节是，你可以观察到 在处理dfa[][]的第j列是，维护重启位置X会很容易。
+因为X<j, 所以 可以使用 已经构造的DFA部分 来 完成这个任务 —— X的下一个值是 dfa[pat.charAt(j)][X].
+继续上一段的例子，把X的值 更新为 dfa[C][3]=0（但是我们不会使用这个值，因为DFA的构造已经完成了）
+
+代码重现：
+next_spot = dfa[character_option][current_spot]
+current_spot
+its_restart_spot
+
+character_option MATCH character of current_spot in pattern string.
+
+dfa[pat.charAt(0)][0] = 1;
+
+for(int restart_spot = 0, current_spot = 1; current_spot < M; current_spot++) {
+    for(int current_character = 0; current_character < R; current_character++) {
+        dfa[current_character][current_spot] = dfa[current_character][restart_spot];
+    }
+
+    // 如果 字符 是“模式字符串的当前字符”，说明 指针应该移动到下一个位置，则：dfa[][]=j+1
+    dfa[pat.charAt(current_spot)][current_spot] = current_spot+1;
+
+    restart_spot = dfa[pat.charAt(current_spot)][restart_spot];
+}
