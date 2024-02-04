@@ -1,4 +1,4 @@
-package com.henry.basic_chapter_01.collection_types.stack.via_array;
+package com.henry.basic_chapter_01.collection_types.stack.implementation.via_array;
 
 import java.util.Iterator;
 

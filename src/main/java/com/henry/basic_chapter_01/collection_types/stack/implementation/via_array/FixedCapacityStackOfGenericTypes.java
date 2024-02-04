@@ -1,4 +1,4 @@
-package com.henry.basic_chapter_01.collection_types.stack.via_array;
+package com.henry.basic_chapter_01.collection_types.stack.implementation.via_array;
 
 // 目标：实现 固定容量、能够处理泛型参数的栈数据结构
 // 数据类型的预期特征：{#1 支持泛型类型; #2 栈的容量是固定的; #3 支持Stack的默认操作}
