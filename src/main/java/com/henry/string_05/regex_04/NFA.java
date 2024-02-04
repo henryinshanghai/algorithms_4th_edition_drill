@@ -87,28 +87,34 @@ public class NFA {
 
             // 对“当前模式字符”的情形，进行分类讨论👇
             // ① 如果当前模式字符 是 “启动字符”（左括号字符、或字符）,则：...
-            // ② 如果当前模式字符 是 “结束字符”（右括号字符）,则：...
             if (isOpenCharacter(regexCurrentCharacter))
                 // 把“启动字符” 记录到 一个栈结构中
                 openCharactersSpotStack.push(currentState);
-            else if (isCloseCharacter(regexCurrentCharacter)) {
+            else if (isCloseCharacter(regexCurrentCharacter)) { // ② 如果当前模式字符 是 “结束字符”（右括号字符）,则：...
+                // ②-Ⅰ 弹出以获取 栈顶当前所记录的“启动字符”
                 int openCharacterSpot = openCharactersSpotStack.pop();
                 char openCharacter = regExpStr.charAt(openCharacterSpot);
 
-                // 2-way 或操作符 所能够产生的epsilon转换：
-                // ① 从当前左括号字符->或字符的下一个字符 的epsilon转换；
-                // ② 从或字符本身->当前右括号字符 的epsilon转换；
+                // ②-Ⅱ 对“此启动字符”进行分类讨论👇
+                // ②-Ⅱ-1 如果“此启动字符”是“或操作符”，则：...
+                // 或操作符 在NFA中所能够产生的 两种类型的epsilon转换 👇
+                // #1 从当前左括号字符->或字符的下一个字符 的epsilon转换；
+                // #2 从或字符本身->当前右括号字符 的epsilon转换；
                 if (openCharacter == '|') {
+                    // 获取左括号字符的位置
                     leftParenthesisSpot = openCharactersSpotStack.pop();
 
+                    // 把位置作为状态，在NFA中添加 左括号字符->或字符的下一个字符 的epsilon转移👇
                     int leftParenthesisState = leftParenthesisSpot;
                     int firstCharacterStateInB = openCharacterSpot + 1;
                     epsilonTransitionDigraph.addEdge(leftParenthesisState, firstCharacterStateInB);
 
+                    // 把位置作为状态，在NFA中添加 或字符->当前右括号字符 的epsilon转移👇
                     int orCharacterState = openCharacterSpot;
                     int rightParenthesisState = currentState;
                     epsilonTransitionDigraph.addEdge(orCharacterState, rightParenthesisState);
-                } else if (openCharacter == '(')
+                } else if (openCharacter == '(') // ②-Ⅱ-2 如果“此启动字符”是“左括号字符”，则：...
+                    // 更新 leftParenthesisSpot变量的值 为 左括号字符的位置
                     leftParenthesisSpot = openCharacterSpot;
 
                 else assert false;
