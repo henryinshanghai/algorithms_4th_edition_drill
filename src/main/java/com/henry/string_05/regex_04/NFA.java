@@ -121,11 +121,13 @@ public class NFA {
             }
 
             // ③ 如果“当前模式字符”的后面紧跟着“闭包操作符”
-            // “闭包操作符”所能够产生的epsilon转换👇：
+            // “闭包操作符” 在NFA中所能够产生的epsilon转换👇：
             // ③-Ⅰ 如果出现在单个字符之后，则：在此字符 与 *字符之间，添加两条相互指向的epsilon转换；
             // ③-Ⅱ 如果出现在 右括号字符之后，则：在当前左括号字符 与 此字符之间，添加两条相互指向的epsilon转换；
+            // 🐖 由于 leftParenthesisSpot变量的二义性，这里就只需要使用 下面这一段代码
             if (isLegitState(currentState) && nextRegexCharacterIsClosure(regExpStr, currentState)) {
-                // 创建图中 一正一反的两条边👇
+                // 在NFA中添加 上述的一对epsilon转换（两种类型二选一）👇
+                // 手段：在epsilon有向图中，添加边
                 epsilonTransitionDigraph.addEdge(leftParenthesisSpot, currentState + 1);
                 epsilonTransitionDigraph.addEdge(currentState + 1, leftParenthesisSpot);
             }
