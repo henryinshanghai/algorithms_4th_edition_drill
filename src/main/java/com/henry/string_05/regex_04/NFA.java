@@ -132,9 +132,10 @@ public class NFA {
                 epsilonTransitionDigraph.addEdge(currentState + 1, leftParenthesisSpot);
             }
 
-            // ④ 如果“当前模式字符”是一个 “不是或字符的”的非英文字母字符，则:...
+            // ④ 如果“当前模式字符”是一个 “epsilon转换的触发字符”，则:...
             if (isTriggerEpsilonTransitionCharacter(regexCurrentCharacter))
-                // 创建 “从当前状态 -> 当前状态的下一个状态”的epsilon转换👇
+                // 向NFA中添加 “从当前状态 -> 当前状态的下一个状态”的epsilon转换👇
+                // 手段：在epsilon有向图中，添加边
                 epsilonTransitionDigraph.addEdge(currentState, currentState + 1);
         }
 
