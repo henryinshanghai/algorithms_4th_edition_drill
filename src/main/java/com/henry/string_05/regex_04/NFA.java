@@ -81,7 +81,8 @@ public class NFA {
             // 获取到 当前位置上的“模式字符”
             char regexCurrentCharacter = regExpStr.charAt(currentState);
 
-            // leftParenthesisSpot的值 初始化为 当前位置/状态
+            // 声明 leftParenthesisSpot变量，用于：#1 要么表示当前状态； #2 要么表示“当前左括号字符”的位置/状态
+            // 🐖 leftParenthesisSpot的值 初始化为 当前位置/状态
             int leftParenthesisSpot = currentState;
 
             // 对“当前模式字符”的情形，进行分类讨论👇
