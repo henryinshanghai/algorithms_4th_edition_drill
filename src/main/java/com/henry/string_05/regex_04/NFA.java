@@ -89,6 +89,7 @@ public class NFA {
             // ① 如果当前模式字符 是 “启动字符”（左括号字符、或字符）,则：...
             // ② 如果当前模式字符 是 “结束字符”（右括号字符）,则：...
             if (isOpenCharacter(regexCurrentCharacter))
+                // 把“启动字符” 记录到 一个栈结构中
                 openCharactersSpotStack.push(currentState);
             else if (isCloseCharacter(regexCurrentCharacter)) {
                 int openCharacterSpot = openCharactersSpotStack.pop();
