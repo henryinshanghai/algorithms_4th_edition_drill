@@ -166,42 +166,84 @@ public class NFA {
     /**
      * Returns true if the text is matched by the regular expression.
      *
-     * @param txt the text
+     * @param txtStr the text
      * @return {@code true} if the text is matched by the regular expression,
      * {@code false} otherwise
      */
-    public boolean recognizes(String txt) {
-        DirectedDFS dfs = new DirectedDFS(epsilonTransitionDigraph, 0);
-        Bag<Integer> pc = new Bag<Integer>();
-        for (int v = 0; v < epsilonTransitionDigraph.getVertexAmount(); v++)
-            if (dfs.isAccessibleFromStartVertex(v)) pc.add(v);
+    public boolean recognizes(String txtStr) {
+        DirectedDFS markedDigraph = new DirectedDFS(epsilonTransitionDigraph, 0);
+        Bag<Integer> reachableStates = new Bag<Integer>();
+        initReachableStatesVia(markedDigraph, reachableStates);
 
         // Compute possible NFA states for txt[i+1]
-        for (int i = 0; i < txt.length(); i++) {
-            if (txt.charAt(i) == '*' || txt.charAt(i) == '|' || txt.charAt(i) == '(' || txt.charAt(i) == ')')
-                throw new IllegalArgumentException("text contains the metacharacter '" + txt.charAt(i) + "'");
+        for (int currentTxtCharacterSpot = 0; currentTxtCharacterSpot < txtStr.length(); currentTxtCharacterSpot++) {
+            char txtCurrentCharacter = txtStr.charAt(currentTxtCharacterSpot);
 
-            Bag<Integer> match = new Bag<Integer>();
-            for (int v : pc) {
-                if (v == stateAmountInRegStr) continue;
-                if ((regExpStr.charAt(v) == txt.charAt(i)) || regExpStr.charAt(v) == '.')
-                    match.add(v + 1);
-            }
-            if (match.isEmpty()) continue;
+            if (isMetaCharacter(txtCurrentCharacter))
+                throw new IllegalArgumentException("text contains the metacharacter '" + txtCurrentCharacter + "'");
 
-            dfs = new DirectedDFS(epsilonTransitionDigraph, match);
-            pc = new Bag<Integer>();
-            for (int v = 0; v < epsilonTransitionDigraph.getVertexAmount(); v++)
-                if (dfs.isAccessibleFromStartVertex(v)) pc.add(v);
+            Bag<Integer> matchTransferredStates = initMatchTransferredStates(txtCurrentCharacter, reachableStates);
+            if (matchTransferredStates.isEmpty()) continue;
 
-            // optimization if no states reachable
-            if (pc.size() == 0) return false;
+            // 获取”匹配后所到达的顶点集合“，在NFA中，通过∈转换所能够到达的状态
+            // 手段：使用自定义的方法 来 获取到 以”匹配后到达的顶点集合“中的顶点为起点，执行DFS后 结点被标记的图；
+            reachableStates = renewReachableStatesVia(matchTransferredStates);
+
+            // 如果”可达状态“的集合为空，则：提前return false
+            if (reachableStates.size() == 0) return false;
         }
 
-        // check for accept state
-        for (int v : pc)
-            if (v == stateAmountInRegStr) return true;
+        // 检查 ”可接受状态（stateAmountInRegStr）“ 是否在 ”可达状态 reachableStates“中
+        if (acceptedStateWithin(reachableStates)) return true;
+
         return false;
+    }
+
+    private boolean acceptedStateWithin(Bag<Integer> reachableStates) {
+        for (int currentState : reachableStates)
+            if (currentState == stateAmountInRegStr)
+                return true;
+        return false;
+    }
+
+    private Bag<Integer> renewReachableStatesVia(Bag<Integer> matchTransferredStates) {
+        Bag<Integer> reachableStates;
+        DirectedDFS markedDigraph;
+
+        markedDigraph = new DirectedDFS(epsilonTransitionDigraph, matchTransferredStates);
+        reachableStates = new Bag<Integer>();
+
+        for (int currentVertex = 0; currentVertex < epsilonTransitionDigraph.getVertexAmount(); currentVertex++)
+            if (markedDigraph.isAccessibleFromStartVertex(currentVertex))
+                reachableStates.add(currentVertex);
+
+        return reachableStates;
+    }
+
+    private Bag<Integer> initMatchTransferredStates(char txtCurrentCharacter, Bag<Integer> reachableStates) {
+        Bag<Integer> matchTransferredStates = new Bag<Integer>();
+        for (int currentState : reachableStates) {
+            if (currentState == stateAmountInRegStr) continue;
+
+            char regexCurrentCharacter = regExpStr.charAt(currentState);
+            if (isMatchBetween(txtCurrentCharacter, regexCurrentCharacter))
+                matchTransferredStates.add(currentState + 1);
+        }
+        return matchTransferredStates;
+    }
+
+    private void initReachableStatesVia(DirectedDFS markedDigraph, Bag<Integer> reachableStates) {
+        for (int currentVertex = 0; currentVertex < epsilonTransitionDigraph.getVertexAmount(); currentVertex++)
+            if (markedDigraph.isAccessibleFromStartVertex(currentVertex))
+                reachableStates.add(currentVertex);
+    }
+
+    private boolean isMatchBetween(char txtCurrentCharacter, char regexCurrentCharacter) {
+        return (regexCurrentCharacter == txtCurrentCharacter) || regexCurrentCharacter == '.';
+    }
+
+    private boolean isMetaCharacter(char txtCurrentCharacter) {
+        return txtCurrentCharacter == '*' || txtCurrentCharacter == '|' || txtCurrentCharacter == '(' || txtCurrentCharacter == ')';
     }
 
     /**
