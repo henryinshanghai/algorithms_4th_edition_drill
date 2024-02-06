@@ -174,7 +174,7 @@ public class NFA {
         DirectedDFS markedDigraph = new DirectedDFS(epsilonTransitionDigraph, 0);
         // reachableStates 用于表示/维护 （由状态0）可达的所有状态
         Bag<Integer> reachableStates = new Bag<Integer>();
-        // 使用 NFA中，由状态0可以到达的所有状态构成的集合 来 初始化 reachableStates
+        // #1 使用 NFA中，由状态0可以到达的所有状态构成的集合 来 初始化 reachableStates
         // 手段：可达性问题 - 有向图中，由指定顶点（顶点0）可达的所有其他顶点（包含起始顶点本身）
         initReachableStatesVia(markedDigraph, reachableStates);
 
