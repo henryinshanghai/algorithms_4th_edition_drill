@@ -187,7 +187,7 @@ public class NFA {
             if (isRegexMetaCharacter(txtCurrentCharacter))
                 throw new IllegalArgumentException("text contains the metacharacter '" + txtCurrentCharacter + "'");
 
-            // 获取到 “当前可达的所有状态”中，与“当前文本字符”匹配时，“所到达的”状态集合
+            // #2 获取到 “当前可达的所有状态”中，与“当前文本字符”匹配时，“所到达的”状态集合
             Bag<Integer> matchTransferReachedStates = initMatchTransferReachedStatesVia(reachableStates, txtCurrentCharacter);
             if (matchTransferReachedStates.isEmpty()) continue;
 
