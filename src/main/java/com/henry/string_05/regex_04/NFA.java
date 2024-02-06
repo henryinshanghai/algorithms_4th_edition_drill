@@ -199,7 +199,7 @@ public class NFA {
             if (reachableStates.size() == 0) return false;
         }
 
-        // 检查 ”可接受状态（stateAmountInRegStr）“ 是否在 ”可达状态 reachableStates“中
+        // #4 检查 ”可接受状态（stateAmountInRegStr）“ 是否被包含在 ”可达状态 reachableStates“中
         if (acceptedStateIncludeIn(reachableStates)) return true;
 
         return false;
