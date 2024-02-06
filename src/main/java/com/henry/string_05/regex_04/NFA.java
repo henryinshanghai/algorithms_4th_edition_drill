@@ -191,7 +191,7 @@ public class NFA {
             Bag<Integer> matchTransferReachedStates = initMatchTransferReachedStatesVia(reachableStates, txtCurrentCharacter);
             if (matchTransferReachedStates.isEmpty()) continue;
 
-            // 对于 匹配“所到达的”状态集合中的每一个状态，获取其 在NFA中，“通过epsilon转换所能够到达的状态”
+            // #3 对于 NFA中“由匹配转换所到达的”状态集合中的每一个状态，获取其 “在NFA中通过epsilon转换所能够到达的状态”
             // 手段：使用自定义的方法 来 获取到 以”匹配后到达的顶点集合“中的顶点为起点，执行DFS后 结点被标记的图；
             reachableStates = renewReachableStatesVia(matchTransferReachedStates);
 
