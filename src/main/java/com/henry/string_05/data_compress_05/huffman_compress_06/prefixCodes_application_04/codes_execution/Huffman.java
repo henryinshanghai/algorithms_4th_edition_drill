@@ -1,4 +1,4 @@
-package com.henry.string_05.data_compress_05.huffman_compress_06.prefixCodes_application_04;
+package com.henry.string_05.data_compress_05.huffman_compress_06.prefixCodes_application_04.codes_execution;
 
 /******************************************************************************
  *  Compilation:  javac Huffman.java
