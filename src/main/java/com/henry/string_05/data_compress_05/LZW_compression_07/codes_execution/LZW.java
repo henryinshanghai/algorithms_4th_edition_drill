@@ -1,4 +1,4 @@
-package com.henry.string_05.data_compress_05.LZW_compression_07;
+package com.henry.string_05.data_compress_05.LZW_compression_07.codes_execution;
 
 /******************************************************************************
  *  Compilation:  javac LZW.java
@@ -57,29 +57,44 @@ public class LZW {
         TST<Integer> keyStrToEncodedValue = new TST<Integer>();
 
         // since TST is not balanced, it would be better to insert in a different order
-        for (int currentCharacter = 0; currentCharacter < characterOptions; currentCharacter++)
-            keyStrToEncodedValue.put("" + (char) currentCharacter, currentCharacter);
+        // #0 初始化“单字符键”的“符号表条目” - 🐖 存在有多少个字符选项，就对应地初始化多少个符号表条目
+        for (int currentCharacter = 0; currentCharacter < characterOptions; currentCharacter++) {
+            int codeValueInTable = currentCharacter;
+            keyStrToEncodedValue.put("" + (char) currentCharacter, codeValueInTable);
+        }
 
-        int keysEncodedResult = characterOptions + 1;  // R is codeword for EOF
+        // 从“单字符的最大编码”位置开始，继续对“多字符键”条目进行编码
+        int multiCharacterKeysEncodedValue = characterOptions + 1;  // R is codeword for EOF
 
+        // 对于“未处理的输入” unattendedCharacterSequence...
         while (unattendedCharacterSequence.length() > 0) {
+            /* #1 向标准输出中写入“当前最长匹配前缀键的码值” */
+            // 获取到“该未处理输入” 存在于符号表中的“最长匹配前缀”键
             String longestPrefixStr = getLongestPrefixExistInSymbolTable(unattendedCharacterSequence, keyStrToEncodedValue);  // Find max prefix match s.
+            // 从符号表中获取到 键对应的“码值”
             Integer itsEncodedValue = keyStrToEncodedValue.get(longestPrefixStr);
+            // 向标准输出中写入此码值
             BinaryStdOut.write(itsEncodedValue, bitWidthLength);      // Print s's encoding.
 
+            /* #2 向符号表中添加“多字符”条目 */
             int currentPrefixLength = longestPrefixStr.length();
-            if (prefixStrShorterThanCurrentInput(unattendedCharacterSequence, currentPrefixLength) && withinMaxCode(keysEncodedResult))    // Add s to symbol table.
+            // 如果符号表中的“最长匹配前缀”键 比起“未处理的输入”要更短，并且“当前多字符键”还在“有效编码范围”内...
+            if (prefixStrShorterThanUnattendedInput(unattendedCharacterSequence, currentPrefixLength) && withinMaxCode(multiCharacterKeysEncodedValue))    // Add s to symbol table.
             {
-                // 从指定的编码开始，把编码分配给“从输入中截取的子字符串”（前currentPrefixLength个字符）
+                // 向符号表中添加“多字符”条目 - 手段：分别构造“符号表条目”的“多字符键”与“码值”，并将它们关联
+                // ① 构造“符号表条目”的“字符串键”（“最长匹配前缀prefix” + “当前输入字符char”） - 手段：截取“未处理的输入”的 前（最长匹配前缀长度 + 1）个字符的子字符串
                 String currentKey = unattendedCharacterSequence.substring(0, currentPrefixLength + 1);
-                keyStrToEncodedValue.put(currentKey, keysEncodedResult++);
+                // ② 构造“符号表条目”的“码值” - 手段：把“上一个条目的码值”+1即可
+                keyStrToEncodedValue.put(currentKey, multiCharacterKeysEncodedValue++);
             }
 
-            // 更新“未处理的当前输入” - 截取“最长前缀位置”到“末尾位置”的子字符串
+            /* #3 添加完“多字符条目”后，更新“未处理的输入”变量 */
+            // 目标：把字符串的头字符指针，向右移动到“未处理的字符”位置
+            // 手段：截取其“最长前缀位置”到“末尾位置”的子字符串  originalStr.substring(<start_index>)
             unattendedCharacterSequence = unattendedCharacterSequence.substring(currentPrefixLength);            // Scan past s in inputCharacterSequence.
         }
 
-        // 以给定的比特宽度 输出给定的数字
+        // #4 最后，向标准输出中写入 预留的EOF字符 并 关闭流
         BinaryStdOut.write(characterOptions, bitWidthLength);
         BinaryStdOut.close();
     }
@@ -88,7 +103,7 @@ public class LZW {
         return keysEncodedResult < encodedValueOptions;
     }
 
-    private static boolean prefixStrShorterThanCurrentInput(String unattendedCharacterSequence, int currentPrefixLength) {
+    private static boolean prefixStrShorterThanUnattendedInput(String unattendedCharacterSequence, int currentPrefixLength) {
         return currentPrefixLength < unattendedCharacterSequence.length();
     }
 
