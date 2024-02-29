@@ -120,34 +120,44 @@ public class LZW {
      * 把结果写入到标准输出中。
      */
     public static void expand() {
+        // #0 初始化一个“所有可能编码大小”的符号表
         String[] codeValueToDecodedStr = new String[encodedValueOptions];
-        int legitCodeValue; // next available codeword value
+        int currentCodeValue; // next available codeword value
 
-        // 初始化符号表中的“单字符键”的条目
-        for (legitCodeValue = 0; legitCodeValue < characterOptions; legitCodeValue++)
-            codeValueToDecodedStr[legitCodeValue] = "" + (char) legitCodeValue;
-        codeValueToDecodedStr[legitCodeValue++] = "";                        // (unused) lookahead for EOF
+        // #1 初始化“符号表”（解码表）中的“单字符键”的条目 - 手段：使用“字符的int表示”来作为“码值”，使用字符本身来作为“字符串”
+        for (currentCodeValue = 0; currentCodeValue < characterOptions; currentCodeValue++)
+            codeValueToDecodedStr[currentCodeValue] = "" + (char) currentCodeValue;
+        codeValueToDecodedStr[currentCodeValue++] = "";                        // (unused) lookahead for EOF
 
+        // #2-① 读取“输入中的当前码值”
         int codeValue = BinaryStdIn.readInt(bitWidthLength);
+        // 如果码值 在“最大的可选字符选项”的刻度上，说明 展开的信息是一个空字符串，则：直接返回，不再解码了
         if (codeValue == characterOptions) return;           // expanded message is empty string
+        // #2-② 解码出 “当前码值”所对应的字符串
         String currentDecodedStr = codeValueToDecodedStr[codeValue];
 
         while (true) {
+            // #2-③ 把“解码当前码值得到的字符串”写入到标准输出中
             BinaryStdOut.write(currentDecodedStr);
+
+            // #3-① 读取“输入中的下一个码值”
             codeValue = BinaryStdIn.readInt(bitWidthLength);
-
+            // 如果 码值等于“最大的可选字符选项”，说明???，则：xx结束，跳出循环
             if (codeValue == characterOptions) break;
-
+            // #3-② 解码出 “输入中的下一个码值”所对应的字符串
             String nextDecodedStr = codeValueToDecodedStr[codeValue];
-            // 先处理特殊情况：前瞻过程中得到的字符 与 当前子字符串的开头字符 相同👇
-            if (legitCodeValue == codeValue)
-                nextDecodedStr = currentDecodedStr + currentDecodedStr.charAt(0);
-            // 构造反编译表
-            if (legitCodeValue < encodedValueOptions)
-                // 为下一个码值 绑定 字符串（当前字符串 + 下一个字符串的首字符）
-                codeValueToDecodedStr[legitCodeValue++] = currentDecodedStr + nextDecodedStr.charAt(0);
 
-            // 更新“当前字符串” 为下一个循环做准备
+            // #4 向“解码表”中添加条目👇
+            // #4-① 先处理特殊情况：前瞻过程中得到的字符 与 当前子字符串的开头字符 相同👇
+            if (currentCodeValue == codeValue)
+                // “输入中的下一个码值”所对应的字符串 就等于 “输入中的当前码值”所对应的字符串 + “当前码值所对应的字符串的首字符”
+                nextDecodedStr = currentDecodedStr + currentDecodedStr.charAt(0);
+            // #4-② 如果当前码值 还是“有效码值”，则：构造符号表条目的“码值” 与 “字符串”，将它们关联起来
+            if (currentCodeValue < encodedValueOptions)
+                // 构造码值 - 手段：把“自然数序列中的当前码值”+1；  构造“字符串” - 手段：“输入中的当前编码所对应的字符串” + “输入中的下一个编码所对应的字符串”的首字符
+                codeValueToDecodedStr[currentCodeValue++] = currentDecodedStr + nextDecodedStr.charAt(0);
+
+            // #5 更新 “当前字符串”变量 为 “下一个字符串” 来 为下一个循环做准备
             currentDecodedStr = nextDecodedStr;
         }
         BinaryStdOut.close();
