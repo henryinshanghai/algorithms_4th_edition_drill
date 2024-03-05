@@ -1,4 +1,6 @@
-package com.henry.sort_chapter_02.priority_queue_04.pq_use_demo_01; /******************************************************************************
+package com.henry.sort_chapter_02.priority_queue_04.pq_use_demo_01;
+
+/******************************************************************************
  *  Compilation:  javac TopM.java
  *  Execution:    java TopM m < input.txt
  *  Dependencies: MinPQ.java Transaction.java StdIn.java StdOut.java
@@ -32,6 +34,7 @@ import edu.princeton.cs.algs4.*;
  *  @author Robert Sedgewick
  *  @author Kevin Wayne
  */
+// 验证：使用优先级队列，能够找出 一个元素集合中，最大的M个元素
 public class TopMFromWebsite {
 
     // This class should not be instantiated.
@@ -46,9 +49,10 @@ public class TopMFromWebsite {
      */
     public static void main(String[] args) {
         // 从命令行参数中 读取M的值
-        int biggestMth = Integer.parseInt(args[0]);
+        int M = Integer.parseInt(args[0]);
         // 创建出一个 MinPQ数据结构的实例
-        MinPQ<Transaction> collectionForBiggestMItems = new MinPQ<Transaction>(biggestMth+1); // this is the key point~
+        // 🐖 队列中的元素应该是 可比较的，这样才能具有“优先级” 这里Transaction类的compareTo()方法 提供了 元素间比较大小的依据
+        MinPQ<Transaction> collectionForBiggestMItems = new MinPQ<Transaction>(M+1); // this is the key point~
 
 
         while (StdIn.hasNextLine()) {
@@ -60,21 +64,21 @@ public class TopMFromWebsite {
             collectionForBiggestMItems.insert(transaction);
 
             // 如果集合中被添加了 “M+1”个元素，则：把其中最小的元素移除
-            if (collectionForBiggestMItems.size() > biggestMth)
+            if (collectionForBiggestMItems.size() > M)
                 collectionForBiggestMItems.delMin();
         }   // 循环结束后，最大的M个元素就被存放在 collectionForBiggestMItems 中了
 
 
-        // 从 collectionForBiggestMItems 中取出元素打印 - 需要按序取出
+        // 从 collectionForBiggestMItems 中按序取出元素打印
         // 手段：使用一个栈结构 来 实现 “取出元素打印”
-        Stack<Transaction> stack = new Stack<Transaction>();
-        // collectionForBiggestMItems是支持迭代的集合
-        // 数据类型中需要实现自己的迭代器 - 它会决定迭代的方式
+        Stack<Transaction> transactionStack = new Stack<Transaction>();
+        // collectionForBiggestMItems是 支持迭代操作的集合
+        // 数据类型中需要实现自己的迭代器 - 它会决定迭代的具体方式
         for (Transaction transaction : collectionForBiggestMItems)
-            stack.push(transaction);
+            transactionStack.push(transaction);
 
         // 栈（algs4包中所实现的）的迭代方式：从栈顶到栈底？
-        for (Transaction transaction : stack)
+        for (Transaction transaction : transactionStack)
             StdOut.println(transaction);
     }
 }
