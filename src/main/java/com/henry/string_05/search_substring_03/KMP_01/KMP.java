@@ -151,7 +151,7 @@ public class KMP {
     /**
      * Returns the index of the first occurrence of the pattern string
      * in the text string.
-     *
+     * 返回 在文本字符串中，模式字符串第一次出现的索引位置
      * @param passedTxtStr the text string
      * @return the index of the first occurrence of the pattern string
      * in the text string; N if no such match
@@ -162,15 +162,17 @@ public class KMP {
         int txtCharacterAmount = passedTxtStr.length();
         int currentTxtCursor, currentPatCursor;
 
+        // 对于“当前文本字符位置”...
         for (currentTxtCursor = 0, currentPatCursor = 0;
              currentTxtCursor < txtCharacterAmount && currentPatCursor < patStrLength; currentTxtCursor++) {
-            // 用“模式字符串的指针” 来 匹配文本字符串的字符
+            // 获取到“文本字符串字符”，并使用它 来 驱动 “模式字符串的DFA（有限状态自动机）”
+            // 驱动DFA的手段：DFA[txt_character][pat_cursor]
             currentPatCursor = nextCursorSpotOnCondition[passedTxtStr.charAt(currentTxtCursor)][currentPatCursor];
         }
 
-        // 如果匹配成功，则：返回 匹配的左字符
+        // 如果“文本字符串中的字符”把“模式字符串的DFA”驱动到了“DFA的末尾位置”，说明 在“文本字符串”中找到了“匹配模式字符串的子字符串”，则：返回 匹配子字符串的左指针位置
         if (currentPatCursor == patStrLength) return currentTxtCursor - patStrLength;    // found
-        // 如果匹配不成功，则：返回文本字符串的长度
+        // 否则，说明没能找到“匹配的子字符串”，则：返回文本字符串的长度
         return txtCharacterAmount;                    // not found
     }
 
