@@ -62,8 +62,8 @@ public class KMP {
     private int[][] nextCursorSpotOnCondition;       // dfa: the KMP automaton spotOfPatCharacterToCompareWithNextTxtCharacter
 
     /**
-     * Preprocesses the pattern string.
-     *
+     * Preprocesses(预处理) the pattern string.
+     * 预处理内容：在构造器中，创建出 模式字符串的nextCursorSpot[given_character][current_spot]数组
      * @param patStr the pattern string
      */
     public KMP(String patStr) {
@@ -77,25 +77,28 @@ public class KMP {
         char characterOnSpot = patStr.charAt(0);
         nextCursorSpotOnCondition[characterOnSpot][initCursorSpot] = 1;
 
-        // ”用于模拟的状态“ aka 重启状态 作用：状态转移过程从此处重新开始???
+        // ”用于模拟的状态“ aka 重启状态 作用：如果当前位置上的字符 与 “模式字符”匹配失败，则 状态转移过程从此处(重启位置)重新开始???
         // X = stateToSimulate = restartStateForCurrentSpot = restartSpotForCurrentSpot
         // #0 初始化当前位置 与 当前位置的重启位置
         for (int restartSpotOfCurrentSpot = 0, currentCursorSpot = 1;
              currentCursorSpot < patStrLength; currentCursorSpot++) {
 
-            /* 指针应该指向的下一个位置是哪儿？ */
+            /* 模式字符串的指针 应该指向的/移动到的/转移到的 下一个位置是哪儿？ */
             // #1 初始化 当前位置的dfa值（状态转移后的位置）
+            // 手段：参考/模拟/拷贝 其重启位置的状态转移情况
             initDFAFor(currentCursorSpot, restartSpotOfCurrentSpot);
 
-            // #2 如果当前位置上，遇到了“模式字符串中当前位置上的字符”，说明是一次成功的匹配，应该转移到下一个位置
-            // 则：把dfa[][]的值更新为下一个位置
+            // #2 当匹配时，更新 当前位置的dfa值（指针移动到的位置）
+            // 手段：对于“模式字符串中当前位置上的字符”，它会产生一个“成功的匹配”，这时 cursor应该转移到 “模式字符串当前位置的下一个位置”
+            // 具体做法：把dfa[][]的值更新为 currentCursorSpot的下一个位置
             char currentPatternCharacter = patStr.charAt(currentCursorSpot);
-            updateDFAOn(currentCursorSpot, currentPatternCharacter);
+            updateDFAFor(currentCursorSpot, currentPatternCharacter);
 
-            /* #3 “当前位置”处理完成后，迭代地计算“下一个位置”的重启状态/位置 */
+            /* #3 “模式字符串的当前位置”处理完成后，迭代地计算“当前位置的下一个位置”的重启状态/模拟位置 */
             // 手段： 下一个位置的重启位置 = 当前位置的重启位置，在遇到”当前模式字符“时的”状态转移结果“
             // 原理：位置i的重启状态 就是 由状态0 从pat[1]一直匹配到pat[i-1]所得到的状态转移结果
             // 所以X(i)的求值是一个迭代的过程: X(i) = dfa[pat[i-1]][X(i-1)]
+            // 🐖 “下一个位置的重启位置”的计算，不依赖于“当前位置”，只依赖于“当前重启位置” 与 “当前模式字符”
             restartSpotOfCurrentSpot = calculateRestartSpotForNextSpot(restartSpotOfCurrentSpot, currentPatternCharacter);
         }
     }
@@ -104,14 +107,14 @@ public class KMP {
         return nextCursorSpotOnCondition[currentPatternCharacter][restartSpotForCurrentSpot];
     }
 
-    private void updateDFAOn(int currentCursorSpot, char currentPatternCharacter) {
+    private void updateDFAFor(int currentCursorSpot, char currentPatternCharacter) {
         nextCursorSpotOnCondition[currentPatternCharacter][currentCursorSpot] = currentCursorSpot + 1;
     }
 
     private void initDFAFor(int currentCursorSpot, int restartSpotForCurrentSpot) {
         // 对于 当前位置上可能遇到的每一个字符...
         for (int currentCharacter = 0; currentCharacter < characterOptionsAmount; currentCharacter++) {
-            // 使用“当前位置的重启位置”的dfa值 来 模拟“当前位置”的dfa值（状态转移到的下一个位置）
+            // 使用“当前位置的重启位置”的dfa值 来 模拟“当前位置”的dfa值（状态应该转移到的下一个位置）
             // 🐖 当前位置的重启位置X(i) 相比于 当前位置i 一般会更小 - X(i) < i
             int stateToSimulate = restartSpotForCurrentSpot;
             nextCursorSpotOnCondition[currentCharacter][currentCursorSpot] = nextCursorSpotOnCondition[currentCharacter][stateToSimulate];
