@@ -218,8 +218,8 @@ public class KMP {
         char[] patternCharArr = patStr.toCharArray();
         char[] textCharArr = txtStr.toCharArray();
 
-        KMP kmp1 = new KMP(patStr);
-        int offset1 = kmp1.searchWithIn(txtStr);
+        KMP patStrDFA = new KMP(patStr);
+        int startSpotOfMatchedSubStr = patStrDFA.searchWithIn(txtStr);
 
         KMP kmp2 = new KMP(patternCharArr, 256);
         int offset2 = kmp2.search(textCharArr);
@@ -228,7 +228,8 @@ public class KMP {
         StdOut.println("textCharArr:    " + txtStr);
 
         StdOut.print("patternCharArr: ");
-        for (int currentSpot = 0; currentSpot < offset1; currentSpot++)
+        int offset = startSpotOfMatchedSubStr;
+        for (int currentSpot = 0; currentSpot < offset; currentSpot++)
             StdOut.print(" ");
         StdOut.println(patStr);
 
