@@ -34,7 +34,7 @@ import edu.princeton.cs.algs4.*;
  *  @author Robert Sedgewick
  *  @author Kevin Wayne
  */
-// 验证：使用优先级队列，能够找出 一个元素集合中，最大的M个元素
+// 验证：使用优先级队列(核心API-#1 向队列中添加元素; #2 从队列中删除最大元素)，能够找出 一个元素集合中，最大的M个元素
 public class TopMFromWebsite {
 
     // This class should not be instantiated.
@@ -44,40 +44,42 @@ public class TopMFromWebsite {
      *  Reads a sequence of transactions from standard input; takes a
      *  command-line integer m; prints to standard output the m largest
      *  transactions in descending order.
-     *
+     * 从标准输入中读取一系列的交易；
+     * 获取到一个命令行参数 整数M；
+     * 以降序 把交易中最大的M个交易 打印到标准输出中
      * @param args the command-line arguments
      */
     public static void main(String[] args) {
         // 从命令行参数中 读取M的值
         int M = Integer.parseInt(args[0]);
         // 创建出一个 MinPQ数据结构的实例
-        // 🐖 队列中的元素应该是 可比较的，这样才能具有“优先级” 这里Transaction类的compareTo()方法 提供了 元素间比较大小的依据
+        // 🐖 队列中的元素需要是 “可比较的”，这样队列元素才能具有“优先级”
+        // 手段：这里Transaction类的compareTo()方法 提供了 元素间比较大小的依据
         MinPQ<Transaction> collectionForBiggestMItems = new MinPQ<Transaction>(M+1); // this is the key point~
-
 
         while (StdIn.hasNextLine()) {
             // 读取标准输入的下一行的数据
-            String line = StdIn.readLine();
+            String transactionInLine = StdIn.readLine();
             // 从读取的数据中创建出 transaction对象
-            Transaction transaction = new Transaction(line);
-            // 把它添加到 最大元素集合中
+            Transaction transaction = new Transaction(transactionInLine);
+            // 把它添加到 最大元素集合中 - API#1
             collectionForBiggestMItems.insert(transaction);
 
-            // 如果集合中被添加了 “M+1”个元素，则：把其中最小的元素移除
+            // 如果集合中已经添加了多过“M”个元素，则：把其中最小的元素移除(API#2) 来 确保队列中只有M个元素
             if (collectionForBiggestMItems.size() > M)
                 collectionForBiggestMItems.delMin();
-        }   // 循环结束后，最大的M个元素就被存放在 collectionForBiggestMItems 中了
-
+        }
+        // 👆 循环结束后，最大的M个元素就被存放在 collectionForBiggestMItems 中了
 
         // 从 collectionForBiggestMItems 中按序取出元素打印
-        // 手段：使用一个栈结构 来 实现 “取出元素打印”
+        // 手段：#1 先使用一个栈结构 来 从队列中获取元素&存储元素
         Stack<Transaction> transactionStack = new Stack<Transaction>();
         // collectionForBiggestMItems是 支持迭代操作的集合
         // 数据类型中需要实现自己的迭代器 - 它会决定迭代的具体方式
         for (Transaction transaction : collectionForBiggestMItems)
             transactionStack.push(transaction);
 
-        // 栈（algs4包中所实现的）的迭代方式：从栈顶到栈底？
+        // 手段：#2 遍历栈结构，打印栈中的元素
         for (Transaction transaction : transactionStack)
             StdOut.println(transaction);
     }
