@@ -32,7 +32,7 @@ import edu.princeton.cs.algs4.BinaryStdOut;
  * @author Robert Sedgewick
  * @author Kevin Wayne
  */
-// 使用两位编码 来 压缩或扩展 一个基因组序列
+// 验证：可以使用“两位编码” 来 对所有“碱基选项”进行编码，进而 压缩或扩展 一个基因组序列
 public class Genome {
 
     // Do not instantiate.
@@ -43,22 +43,25 @@ public class Genome {
      * Reads a sequence of 8-bit extended ASCII characters over the alphabet
      * { A, C, T, G } from standard input; compresses them using two bits per
      * character; and writes the results to standard output.
-     *
+     * <p>
      * 从标准输入中 读取一个 由8位扩展ASCII字符所构成的序列（字符选项 A, C, T, G）
      * 以“每个字符两位比特”的方式 来 压缩它们
      * 并把结果写出到 标准输出中
      */
     public static void compress() {
-        Alphabet DNA = Alphabet.DNA;
-        String s = BinaryStdIn.readString();
-        int n = s.length();
-        BinaryStdOut.write(n);
+        Alphabet baseOptions = Alphabet.DNA;
+        String inputBaseSequence = BinaryStdIn.readString();
+        int baseAmount = inputBaseSequence.length();
+        BinaryStdOut.write(baseAmount);
 
         // Write two-bit code for char.
-        for (int i = 0; i < n; i++) {
-            int d = DNA.toIndex(s.charAt(i));
-            BinaryStdOut.write(d, 2);
+        for (int currentBaseSpot = 0; currentBaseSpot < baseAmount; currentBaseSpot++) {
+            char currentBaseChar = inputBaseSequence.charAt(currentBaseSpot);
+            int basesIndex = baseOptions.toIndex(currentBaseChar);
+
+            BinaryStdOut.write(basesIndex, 2);
         }
+
         BinaryStdOut.close();
     }
 
@@ -66,14 +69,19 @@ public class Genome {
      * Reads a binary sequence from standard input; converts each two bits
      * to an 8-bit extended ASCII character over the alphabet { A, C, T, G };
      * and writes the results to standard output.
+     * 从标准输入中读取一个二进制序列；
+     * 把每两个bit都转化成为一个8bit的扩展ASCII字符（基于字母表 A,C,T,G）
+     * 并且把转换结果 写入到标准输出中去
      */
     public static void expand() {
-        Alphabet DNA = Alphabet.DNA;
-        int n = BinaryStdIn.readInt();
+        Alphabet baseOptions = Alphabet.DNA;
+        int anIntOfInput = BinaryStdIn.readInt();
         // Read two bits; write char.
-        for (int i = 0; i < n; i++) {
-            char c = BinaryStdIn.readChar(2);
-            BinaryStdOut.write(DNA.toChar(c), 8);
+        for (int currentCursor = 0; currentCursor < anIntOfInput; currentCursor++) {
+            char currentIndex = BinaryStdIn.readChar(2);
+            char currentCharacter = baseOptions.toChar(currentIndex);
+
+            BinaryStdOut.write(currentCharacter, 8);
         }
         BinaryStdOut.close();
     }
