@@ -38,19 +38,20 @@ import edu.princeton.cs.algs4.MinPQ;
  * @author Robert Sedgewick
  * @author Kevin Wayne
  */
+// 验证：可以使用霍夫曼算法（把最频繁出现的字符使用最少位数的二进制数表示）来 对“文本字符串”进行压缩/解压
 public class Huffman {
 
-    // alphabet size of extended ASCII
+    // 扩展ASCII表中的字符数量
     private static final int characterOption = 256;
 
-    // Do not instantiate.
+    // 为了防止这个类被初始化，这里把构造方法设置为private
     private Huffman() {
     }
 
-    // Huffman trie node
+    // Huffman单词查找树中的结点
     private static class Node implements Comparable<Node> {
         private final char character;
-        private final int frequency; // 字符在字符串中出现的频率 或 以此结点作为根结点的子树中的所有字符出现的总频率
+        private final int frequency; // 字符在字符串中出现的频率 或 “以此结点作为根结点”的子树中的所有“叶子节点中的字符”出现的总频率
         private final Node leftSubNode, rightSubNode;
 
         Node(char character, int frequency, Node leftSubNode, Node rightSubNode) {
@@ -60,13 +61,13 @@ public class Huffman {
             this.rightSubNode = rightSubNode;
         }
 
-        // is the node a leaf node?
+        // 当前节点是不是一个叶子节点?
         private boolean isLeaf() {
             assert ((leftSubNode == null) && (rightSubNode == null)) || ((leftSubNode != null) && (rightSubNode != null));
             return (leftSubNode == null) && (rightSubNode == null);
         }
 
-        // compare, based on frequency 这个API是为了支持优先队列的操作
+        // 基于频率的比较操作 - 这个API是为了支持优先队列的操作
         public int compareTo(Node that) {
             return this.frequency - that.frequency;
         }
@@ -81,42 +82,41 @@ public class Huffman {
      * 把压缩的结果 写入到标准输出中；
      */
     public static void compress() {
-        // #1 读取标准输入中传入的字符串
+        // 读取标准输入中传入的字符串
         String inputStr = BinaryStdIn.readString();
-        char[] characterSequence = inputStr.toCharArray();
+        char[] inputCharacterSequence = inputStr.toCharArray();
 
-        // 对“输入字符串中的各个字符”的出现频率进行计数
+        // #1 对“输入字符串中的各个字符”的出现频率进行计数
         int[] characterToItsFrequency = new int[characterOption];
-        for (int currentSpot = 0; currentSpot < characterSequence.length; currentSpot++) {
-            char currentCharacter = characterSequence[currentSpot];
+        for (int currentSpot = 0; currentSpot < inputCharacterSequence.length; currentSpot++) {
+            char currentCharacter = inputCharacterSequence[currentSpot];
+            // 使用一个数组 来 记录字符->字符出现频率 的映射关系
             characterToItsFrequency[currentCharacter]++;
         }
 
-        // 根据标准输入中 字符->字符出现的频率的映射关系，构造出 霍夫曼树（最优前缀码）
+        // #2 根据#1中的统计结果，构造出 霍夫曼树（它是一种“最优前缀码”方案）
         Node huffmanTrie = buildTrie(characterToItsFrequency);
 
-        // 根据霍夫曼树 来 构造出编译表/符号表/字符编码查找表
-        String[] lookupTable = new String[characterOption];
-        buildLookupTable(lookupTable, huffmanTrie, "");
+        // #3 根据霍夫曼Trie树 来 构造出“霍夫曼编码表”
+        String[] characterToEncodedValue = new String[characterOption];
+        buildEncodedValueTable(huffmanTrie, characterToEncodedValue, "");
 
-        // print trie for decoder
-        // 把“单词查找树本身”写入到标准输出中 - 用于后续的解码工作
+        // #4-1 把“单词查找树本身”写入到标准输出中 - 用于后续的解码工作
         writeTrie(huffmanTrie);
 
-        // print number of bytes in original uncompressed message
-        // 打印“未压缩的原始字符序列”中的比特数量
-        BinaryStdOut.write(characterSequence.length);
+        // #4-2 把“未压缩的原始字符序列”中的比特数量 写入到标准输出中 - 用于后继的解码工作??
+        BinaryStdOut.write(inputCharacterSequence.length);
 
-        // #2 使用 霍夫曼编译表 来 对“原始字符序列”进行编码/压缩
-        for (int currentSpot = 0; currentSpot < characterSequence.length; currentSpot++) {
-            // 对于当前字符
-            char currentCharacter = characterSequence[currentSpot];
-            // 从编译表中找到 字符对应的编码结果
-            String encodedBitStr = lookupTable[currentCharacter];
+        // #5 使用 霍夫曼编译表 来 对“原始字符序列”进行编码/压缩
+        for (int currentSpot = 0; currentSpot < inputCharacterSequence.length; currentSpot++) {
+            // #5-1 对于当前字符，从编码表中找到 其所对应的编码结果
+            char currentCharacter = inputCharacterSequence[currentSpot];
+            String encodedBitStr = characterToEncodedValue[currentCharacter];
 
-            // #3 把“编码结果”/“压缩结果” 写入到 标准输出中...  规则：字符0写成false，字符1写成true
+            // #5-2 然后把“编码结果”/“压缩结果” 写入到 标准输出中...
             for (int cursor = 0; cursor < encodedBitStr.length(); cursor++) {
                 char currentBit = encodedBitStr.charAt(cursor);
+                // 写入规则：字符0写成false，字符1写成true
                 if (currentBit == '0') {
                     BinaryStdOut.write(false);
                 } else if (currentBit == '1') {
@@ -129,28 +129,30 @@ public class Huffman {
         BinaryStdOut.close();
     }
 
-    // 从“原始字符串中字符的出现频率计数”中，构建出 霍夫曼单词查找树
+    // 从“原始字符串中字符的出现频率计数”中，构建出 霍夫曼单词查找树 - 手段：优先级队列
     private static Node buildTrie(int[] characterToItsFrequency) {
 
-        // initialize priority queue with singleton trees
-        MinPQ<Node> nodeMinPQ = new MinPQ<Node>();
+        // 使用一堆的单节点树作为队列元素 来 初始化优先级队列
+        MinPQ<Node> nodesMinPQ = new MinPQ<Node>();
         for (char currentCharacter = 0; currentCharacter < characterOption; currentCharacter++) {
             int itsFrequency = characterToItsFrequency[currentCharacter];
             if (itsFrequency > 0)
-                nodeMinPQ.insert(new Node(currentCharacter, itsFrequency, null, null));
+                nodesMinPQ.insert(new Node(currentCharacter, itsFrequency, null, null));
         }
 
-        // merge two smallest trees
-        // 把当前最小的两棵树合并起来，得到一棵更大的树 🐖 会添加一个新的结点作为父节点
-        while (nodeMinPQ.size() > 1) {
-            Node leftSubNode = nodeMinPQ.delMin();
-            Node rightSubNode = nodeMinPQ.delMin();
+        // 把当前“最小的两棵树”合并起来，得到一棵更大的树 🐖 会添加一个新的结点作为父节点
+        // 手段：使用优先级队列的delMin()能够轻易得到“最小的树/根结点”
+        while (nodesMinPQ.size() > 1) {
+            Node leftSubNode = nodesMinPQ.delMin();
+            Node rightSubNode = nodesMinPQ.delMin();
+            // 创建的父节点中 不持有任何字符、频率值为左右子树的频率之和
             Node parentNode = new Node('\0', leftSubNode.frequency + rightSubNode.frequency, leftSubNode, rightSubNode);
-            nodeMinPQ.insert(parentNode);
+            nodesMinPQ.insert(parentNode);
         }
-        return nodeMinPQ.delMin();
-    }
 
+        // 获取到“所有节点完全合并之后得到的huffman树” - 手段：从优先级队列中删除以获取到“当前最小的元素”
+        return nodesMinPQ.delMin();
+    }
 
     // write bitstring-encoded trie to standard output
     // 把 比特字符串编码的单词查找树 写入到 标准输出中
@@ -174,10 +176,10 @@ public class Huffman {
 
     // make a lookup table from symbols and their encodings
     // 构造一个编译表 用于建立 字符(符号) 与其编码之间的映射关系 aka a lookup table
-    private static void buildLookupTable(String[] symbolTable, Node passedNode, String encodedBitStr) {
+    private static void buildEncodedValueTable(Node passedNode, String[] symbolTable, String encodedBitStr) {
         if (!passedNode.isLeaf()) {
-            buildLookupTable(symbolTable, passedNode.leftSubNode, encodedBitStr + '0');
-            buildLookupTable(symbolTable, passedNode.rightSubNode, encodedBitStr + '1');
+            buildEncodedValueTable(passedNode.leftSubNode, symbolTable, encodedBitStr + '0');
+            buildEncodedValueTable(passedNode.rightSubNode, symbolTable, encodedBitStr + '1');
         } else {
             symbolTable[passedNode.character] = encodedBitStr;
         }
