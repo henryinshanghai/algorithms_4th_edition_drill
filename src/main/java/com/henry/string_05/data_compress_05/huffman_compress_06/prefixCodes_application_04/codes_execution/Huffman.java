@@ -131,31 +131,44 @@ public class Huffman {
 
     // 从“原始字符串中字符的出现频率计数”中，构建出 霍夫曼单词查找树 - 手段：优先级队列
     private static Node buildTrie(int[] characterToItsFrequency) {
+        // #1 先创建一堆的独立的单节点树，把它们作为作为队列元素 来 初始化优先级队列
+        MinPQ<Node> nodesMinPQ = createSeparateNodesToInitPQ(characterToItsFrequency);
 
-        // 使用一堆的单节点树作为队列元素 来 初始化优先级队列
+        while (nodesMinPQ.size() > 1) {
+            // #2 把当前“最小的两棵树”合并起来，得到一棵更大的树 🐖 会添加一个新的结点作为父节点
+            // 手段：使用优先级队列的delMin()能够轻易得到“最小的树/根结点”
+            combineIntoOneNode(nodesMinPQ);
+        }
+
+        // #3 获取到“所有节点完全合并之后得到的huffman树” - 手段：从优先级队列中删除以获取到“当前最小的元素”
+        return nodesMinPQ.delMin();
+    }
+
+    private static void combineIntoOneNode(MinPQ<Node> nodesMinPQ) {
+        // 获取到队列中的 最小的两个结点
+        Node leftSubNode = nodesMinPQ.delMin();
+        Node rightSubNode = nodesMinPQ.delMin();
+        // 创建的父节点中 不持有任何字符、频率值为左右子树的频率之和
+        Node parentNode = createParentBasedOn(leftSubNode, rightSubNode);
+        // 把创建出的父节点 添加回到队列中
+        nodesMinPQ.insert(parentNode);
+    }
+
+    private static Node createParentBasedOn(Node leftSubNode, Node rightSubNode) {
+        return new Node('\0', leftSubNode.frequency + rightSubNode.frequency, leftSubNode, rightSubNode);
+    }
+
+    private static MinPQ<Node> createSeparateNodesToInitPQ(int[] characterToItsFrequency) {
         MinPQ<Node> nodesMinPQ = new MinPQ<Node>();
         for (char currentCharacter = 0; currentCharacter < characterOption; currentCharacter++) {
             int itsFrequency = characterToItsFrequency[currentCharacter];
             if (itsFrequency > 0)
                 nodesMinPQ.insert(new Node(currentCharacter, itsFrequency, null, null));
         }
-
-        // 把当前“最小的两棵树”合并起来，得到一棵更大的树 🐖 会添加一个新的结点作为父节点
-        // 手段：使用优先级队列的delMin()能够轻易得到“最小的树/根结点”
-        while (nodesMinPQ.size() > 1) {
-            Node leftSubNode = nodesMinPQ.delMin();
-            Node rightSubNode = nodesMinPQ.delMin();
-            // 创建的父节点中 不持有任何字符、频率值为左右子树的频率之和
-            Node parentNode = new Node('\0', leftSubNode.frequency + rightSubNode.frequency, leftSubNode, rightSubNode);
-            nodesMinPQ.insert(parentNode);
-        }
-
-        // 获取到“所有节点完全合并之后得到的huffman树” - 手段：从优先级队列中删除以获取到“当前最小的元素”
-        return nodesMinPQ.delMin();
+        return nodesMinPQ;
     }
 
-    // write bitstring-encoded trie to standard output
-    // 把 比特字符串编码的单词查找树 写入到 标准输出中
+    // 把 “比特字符串”所编码的单词查找树 写入到 标准输出中
     // 手段：使用前序遍历的规则（根结点 - 左子树 - 右子树） 来 完全处理树中的所有结点
     private static void writeTrie(Node passedNode) {
         if (passedNode.isLeaf()) { // 如果传入的结点是一个“叶子节点”，则...
@@ -165,8 +178,7 @@ public class Huffman {
             BinaryStdOut.write(passedNode.character, 8);
             return;
         }
-        // 如果是“内部结点”，则...
-        // 向标准输出中写入一个0/false
+        // 如果是“内部结点”，则：向标准输出中写入一个0/false
         BinaryStdOut.write(false);
         // 把结点的左子树，继续(递归地)写入到标准输出中
         writeTrie(passedNode.leftSubNode);
@@ -174,8 +186,7 @@ public class Huffman {
         writeTrie(passedNode.rightSubNode);
     }
 
-    // make a lookup table from symbols and their encodings
-    // 构造一个编译表 用于建立 字符(符号) 与其编码之间的映射关系 aka a lookup table
+    // 构造一个编码表 用于建立 字符(符号) 与其编码之间的映射关系 aka a lookup table
     private static void buildEncodedValueTable(Node passedNode, String[] symbolTable, String encodedBitStr) {
         if (!passedNode.isLeaf()) {
             buildEncodedValueTable(passedNode.leftSubNode, symbolTable, encodedBitStr + '0');
