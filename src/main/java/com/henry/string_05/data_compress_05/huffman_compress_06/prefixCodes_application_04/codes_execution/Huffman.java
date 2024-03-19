@@ -193,26 +193,39 @@ public class Huffman {
      * 把展开的结果写入到标准输出中.
      */
     public static void expand() {
-
-        // 从输入流中读取出 霍夫曼单词查找树(trie)
+        // #1 先从输入流中读取出 霍夫曼单词查找树(trie)
         Node huffmanTrie = readTrie();
 
-        // 获取到 待写入的字节的数量
-        int length = BinaryStdIn.readInt();
+        // #2 再读取出 待写入的字节的数量
+        int expectedCharacterAmount = BinaryStdIn.readInt();
 
-        // 使用霍夫曼单词查找树，对“输入流中的比特流”进行解码
-        for (int currentByte = 0; currentByte < length; currentByte++) {
-            Node currentNode = huffmanTrie;
-            // 当前节点不是“叶子节点”时，沿着树的分支继续查找...
-            while (!currentNode.isLeaf()) {
-                boolean currentBit = BinaryStdIn.readBoolean();
-                if (currentBit) currentNode = currentNode.rightSubNode;
-                else currentNode = currentNode.leftSubNode;
-            }
-            // 当前结点是“叶子节点”时，把结点中的字符打印到 标准输出中
-            BinaryStdOut.write(currentNode.character, 8);
+        // #3 对于期待的每一个字符...
+        for (int characterOrdinal = 0; characterOrdinal < expectedCharacterAmount; characterOrdinal++) {
+            // 逐个读取“输入流中的比特”，然后使用霍夫曼单词查找树 对读到的“比特序列”进行解码，来得到具体字符
+            decodeInputBitsUsing(huffmanTrie);
         }
+
         BinaryStdOut.close();
+    }
+
+    private static void decodeInputBitsUsing(Node huffmanTrie) {
+        Node currentNode = huffmanTrie;
+        // 当前节点不是“叶子节点”时，沿着树的分支继续查找...
+        while (!currentNode.isLeaf()) {
+            currentNode = navigateViaInputBits(currentNode);
+        }
+        // 直到导航到“叶子节点”时（只有叶子节点中才持有字符），就可以把“结点中的字符” 打印到 标准输出中 - 至此，解码得到了当前字符
+        BinaryStdOut.write(currentNode.character, 8);
+    }
+
+    private static Node navigateViaInputBits(Node currentNode) {
+        boolean currentBitOfInput = BinaryStdIn.readBoolean();
+        // 导航规则：如果输入bit为1，则 向右子树前进。如果输入bit为0，则向左子树前进
+        if (currentBitOfInput)
+            currentNode = currentNode.rightSubNode;
+        else
+            currentNode = currentNode.leftSubNode;
+        return currentNode;
     }
 
 
