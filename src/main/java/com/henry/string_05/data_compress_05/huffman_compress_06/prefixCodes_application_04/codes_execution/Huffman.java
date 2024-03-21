@@ -187,12 +187,13 @@ public class Huffman {
     }
 
     // 构造一个编码表 用于建立 字符(符号) 与其编码之间的映射关系 aka a lookup table
-    private static void buildEncodedValueTable(Node passedNode, String[] symbolTable, String encodedBitStr) {
+    // 这个方法的主要作用是什么？副作用是什么？为什么可以实现为一个递归方法？
+    private static void buildEncodedValueTable(Node passedNode, String[] characterToEncodeValue, String encodedBitStr) {
         if (!passedNode.isLeaf()) {
-            buildEncodedValueTable(passedNode.leftSubNode, symbolTable, encodedBitStr + '0');
-            buildEncodedValueTable(passedNode.rightSubNode, symbolTable, encodedBitStr + '1');
+            buildEncodedValueTable(passedNode.leftSubNode, characterToEncodeValue, encodedBitStr + '0');
+            buildEncodedValueTable(passedNode.rightSubNode, characterToEncodeValue, encodedBitStr + '1');
         } else {
-            symbolTable[passedNode.character] = encodedBitStr;
+            characterToEncodeValue[passedNode.character] = encodedBitStr;
         }
     }
 
