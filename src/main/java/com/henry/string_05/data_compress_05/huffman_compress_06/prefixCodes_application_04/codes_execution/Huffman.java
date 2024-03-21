@@ -137,34 +137,44 @@ public class Huffman {
         while (nodesMinPQ.size() > 1) {
             // #2 把当前“最小的两棵树”合并起来，得到一棵更大的树 🐖 会添加一个新的结点作为父节点
             // 手段：使用优先级队列的delMin()能够轻易得到“最小的树/根结点”
-            combineIntoOneNode(nodesMinPQ);
-        }
+            combineAllNodesIntoOneTrie(nodesMinPQ);
+        } // 循环结束后，优先队列中的所有结点 都已经被添加到了 Trie树中
 
-        // #3 获取到“所有节点完全合并之后得到的huffman树” - 手段：从优先级队列中删除以获取到“当前最小的元素”
+        // #3 获取到“所有节点完全合并之后得到的huffman树（树的根结点）” - 手段：从优先级队列中删除以获取到“当前最小的元素”
         return nodesMinPQ.delMin();
     }
 
-    private static void combineIntoOneNode(MinPQ<Node> nodesMinPQ) {
-        // 获取到队列中的 最小的两个结点
+    private static void combineAllNodesIntoOneTrie(MinPQ<Node> nodesMinPQ) {
+        // #1 删除并获取到 当前队列中的 最小的两个结点
         Node leftSubNode = nodesMinPQ.delMin();
         Node rightSubNode = nodesMinPQ.delMin();
-        // 创建的父节点中 不持有任何字符、频率值为左右子树的频率之和
-        Node parentNode = createParentBasedOn(leftSubNode, rightSubNode);
-        // 把创建出的父节点 添加回到队列中
-        nodesMinPQ.insert(parentNode);
+        // #2 基于当前最小的两个结点 来 新建出一个新节点
+        // 🐖 新建的父节点：① 是最小两个结点的父节点；② 不持有任何字符； ③ 频率值为左右子树的频率之和
+        Node newlyCreatedParentNode = createParentBasedOn(leftSubNode, rightSubNode);
+        // #3 把 新建的父节点 添加回到队列中
+        nodesMinPQ.insert(newlyCreatedParentNode);
     }
 
     private static Node createParentBasedOn(Node leftSubNode, Node rightSubNode) {
+        // 扩展Node内部类的成员变量 - 左右子节点 🐖 新建结点所持有的字符为空（这里使用\0来标识）
         return new Node('\0', leftSubNode.frequency + rightSubNode.frequency, leftSubNode, rightSubNode);
     }
 
     private static MinPQ<Node> createSeparateNodesToInitPQ(int[] characterToItsFrequency) {
         MinPQ<Node> nodesMinPQ = new MinPQ<Node>();
+        // 对于每一个字符选项...
         for (char currentCharacter = 0; currentCharacter < characterOption; currentCharacter++) {
+            // 获取它在原始字符串中出现的频率
             int itsFrequency = characterToItsFrequency[currentCharacter];
-            if (itsFrequency > 0)
-                nodesMinPQ.insert(new Node(currentCharacter, itsFrequency, null, null));
+            if (itsFrequency > 0) {
+                // #1 为它创建一个单独的Trie树节点
+                Node nodeForCurrentCharacter = new Node(currentCharacter, itsFrequency, null, null);
+                // #2 把创建的Trie树节点添加到 优先级队列中
+                nodesMinPQ.insert(nodeForCurrentCharacter);
+            }
         }
+
+        // 返回 由所有独立的Trie树节点组成的优先级队列
         return nodesMinPQ;
     }
 
@@ -187,13 +197,17 @@ public class Huffman {
     }
 
     // 构造一个编码表 用于建立 字符(符号) 与其编码之间的映射关系 aka a lookup table
-    // 这个方法的主要作用是什么？副作用是什么？为什么可以实现为一个递归方法？
-    private static void buildEncodedValueTable(Node passedNode, String[] characterToEncodeValue, String encodedBitStr) {
-        if (!passedNode.isLeaf()) {
-            buildEncodedValueTable(passedNode.leftSubNode, characterToEncodeValue, encodedBitStr + '0');
-            buildEncodedValueTable(passedNode.rightSubNode, characterToEncodeValue, encodedBitStr + '1');
+    // 这个方法的主要作用是什么？副作用是什么？为什么可以实现为一个递归方法？ TODO make it easier
+    // 方法的作用：读取Trie树中的结点(手段) 来 为其叶子节点中的字符，生成其对应的编码结果(作用)
+    // 规模更小的问题：读取Trie子树中的结点 来 为其叶子节点中的字符，生成其对应的编码结果
+    // 能够使用递归的原理：子树中叶子节点的路径(编码结果)，是原始树中叶子节点路径的一个子路径（本质上仍旧是Trie结构的递归性）
+    private static void buildEncodedValueTable(Node currentNode, String[] currentCharToEncodeValueArr, String currentEncodedBitStr) {
+        if (!currentNode.isLeaf()) {
+            buildEncodedValueTable(currentNode.leftSubNode, currentCharToEncodeValueArr, currentEncodedBitStr + '0');
+            buildEncodedValueTable(currentNode.rightSubNode, currentCharToEncodeValueArr, currentEncodedBitStr + '1');
         } else {
-            characterToEncodeValue[passedNode.character] = encodedBitStr;
+            // 方法的主要作用：为 字符 生成一个 比特编码结果
+            currentCharToEncodeValueArr[currentNode.character] = currentEncodedBitStr;
         }
     }
 
