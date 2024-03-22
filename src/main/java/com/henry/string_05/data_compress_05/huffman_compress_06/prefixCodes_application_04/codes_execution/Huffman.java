@@ -97,36 +97,53 @@ public class Huffman {
         // #2 根据#1中的统计结果，构造出 霍夫曼树（它是一种“最优前缀码”方案）
         Node huffmanTrie = buildTrie(characterToItsFrequency);
 
-        // #3 根据霍夫曼Trie树 来 构造出“霍夫曼编码表”
-        String[] characterToEncodedValue = new String[characterOption];
-        buildEncodedValueTable(huffmanTrie, characterToEncodedValue, "");
+        // #3 根据霍夫曼Trie树 来 构造出“霍夫曼编码表” buildEncodedValueTable()
+        String[] characterToItsEncodedBitStr = buildEncodedBitStrTable(huffmanTrie);
 
         // #4-1 把“单词查找树本身”写入到标准输出中 - 用于后续的解码工作
-        writeTrie(huffmanTrie);
+        writeTrieToOutput(huffmanTrie);
 
-        // #4-2 把“未压缩的原始字符序列”中的比特数量 写入到标准输出中 - 用于后继的解码工作??
+        // #4-2 把“未压缩的原始字符序列”中的字符数量 写入到标准输出中 - 用于后继的解码工作??
+        writeCharacterAmountToOutput(inputCharacterSequence);
+
+        // #5 打印”原始字符序列“的编码结果 - 手段：使用编码表 来 对“原始字符序列”中的字符逐个进行编码/压缩
+        printEncodedResultFor(inputCharacterSequence, characterToItsEncodedBitStr);
+
+        // 关闭输出流
+        BinaryStdOut.close();
+    }
+
+    private static void writeCharacterAmountToOutput(char[] inputCharacterSequence) {
         BinaryStdOut.write(inputCharacterSequence.length);
+    }
 
-        // #5 使用 霍夫曼编译表 来 对“原始字符序列”进行编码/压缩
+    private static void printEncodedResultFor(char[] inputCharacterSequence, String[] characterToItsEncodedBitStr) {
         for (int currentSpot = 0; currentSpot < inputCharacterSequence.length; currentSpot++) {
             // #5-1 对于当前字符，从编码表中找到 其所对应的编码结果
             char currentCharacter = inputCharacterSequence[currentSpot];
-            String encodedBitStr = characterToEncodedValue[currentCharacter];
+            String encodedBitStr = characterToItsEncodedBitStr[currentCharacter];
 
             // #5-2 然后把“编码结果”/“压缩结果” 写入到 标准输出中...
-            for (int cursor = 0; cursor < encodedBitStr.length(); cursor++) {
-                char currentBit = encodedBitStr.charAt(cursor);
+            for (int currentBitSpot = 0; currentBitSpot < encodedBitStr.length(); currentBitSpot++) {
+                char currentBit = encodedBitStr.charAt(currentBitSpot);
                 // 写入规则：字符0写成false，字符1写成true
                 if (currentBit == '0') {
                     BinaryStdOut.write(false);
                 } else if (currentBit == '1') {
                     BinaryStdOut.write(true);
-                } else throw new IllegalStateException("Illegal state");
+                } else
+                    throw new IllegalStateException("Illegal state");
             }
         }
+    }
 
-        // 关闭输出流
-        BinaryStdOut.close();
+    private static String[] buildEncodedBitStrTable(Node huffmanTrie) {
+        // 初始化数组的大小为 所有字符选项的数量
+        String[] characterToEncodedValue = new String[characterOption];
+        // 为当前Trie中的每一个叶子节点中的字符：#1 生成其对应的编码比特结果； #2 并把映射添加到数组中
+        generateEncodedBitStrForAllLeafNodesIn(huffmanTrie, characterToEncodedValue, "");
+
+        return characterToEncodedValue;
     }
 
     // 从“原始字符串中字符的出现频率计数”中，构建出 霍夫曼单词查找树 - 手段：优先级队列
@@ -178,36 +195,47 @@ public class Huffman {
         return nodesMinPQ;
     }
 
-    // 把 “比特字符串”所编码的单词查找树 写入到 标准输出中
+    // 把 用于编码字符的单词查找树 写入到 标准输出中 - 后继的解码工作
     // 手段：使用前序遍历的规则（根结点 - 左子树 - 右子树） 来 完全处理树中的所有结点
-    private static void writeTrie(Node passedNode) {
-        if (passedNode.isLeaf()) { // 如果传入的结点是一个“叶子节点”，则...
+    // method naming: what does it do
+    private static void writeTrieToOutput(Node trieRootNode) {
+        // in-body method naming: how to achieve it
+        processNodesInPreOrder(trieRootNode);
+    }
+
+    private static void processNodesInPreOrder(Node currentRootNode) {
+        // #1 处理根结点
+        // 如果”当前根结点“是一个“叶子节点”，则...
+        if (currentRootNode.isLeaf()) {
             // ① 向标准输出中写入一个1/true
             BinaryStdOut.write(true);
             // ② 把“叶子节点中的字符”以8个比特（1个字节）写入到标准输出中...
-            BinaryStdOut.write(passedNode.character, 8);
+            BinaryStdOut.write(currentRootNode.character, 8);
             return;
         }
-        // 如果是“内部结点”，则：向标准输出中写入一个0/false
+        // 如果它是“内部结点”，则：向标准输出中写入一个0/false
         BinaryStdOut.write(false);
-        // 把结点的左子树，继续(递归地)写入到标准输出中
-        writeTrie(passedNode.leftSubNode);
-        // 把结点的右子树，继续(递归地)写入到标准输出中
-        writeTrie(passedNode.rightSubNode);
+
+        // #2 处理左子树 - 把结点的左子树，继续(递归地)写入到标准输出中
+        writeTrieToOutput(currentRootNode.leftSubNode);
+        // #3 处理右子树 - 把结点的右子树，继续(递归地)写入到标准输出中
+        writeTrieToOutput(currentRootNode.rightSubNode);
     }
 
     // 构造一个编码表 用于建立 字符(符号) 与其编码之间的映射关系 aka a lookup table
-    // 这个方法的主要作用是什么？副作用是什么？为什么可以实现为一个递归方法？ TODO make it easier
-    // 方法的作用：读取Trie树中的结点(手段) 来 为其叶子节点中的字符，生成其对应的编码结果(作用)
-    // 规模更小的问题：读取Trie子树中的结点 来 为其叶子节点中的字符，生成其对应的编码结果
+    // 这个方法的主要作用是什么？副作用是什么？为什么可以实现为一个递归方法？
+    // 方法的作用：根据当前Trie树中根结点到叶子节点的路径(手段) 来 #1 为其叶子节点中的字符，生成对应的编码结果(作用)，#2 并把编码结果添加到数组中
+    // 规模更小的问题：根据”Trie子树“中根结点到叶子结点的路径 来 #1 为其叶子节点中的字符，生成其对应的编码结果； #2 把编码结果添加到数组中
+    // 小问题的结果能否用来帮助解决原始问题：子树叶子节点字符的编码结果 加上 根结点的链接所表示的比特 就是 当前树叶子节点字符的编码结果了
     // 能够使用递归的原理：子树中叶子节点的路径(编码结果)，是原始树中叶子节点路径的一个子路径（本质上仍旧是Trie结构的递归性）
-    private static void buildEncodedValueTable(Node currentNode, String[] currentCharToEncodeValueArr, String currentEncodedBitStr) {
-        if (!currentNode.isLeaf()) {
-            buildEncodedValueTable(currentNode.leftSubNode, currentCharToEncodeValueArr, currentEncodedBitStr + '0');
-            buildEncodedValueTable(currentNode.rightSubNode, currentCharToEncodeValueArr, currentEncodedBitStr + '1');
+    // 方法名的规则：what does it do...
+    private static void generateEncodedBitStrForAllLeafNodesIn(Node currentRootNode, String[] currentCharToEncodeValueArr, String currentEncodedBitStr) {
+        if (!currentRootNode.isLeaf()) {
+            generateEncodedBitStrForAllLeafNodesIn(currentRootNode.leftSubNode, currentCharToEncodeValueArr, currentEncodedBitStr + '0');
+            generateEncodedBitStrForAllLeafNodesIn(currentRootNode.rightSubNode, currentCharToEncodeValueArr, currentEncodedBitStr + '1');
         } else {
             // 方法的主要作用：为 字符 生成一个 比特编码结果
-            currentCharToEncodeValueArr[currentNode.character] = currentEncodedBitStr;
+            currentCharToEncodeValueArr[currentRootNode.character] = currentEncodedBitStr;
         }
     }
 
