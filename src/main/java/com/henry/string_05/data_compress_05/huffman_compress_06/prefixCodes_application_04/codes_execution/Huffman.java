@@ -241,7 +241,9 @@ public class Huffman {
     // 方法名的规则：what does it do...
     private static void generateEncodedBitStrForAllLeafNodesIn(Node currentRootNode, String[] currentCharToEncodeValueArr, String currentEncodedBitStr) {
         if (!currentRootNode.isLeaf()) {
+            // 路径走左分支，则：向编码结果中添加比特0
             generateEncodedBitStrForAllLeafNodesIn(currentRootNode.leftSubNode, currentCharToEncodeValueArr, currentEncodedBitStr + '0');
+            // 路径走右分支，则：向编码结果中添加比特1
             generateEncodedBitStrForAllLeafNodesIn(currentRootNode.rightSubNode, currentCharToEncodeValueArr, currentEncodedBitStr + '1');
         } else {
             // 方法的主要作用：为 字符 生成一个 比特编码结果
