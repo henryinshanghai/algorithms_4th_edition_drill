@@ -87,23 +87,18 @@ public class Huffman {
         char[] inputCharacterSequence = inputStr.toCharArray();
 
         // #1 对“输入字符串中的各个字符”的出现频率进行计数
-        int[] characterToItsFrequency = new int[characterOption];
-        for (int currentSpot = 0; currentSpot < inputCharacterSequence.length; currentSpot++) {
-            char currentCharacter = inputCharacterSequence[currentSpot];
-            // 使用一个数组 来 记录字符->字符出现频率 的映射关系
-            characterToItsFrequency[currentCharacter]++;
-        }
+        int[] characterToItsFrequency = buildFrequencyTable(inputCharacterSequence);
 
         // #2 根据#1中的统计结果，构造出 霍夫曼树（它是一种“最优前缀码”方案）
         Node huffmanTrie = buildTrie(characterToItsFrequency);
 
-        // #3 根据霍夫曼Trie树 来 构造出“霍夫曼编码表” buildEncodedValueTable()
+        // #3 根据霍夫曼Trie树 来 构造出“霍夫曼编码表”
         String[] characterToItsEncodedBitStr = buildEncodedBitStrTable(huffmanTrie);
 
         // #4-1 把“单词查找树本身”写入到标准输出中 - 用于后续的解码工作
         writeTrieToOutput(huffmanTrie);
 
-        // #4-2 把“未压缩的原始字符序列”中的字符数量 写入到标准输出中 - 用于后继的解码工作??
+        // #4-2 把“原始字符序列”中的字符数量 写入到标准输出中 - 用于后继的解码工作√
         writeCharacterAmountToOutput(inputCharacterSequence);
 
         // #5 打印”原始字符序列“的编码结果 - 手段：使用编码表 来 对“原始字符序列”中的字符逐个进行编码/压缩
@@ -111,6 +106,16 @@ public class Huffman {
 
         // 关闭输出流
         BinaryStdOut.close();
+    }
+
+    private static int[] buildFrequencyTable(char[] inputCharacterSequence) {
+        int[] characterToItsFrequency = new int[characterOption];
+        for (int currentSpot = 0; currentSpot < inputCharacterSequence.length; currentSpot++) {
+            char currentCharacter = inputCharacterSequence[currentSpot];
+            // 使用一个数组 来 记录字符->字符出现频率 的映射关系
+            characterToItsFrequency[currentCharacter]++;
+        }
+        return characterToItsFrequency;
     }
 
     private static void writeCharacterAmountToOutput(char[] inputCharacterSequence) {
@@ -124,16 +129,21 @@ public class Huffman {
             String encodedBitStr = characterToItsEncodedBitStr[currentCharacter];
 
             // #5-2 然后把“编码结果”/“压缩结果” 写入到 标准输出中...
-            for (int currentBitSpot = 0; currentBitSpot < encodedBitStr.length(); currentBitSpot++) {
-                char currentBit = encodedBitStr.charAt(currentBitSpot);
-                // 写入规则：字符0写成false，字符1写成true
-                if (currentBit == '0') {
-                    BinaryStdOut.write(false);
-                } else if (currentBit == '1') {
-                    BinaryStdOut.write(true);
-                } else
-                    throw new IllegalStateException("Illegal state");
-            }
+            printToOutput(encodedBitStr);
+        }
+    }
+
+    private static void printToOutput(String encodedBitStr) {
+        // 为什么不直接把字符串打印到标准输出中, 而是逐个打印布尔值呢?
+        for (int currentBitSpot = 0; currentBitSpot < encodedBitStr.length(); currentBitSpot++) {
+            char currentBit = encodedBitStr.charAt(currentBitSpot);
+            // 写入规则：字符0写成false，字符1写成true
+            if (currentBit == '0') {
+                BinaryStdOut.write(false);
+            } else if (currentBit == '1') {
+                BinaryStdOut.write(true);
+            } else
+                throw new IllegalStateException("Illegal state");
         }
     }
 
@@ -256,15 +266,16 @@ public class Huffman {
 
         // #3 对于期待的每一个字符...
         for (int characterOrdinal = 0; characterOrdinal < expectedCharacterAmount; characterOrdinal++) {
-            // 逐个读取“输入流中的比特”，然后使用霍夫曼单词查找树 对读到的“比特序列”进行解码，来得到具体字符
-            decodeOutCurrentCharacterUsing(huffmanTrie);
+            // 读取标准输入中的比特序列(字符序列的编码结果)，使用对应“trie树的叶子结点”来得到具体字符
+            decodeOutCurrentCharacterViaLeafNodeOf(huffmanTrie);
         }
 
         BinaryStdOut.close();
     }
 
-    private static void decodeOutCurrentCharacterUsing(Node huffmanTrie) {
-        // #1 逐个读取标准输入中的比特，并据此沿着trie树导航到叶子节点
+    // 手段：读取标准输入中的比特序列(字符的编码结果)，直到读取到1（字符的比特编码结束）。然后打印对应的trie叶子节点中的字符
+    private static void decodeOutCurrentCharacterViaLeafNodeOf(Node huffmanTrie) {
+        // #1 逐个读取标准输入中的比特，并据此沿着trie树导航到对应的叶子节点
         Node currentLeafNode = getLeafNodeForCurrentInputBits(huffmanTrie);
 
         // #2 把“叶子结点中的字符” 打印到 标准输出中 - 至此，解码得到了当前字符
@@ -287,7 +298,7 @@ public class Huffman {
         // #2 根据读取到的比特值，在trie树中导航
         // 导航规则：如果输入bit为1，则 导航到右子树。如果输入bit为0，则 导航到左子树
         // 🐖 这里的导航规则 需要 与generateEncodedBitStrForAllLeafNodesIn()中生成比特编码的规则 相一致
-        if (currentBitOfInput)
+        if (isRepresentLeafNode(currentBitOfInput))
             currentNode = currentNode.rightSubNode;
         else
             currentNode = currentNode.leftSubNode;
@@ -299,15 +310,21 @@ public class Huffman {
     // 从标准输入的比特序列中读取出 霍夫曼单词查找树
     private static Node readTrieFromInput() {
         // 读取标准输入中的一个比特值
-        boolean isLeaf = BinaryStdIn.readBoolean();
+        boolean currentBitOfInput = BinaryStdIn.readBoolean();
         // 如果读取到的单个比特为1，说明读取到的是 一个“trie树中的叶子节点”...
-        if (isLeaf) {
-            // 则：继续读取输入中的下8个比特，得到一个字符。并使用此字符，创建出一个 霍夫曼单词查找树中的一个叶子结点
-            return new Node(BinaryStdIn.readChar(), -1, null, null);
-        } else { // 如果读取到的单个比特为0，说明读取到的是一个“trie树中的内部节点”...
+        if (isRepresentLeafNode(currentBitOfInput)) {
+            // 则：继续读取输入中的下8个比特，得到一个字符。
+            char currentCharacterOfInput = BinaryStdIn.readChar();
+            // 并使用此字符，创建出一个 霍夫曼单词查找树中的一个叶子结点 🐖 解码时，已经不再需要 字符的频率 所以设置为-1
+            return new Node(currentCharacterOfInput, -1, null, null);
+        } else { // 否则读取到的单个比特为0，说明读取到的是一个“trie树中的内部节点”...
             // 则：创建一个内部节点，并递归地继续构造它的左右子树(通过读取后继比特序列)
             return new Node('\0', -1, readTrieFromInput(), readTrieFromInput());
         }
+    }
+
+    private static boolean isRepresentLeafNode(boolean currentBitInInput) {
+        return currentBitInInput;
     }
 
     /**
