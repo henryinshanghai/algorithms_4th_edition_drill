@@ -247,8 +247,9 @@ public class Huffman {
      * 把展开的结果写入到标准输出中.
      */
     public static void expand() {
+        // 🐖 读取比特序列各部分信息(trie树、字符数量、编码结果)的顺序 与 写入时的顺序 需要相同
         // #1 先从输入流中读取出 霍夫曼单词查找树(trie)
-        Node huffmanTrie = readTrie();
+        Node huffmanTrie = readTrieFromInput();
 
         // #2 再读取出 待写入的字节的数量
         int expectedCharacterAmount = BinaryStdIn.readInt();
@@ -256,44 +257,56 @@ public class Huffman {
         // #3 对于期待的每一个字符...
         for (int characterOrdinal = 0; characterOrdinal < expectedCharacterAmount; characterOrdinal++) {
             // 逐个读取“输入流中的比特”，然后使用霍夫曼单词查找树 对读到的“比特序列”进行解码，来得到具体字符
-            decodeInputBitsUsing(huffmanTrie);
+            decodeOutCurrentCharacterUsing(huffmanTrie);
         }
 
         BinaryStdOut.close();
     }
 
-    private static void decodeInputBitsUsing(Node huffmanTrie) {
+    private static void decodeOutCurrentCharacterUsing(Node huffmanTrie) {
+        // #1 逐个读取标准输入中的比特，并据此沿着trie树导航到叶子节点
+        Node currentLeafNode = getLeafNodeForCurrentInputBits(huffmanTrie);
+
+        // #2 把“叶子结点中的字符” 打印到 标准输出中 - 至此，解码得到了当前字符
+        BinaryStdOut.write(currentLeafNode.character, 8);
+    }
+
+    private static Node getLeafNodeForCurrentInputBits(Node huffmanTrie) {
         Node currentNode = huffmanTrie;
-        // 当前节点不是“叶子节点”时，沿着树的分支继续查找...
+        // 当前节点不是“叶子节点”时...
         while (!currentNode.isLeaf()) {
+            // 沿着树的分支继续导航 - 直到导航到叶子结点时，说明当前编码值读取结束，则:...
             currentNode = navigateViaInputBits(currentNode);
         }
-        // 直到导航到“叶子节点”时（只有叶子节点中才持有字符），就可以把“结点中的字符” 打印到 标准输出中 - 至此，解码得到了当前字符
-        BinaryStdOut.write(currentNode.character, 8);
+        return currentNode;
     }
 
     private static Node navigateViaInputBits(Node currentNode) {
+        // #1 从标准输入中读取单个比特
         boolean currentBitOfInput = BinaryStdIn.readBoolean();
-        // 导航规则：如果输入bit为1，则 向右子树前进。如果输入bit为0，则向左子树前进
+        // #2 根据读取到的比特值，在trie树中导航
+        // 导航规则：如果输入bit为1，则 导航到右子树。如果输入bit为0，则 导航到左子树
+        // 🐖 这里的导航规则 需要 与generateEncodedBitStrForAllLeafNodesIn()中生成比特编码的规则 相一致
         if (currentBitOfInput)
             currentNode = currentNode.rightSubNode;
         else
             currentNode = currentNode.leftSubNode;
+        // #3 返回导航到的trie结点
         return currentNode;
     }
 
 
-    // 从标准输入中读取 霍夫曼单词查找树
-    private static Node readTrie() {
+    // 从标准输入的比特序列中读取出 霍夫曼单词查找树
+    private static Node readTrieFromInput() {
         // 读取标准输入中的一个比特值
         boolean isLeaf = BinaryStdIn.readBoolean();
-        // 如果比特值为1，说明对应到一个“单词查找树中的叶子节点”...
+        // 如果读取到的单个比特为1，说明读取到的是 一个“trie树中的叶子节点”...
         if (isLeaf) {
-            // 则：读取输入中的下8个比特，得到一个字符。并使用此字符，创建出一个 霍夫曼单词查找树中的一个叶子结点
+            // 则：继续读取输入中的下8个比特，得到一个字符。并使用此字符，创建出一个 霍夫曼单词查找树中的一个叶子结点
             return new Node(BinaryStdIn.readChar(), -1, null, null);
-        } else { // 如果比特值为0，说明对应到一个“单词查找树中的内部节点”...
-            // 则：创建一个内部节点，并递归地继续构造它的左右子树
-            return new Node('\0', -1, readTrie(), readTrie());
+        } else { // 如果读取到的单个比特为0，说明读取到的是一个“trie树中的内部节点”...
+            // 则：创建一个内部节点，并递归地继续构造它的左右子树(通过读取后继比特序列)
+            return new Node('\0', -1, readTrieFromInput(), readTrieFromInput());
         }
     }
 
