@@ -1,4 +1,4 @@
-package com.henry.string_05.data_compress_05.run_length_encoding_05;
+package com.henry.string_05.data_compress_05.run_length_encoding_05.codes_execution;
 
 /******************************************************************************
  *  Compilation:  javac RunLength.java
@@ -40,7 +40,7 @@ import edu.princeton.cs.algs4.BinaryStdOut;
  * @author Kevin Wayne
  */
 
-// 使用8位的游程编码 来 压缩和扩展二进制输入
+// 验证：对于比特流中最常见的冗余形式(一连串重复的比特)，可以使用8位的游程编码 来 压缩和扩展二进制输入
 public class RunLength {
     private static final int runningMaxLength = 256;
     private static final int bitsAmountForRecordingRunningLength = 8;
@@ -78,19 +78,30 @@ public class RunLength {
      */
     public static void compress() {
         char currentRunningLength = 0;
+        // 设置“前一个比特值”为false/0
         boolean previousBitValue = false;
         while (!BinaryStdIn.isEmpty()) {
+            // 从标准输入中读取当前比特值
             boolean currentBitValue = BinaryStdIn.readBoolean();
+            // 如果当前比特值 与 前一个比特值不相等，说明当前游程已经结束，则...
             if (currentBitValue != previousBitValue) {
+                // 向标准输出中写入 当前游程的长度
                 BinaryStdOut.write(currentRunningLength, bitsAmountForRecordingRunningLength);
+                // 把 游程的长度 重置为1
                 currentRunningLength = 1;
+                // 翻转“前一个比特”变量的值
                 previousBitValue = !previousBitValue;
-            } else {
+            } else { // 如果相等，说明当前比特仍旧属于当前游程，则...
+                // 处理特殊的边界情况：游程的比特长度 已经达到 所支持的最大的比特长度，则...
                 if (currentRunningLength == runningMaxLength - 1) {
+                    // 先向标准输出中写入 当前游程的长度
                     BinaryStdOut.write(currentRunningLength, bitsAmountForRecordingRunningLength);
+                    // 把游程长度的变量 重置为0
                     currentRunningLength = 0;
+                    // 再向标准输入中写入 当前游程的长度??
                     BinaryStdOut.write(currentRunningLength, bitsAmountForRecordingRunningLength);
                 }
+                // 把游程长度+1
                 currentRunningLength++;
             }
         }
