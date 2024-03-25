@@ -300,7 +300,7 @@ public class Huffman {
         // #2 根据读取到的比特值，在trie树中导航
         // 导航规则：如果输入bit为1，则 导航到右子树。如果输入bit为0，则 导航到左子树
         // 🐖 这里的导航规则 需要 与generateEncodedBitStrForAllLeafNodesIn()中生成比特编码的规则 相一致
-        if (isRepresentLeafNode(currentBitOfInput))
+        if (isBit1(currentBitOfInput))
             currentNode = currentNode.rightSubNode;
         else
             currentNode = currentNode.leftSubNode;
@@ -325,7 +325,11 @@ public class Huffman {
         }
     }
 
-    private static boolean isRepresentLeafNode(boolean currentBitInInput) {
+    private static boolean isRepresentLeafNode(boolean currentBitOfInput) {
+        return isBit1(currentBitOfInput);
+    }
+
+    private static boolean isBit1(boolean currentBitInInput) {
         return currentBitInInput;
     }
 
