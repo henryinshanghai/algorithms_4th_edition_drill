@@ -268,23 +268,23 @@ public class Huffman {
 
         // #3 对于期待的每一个字符...
         for (int characterOrdinal = 0; characterOrdinal < expectedCharacterAmount; characterOrdinal++) {
-            // 读取标准输入中的比特序列(字符序列的编码结果)，使用对应“trie树的叶子结点”来得到具体字符
-            decodeOutCurrentCharacterViaLeafNodeOf(huffmanTrie);
+            // 读取标准输入中的比特序列(字符序列的编码结果)，并解码得到具体字符 - 手段：使用对应“trie树的叶子结点”
+            readInputBitsAndDecodeOutCurrentCharacterVia(huffmanTrie);
         }
 
         BinaryStdOut.close();
     }
 
     // 手段：读取标准输入中的比特序列(字符的编码结果)，直到读取到1（字符的比特编码结束）。然后打印对应的trie叶子节点中的字符
-    private static void decodeOutCurrentCharacterViaLeafNodeOf(Node huffmanTrie) {
+    private static void readInputBitsAndDecodeOutCurrentCharacterVia(Node huffmanTrie) {
         // #1 逐个读取标准输入中的比特，并据此沿着trie树导航到对应的叶子节点
-        Node currentLeafNode = getLeafNodeForCurrentInputBits(huffmanTrie);
+        Node currentLeafNode = readInputBitsAndGetLeafNodeOf(huffmanTrie);
 
         // #2 把“叶子结点中的字符” 打印到 标准输出中 - 至此，解码得到了当前字符
         BinaryStdOut.write(currentLeafNode.character, 8);
     }
 
-    private static Node getLeafNodeForCurrentInputBits(Node huffmanTrie) {
+    private static Node readInputBitsAndGetLeafNodeOf(Node huffmanTrie) {
         Node currentNode = huffmanTrie;
         // 当前节点不是“叶子节点”时...
         while (!currentNode.isLeaf()) {
