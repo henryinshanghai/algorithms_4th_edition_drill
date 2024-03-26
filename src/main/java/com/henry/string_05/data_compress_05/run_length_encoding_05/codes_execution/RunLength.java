@@ -40,10 +40,10 @@ import edu.princeton.cs.algs4.BinaryStdOut;
  * @author Kevin Wayne
  */
 
-// 验证：对于比特流中最常见的冗余形式(一连串重复的比特)，可以使用8位的游程编码 来 压缩和扩展二进制输入
+// 验证：对于比特流中最常见的冗余形式(一连串重复的比特)，可以使用游程的长度(runLengthSize) 来 对游程（一串连续相同的比特字符）进行编码
 public class RunLength {
-    private static final int runningMaxLength = 256;
-    private static final int bitsAmountForRecordingRunningLength = 8;
+    private static final int runLengthMaxSize = 256;
+    private static final int bitsAmountForRecordingRunLength = 8;
 
     // Do not instantiate.
     private RunLength() {
@@ -55,17 +55,26 @@ public class RunLength {
      * and writes the results to standard output.
      * 从标准输入中读取比特序列（使用 8位长度的游程进行编码）；解码它们；
      * 然后把结果写入到标准输出中
+     * 🐖 相邻的两个游程中的比特数字 必然是相反的
      */
     public static void expand() {
-        boolean defaultBitValue = false;
+        boolean defaultBitDigit = false;
         while (!BinaryStdIn.isEmpty()) {
-            int runningLength = BinaryStdIn.readInt(bitsAmountForRecordingRunningLength);
-            for (int currentBit = 0; currentBit < runningLength; currentBit++)
-                BinaryStdOut.write(defaultBitValue);
-            // 打印完当前游程后，转换“所打印的比特值”
-            defaultBitValue = !defaultBitValue;
+            // 从标准输入中读取8个比特，并返回 用8比特表示的一个int值 - 用于表示 当前游程的长度（比特数量）
+            int currentRunLengthSize = BinaryStdIn.readInt(bitsAmountForRecordingRunLength);
+            // 打印 当前游程中的比特数字
+            for (int currentBitSpot = 0; currentBitSpot < currentRunLengthSize; currentBitSpot++)
+                BinaryStdOut.write(defaultBitDigit);
+            
+            // 打印完当前游程后，翻转“所打印的比特值” - 为打印下一个游程做准备
+            defaultBitDigit = flipBitDigitForNextRunLength(defaultBitDigit);
         }
         BinaryStdOut.close();
+    }
+
+    private static boolean flipBitDigitForNextRunLength(boolean defaultBitDigit) {
+        defaultBitDigit = !defaultBitDigit;
+        return defaultBitDigit;
     }
 
     /**
@@ -77,36 +86,65 @@ public class RunLength {
      * 把压缩结果写入到标准输出中
      */
     public static void compress() {
-        char currentRunningLength = 0;
-        // 设置“前一个比特值”为false/0
-        boolean previousBitValue = false;
+        // 用于表示 当前游程的长度
+        char currentRunLengthSize = 0;
+        // 设置变量，用于表示 “前一个比特数值”   默认值为false/0
+        boolean previousBitDigit = false;
         while (!BinaryStdIn.isEmpty()) {
-            // 从标准输入中读取当前比特值
-            boolean currentBitValue = BinaryStdIn.readBoolean();
-            // 如果当前比特值 与 前一个比特值不相等，说明当前游程已经结束，则...
-            if (currentBitValue != previousBitValue) {
-                // 向标准输出中写入 当前游程的长度
-                BinaryStdOut.write(currentRunningLength, bitsAmountForRecordingRunningLength);
-                // 把 游程的长度 重置为1
-                currentRunningLength = 1;
-                // 翻转“前一个比特”变量的值
-                previousBitValue = !previousBitValue;
-            } else { // 如果相等，说明当前比特仍旧属于当前游程，则...
-                // 处理特殊的边界情况：游程的比特长度 已经达到 所支持的最大的比特长度，则...
-                if (currentRunningLength == runningMaxLength - 1) {
+            // 从标准输入中读取当前比特数值
+            boolean currentBitDigit = BinaryStdIn.readBoolean();
+            // 如果当前游程已经结束，则... 手段：当前比特值 与 前一个比特值不相等
+            if (currentRunLengthComeToEnd(previousBitDigit, currentBitDigit)) {
+                // 打印当前游程
+                printOutCurrentRunLength(currentRunLengthSize);
+                // 重置下一个游程的计数器  手段：把 游程的长度 重置为1；
+                currentRunLengthSize = resetSizeTo1ForNextRunLength();
+                // 设置下一个游程的比特数字 手段：翻转“前一个比特”变量的值
+                previousBitDigit = flipBitDigitForNextRunLength(previousBitDigit);
+            } else { // 如果当前游程还没有结束，则...
+                // 先处理特殊的边界情况：游程的比特长度 已经达到 所支持的最大的比特长度，则...
+                if (reachToLimitedMax(currentRunLengthSize)) {
                     // 先向标准输出中写入 当前游程的长度
-                    BinaryStdOut.write(currentRunningLength, bitsAmountForRecordingRunningLength);
-                    // 把游程长度的变量 重置为0
-                    currentRunningLength = 0;
-                    // 再向标准输入中写入 当前游程的长度??
-                    BinaryStdOut.write(currentRunningLength, bitsAmountForRecordingRunningLength);
+                    BinaryStdOut.write(currentRunLengthSize, bitsAmountForRecordingRunLength);
+                    // 再向标准输入中写入 0 - 它不是用于表示游程的长度的，而是标识 游程长度超限，需要把后继比特计入一个新游程
+                    currentRunLengthSize = printSize0RunLengthAndResetSizeAs0();
+
                 }
-                // 把游程长度+1
-                currentRunningLength++;
+                // 扩展当前游程 - 手段：把游程长度+1
+                currentRunLengthSize++;
             }
         }
-        BinaryStdOut.write(currentRunningLength, bitsAmountForRecordingRunningLength);
+
+        // 🐖 对于最后一个游程，不会有新的比特输入来标识它的结束。所以我们需要直接把游程给打印出来
+        BinaryStdOut.write(currentRunLengthSize, bitsAmountForRecordingRunLength);
+
         BinaryStdOut.close();
+    }
+
+    private static char printSize0RunLengthAndResetSizeAs0() {
+        // 把游程长度的变量 重置为0
+        char currentRunLengthSize = 0;
+        // 再向标准输入中写入 当前游程的长度0 - 作用：使用“长度为0的游程” 来 打断长度超过256的游程，使之分解成为 多个可处理的小游程
+        BinaryStdOut.write(currentRunLengthSize, bitsAmountForRecordingRunLength);
+
+        return currentRunLengthSize;
+    }
+
+    private static char resetSizeTo1ForNextRunLength() {
+        return 1;
+    }
+
+    private static void printOutCurrentRunLength(char currentRunLengthSize) { // 形式参数的上下文是方法本身，所以参数名应该具有通用性
+        BinaryStdOut.write(currentRunLengthSize, bitsAmountForRecordingRunLength);
+    }
+
+
+    private static boolean reachToLimitedMax(char currentRunningLength) {
+        return currentRunningLength == runLengthMaxSize - 1;
+    }
+
+    private static boolean currentRunLengthComeToEnd(boolean previousBitValue, boolean currentBitValue) {
+        return currentBitValue != previousBitValue;
     }
 
 
