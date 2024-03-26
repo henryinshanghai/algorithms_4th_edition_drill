@@ -61,22 +61,24 @@ public class BinaryDump {
      */
     public static void main(String[] args) {
         // 每行的比特数量
-        int bitsPerLine = 16; // 默认值16
-        if (args.length == 1) {
-            // 读取参数传入的值 作为“每行的比特数量”
-            bitsPerLine = Integer.parseInt(args[0]);
+        int bitAmountPerLine = 16; // 默认值16
+        if (args.length == 1) { // 如果只存在有1个命令行参数，则...
+            // 把 参数传入的值 作为“每行的比特数量”
+            bitAmountPerLine = Integer.parseInt(args[0]);
         }
 
-        int count;
-        // 如果标准输入不为空...
-        for (count = 0; !BinaryStdIn.isEmpty(); count++) {
-            if (bitsPerLine == 0) {
-                // 读取标准输入中的下一个比特，作为布尔值
+        int bitCounter;
+        // 只要标准输入不为空...
+        for (bitCounter = 0; !BinaryStdIn.isEmpty(); bitCounter++) {
+            if (bitAmountPerLine == 0) {
+                // 读取标准输入中的下一个比特值 - 为什么这里只消耗比特，但是不打印任何东西？
                 BinaryStdIn.readBoolean();
                 continue;
-            } else if (count != 0 && count % bitsPerLine == 0)
+            } else if (isMeetTheEndOfCurrentLine(bitCounter, bitAmountPerLine))
+                // 打印换行
                 StdOut.println();
 
+            // 读取标准输入中的下一个比特值 - 规则：如果读取结果为true，则打印1；如果为false，则打印0
             if (BinaryStdIn.readBoolean())
                 StdOut.print(1); // 打印1
             else
@@ -84,9 +86,14 @@ public class BinaryDump {
         }
 
         // 打印换行符号
-        if (bitsPerLine != 0)
+        if (bitAmountPerLine != 0)
             StdOut.println();
+
         // 打印 具体的比特数量
-        StdOut.println(count + " bits");
+        StdOut.println(bitCounter + " bits");
+    }
+
+    private static boolean isMeetTheEndOfCurrentLine(int bitCounter, int bitAmountPerLine) {
+        return bitCounter != 0 && bitCounter % bitAmountPerLine == 0;
     }
 }
