@@ -22,11 +22,13 @@ package com.henry.string_05.data_compress_05.run_length_encoding_05.codes_execut
  ******************************************************************************/
 
 import edu.princeton.cs.algs4.BinaryStdIn;
+import edu.princeton.cs.algs4.PictureDump;
 import edu.princeton.cs.algs4.StdOut;
 
 /**
  * The {@code BinaryDump} class provides a client for displaying the contents
  * of a binary file in binary.
+ * 以二进制数字的形式 来 展示二进制文件
  * <p>
  * For more full-featured versions, see the Unix utilities
  * {@code od} (octal dump) and {@code hexdump} (hexadecimal dump).

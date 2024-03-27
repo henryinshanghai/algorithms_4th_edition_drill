@@ -27,11 +27,13 @@ package com.henry.string_05.data_compress_05.run_length_encoding_05.codes_execut
  ******************************************************************************/
 
 import edu.princeton.cs.algs4.BinaryStdIn;
+import edu.princeton.cs.algs4.PictureDump;
 import edu.princeton.cs.algs4.StdOut;
 
 /**
  * The {@code HexDump} class provides a client for displaying the contents
  * of a binary file in hexadecimal.
+ * 以十六进制数字的形式 来 展示二进制文件
  * <p>
  * For additional documentation,
  * see <a href="https://algs4.cs.princeton.edu/55compression">Section 5.5</a> of
@@ -45,6 +47,7 @@ import edu.princeton.cs.algs4.StdOut;
  * @author Robert Sedgewick
  * @author Kevin Wayne
  */
+// 作用：读取标准输入中的字符序列，并得到其对应的十六进制表示
 public class HexDump {
 
     // Do not instantiate.

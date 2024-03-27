@@ -32,6 +32,7 @@ import edu.princeton.cs.algs4.StdOut;
 /**
  * The {@code HexDump} class provides a client for displaying the contents
  * of a binary file in hexadecimal.
+ * 以十六进制数字的形式 来 展示二进制文件
  * <p>
  * For additional documentation,
  * see <a href="https://algs4.cs.princeton.edu/55compression">Section 5.5</a> of
@@ -45,6 +46,7 @@ import edu.princeton.cs.algs4.StdOut;
  * @author Robert Sedgewick
  * @author Kevin Wayne
  */
+// 作用：读取标准输入中的字符序列，并得到其对应的十六进制表示
 public class HexDump {
 
     // Do not instantiate.
@@ -52,12 +54,10 @@ public class HexDump {
     }
 
     /**
-     * Reads in a sequence of bytes from standard input and writes
-     * them to standard output using hexadecimal notation, k hex digits
-     * per line, where k is given as a command-line integer (defaults
-     * to 16 if no integer is specified); also writes the number
-     * of bits.
-     *
+     * 从标准输入中读取一个比特序列，
+     * 并以16进制的记法 把它们写入到标准输出中，
+     * 每行k个hex数字 - k作为一个命令行参数给定(如果整数值没有被指定的话，默认值为16)
+     * 同时，也写入 比特的数量
      * @param args the command-line arguments
      */
     public static void main(String[] args) {
@@ -69,24 +69,34 @@ public class HexDump {
         int byteCounter;
 
         for (byteCounter = 0; !BinaryStdIn.isEmpty(); byteCounter++) {
+            // 如果使用者传入的“每行展示的字节数量”为0，则：程序只能空读输入，而不做任何输出 - 手段：continue
             if (byteAmountPerLine == 0) {
                 BinaryStdIn.readChar();
                 continue;
             }
 
+            // 在最开始的位置打印空字符串 - why?
             if (byteCounter == 0) StdOut.printf("");
+            // 如果字节打印到了行末，则：打印换行符
             else if (isMeetTheEndOfCurrentLine(byteAmountPerLine, byteCounter))
                 StdOut.printf("\n", byteCounter);
+            // 对于没有到行末的情况：打印空格符 来 分隔两个十六进制数字
             else StdOut.print(" ");
 
+            // 从标准输入中读取一个8个比特 来 得到一个字符
             char characterOfInput = BinaryStdIn.readChar();
+            // 以指定的格式 打印这个字符
             StdOut.printf("%02x", characterOfInput & 0xff);
         }
 
+        // 在用户指定的“每行的比特数量”不为0的情况下，就需要 手动地在当前行(最后一行)中添加一个换行符
         if (byteAmountPerLine != 0) StdOut.println();
+
+        // 打印具体的比特数量
         StdOut.println((byteCounter * 8) + " bits");
     }
 
+    // 判断字节计数器是不是到了该换行的位置
     private static boolean isMeetTheEndOfCurrentLine(int byteAmountPerLine, int byteCounter) {
         return byteCounter % byteAmountPerLine == 0;
     }
