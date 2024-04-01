@@ -59,6 +59,7 @@ import edu.princeton.cs.algs4.StdOut;
  * @author Robert Sedgewick
  * @author Kevin Wayne
  */
+// 验证：可以使用 正则表达式字符串的NFA 来 判断指定的文本字符串中是否存在有 与其相匹配的子字符串
 public class NFA {
 
     private Digraph epsilonTransitionDigraph;     // digraph of epsilon transitions
@@ -67,7 +68,7 @@ public class NFA {
 
     /**
      * 根据给定的正则表达式字符串（模式字符串） 来 构造其所对应的NFA的∈-转换有向图
-     * <p>
+     *
      * 🐖 正则表达式的NFA中，结点中元素是“模式字符”，结点的状态是“模式字符在正则表达式字符串中的位置”
      * 特征：某一状态的结点，可能会向多个其他状态发生转移。
      * 状态之间发生转移的原因是：当前模式字符的性质 - 对于不同类型的模式字符，它会有自己的状态转换规则👇
@@ -185,81 +186,80 @@ public class NFA {
     }
 
     /**
-     * Returns true if the text is matched by the regular expression.
-     *
-     * @param txtStr the text
-     * @return {@code true} if the text is matched by the regular expression,
-     * {@code false} otherwise
+     * 如果文本被正则表达式匹配的话，则返回true，否则返回false
      */
     public boolean recognizes(String txtStr) {
-        DirectedDFS markedDigraph = new DirectedDFS(epsilonTransitionDigraph, 0);
-        // reachableStates 用于表示/维护 （由状态0）可达的所有状态
-        Bag<Integer> reachableStates = new Bag<Integer>();
-        // #1 使用 NFA中，由状态0可以到达的所有状态构成的集合 来 初始化 reachableStates
-        // 手段：可达性问题 - 有向图中，由指定顶点（顶点0）可达的所有其他顶点（包含起始顶点本身）
-        initReachableStatesVia(markedDigraph, reachableStates);
+        // #1 获取到NFA中，由状态0作为起点，经ε转换所能到达的状态集合 ”ε转换所到达状态的集合“
+        // 这本质上是 有向图中的”单点可达性问题“
+        Bag<Integer> εTransferReachedStates = getReachedStatesViaεTransferFrom0();
 
-        // Compute possible NFA states for txt[i+1]
         for (int currentTxtCharacterSpot = 0; currentTxtCharacterSpot < txtStr.length(); currentTxtCharacterSpot++) {
-            // 获取得到 当前文本字符
+            // 对于每一个 当前文本字符...
             char txtCurrentCharacter = txtStr.charAt(currentTxtCharacterSpot);
 
-            // 文本字符不允许是 正则表达式的元字符
-            if (isRegexMetaCharacter(txtCurrentCharacter))
-                throw new IllegalArgumentException("text contains the metacharacter '" + txtCurrentCharacter + "'");
+            dealWithBreachOf(txtCurrentCharacter);
 
-            // #2 获取到 “当前可达的所有状态”中，与“当前文本字符”匹配时，“所到达的”状态集合
-            Bag<Integer> matchTransferReachedStates = initMatchTransferReachedStatesVia(reachableStates, txtCurrentCharacter);
+            // #2 获取到NFA中，由“当前可达的所有状态集合”中的各个状态，经匹配转换(与文本字符匹配)所能到达的状态集合
+            Bag<Integer> matchTransferReachedStates = getReachedStatesViaMatchTransferFrom(εTransferReachedStates, txtCurrentCharacter);
+            // 如果当前文本字符不存在匹配转换，说明 在“当前文本位置”无法得到一个匹配, 则：继续在“下一个位置"尝试匹配
             if (matchTransferReachedStates.isEmpty()) continue;
 
-            // #3 对于 NFA中“由匹配转换所到达的”状态集合中的每一个状态，获取其 “在NFA中通过epsilon转换所能够到达的状态”
-            // 手段：使用自定义的方法 来 获取到 以”匹配后到达的顶点集合“中的顶点为起点，执行DFS后 结点被标记的图；
-            reachableStates = renewReachableStatesVia(matchTransferReachedStates);
+            // #3 更新 ”ε转换所到达状态的集合“
+            // 获取到NFA中，以”匹配后到达的状态集合“中的各个状态作为起点，经ε转换(不消耗文本字符)所能到达的状态集合；
+            // 本质上是有向图中的“多点可达性问题”
+            εTransferReachedStates = renewETransferReachedStatesVia(matchTransferReachedStates);
 
-            // 如果”可达状态“的集合为空，则：提前return false
-            if (reachableStates.size() == 0) return false;
+            // 如果”可达状态“的集合为空，说明NFA的运行中断，不可能运行到“接受状态”, 则：可以提前return false
+            if (εTransferReachedStates.size() == 0) return false;
         }
 
-        // #4 检查 ”可接受状态（stateAmountInRegStr）“ 是否被包含在 ”可达状态 reachableStates“中
-        if (acceptedStateIncludeIn(reachableStates)) return true;
+        // #4 检查 ”可接受状态（stateAmountInRegStr）“ 是否被包含在 ”当前由epsilon转换所到达的状态集合“中
+        // 🐖 NFA中最后的接受状态，一定是经由ε转换得到的 因为它是一个额外添加的状态
+        if (acceptedStateIncludeIn(εTransferReachedStates)) return true;
 
         return false;
     }
 
-    private boolean acceptedStateIncludeIn(Bag<Integer> reachableStates) {
-        for (int currentState : reachableStates)
-            if (currentState == characterAmountInRegStr)
+    // 🐖 文本字符不允许是 正则表达式的元字符
+    private void dealWithBreachOf(char txtCurrentCharacter) {
+        if (isRegexMetaCharacter(txtCurrentCharacter))
+            throw new IllegalArgumentException("text contains the metacharacter '" + txtCurrentCharacter + "'");
+    }
+
+    private boolean acceptedStateIncludeIn(Bag<Integer> reachedStates) {
+        for (int currentReachedState : reachedStates)
+            if (currentReachedState == characterAmountInRegStr)
                 return true;
         return false;
     }
 
-    private Bag<Integer> renewReachableStatesVia(Bag<Integer> matchTransferredStates) {
-        Bag<Integer> reachableStates;
-        DirectedDFS markedDigraph;
+    // 对于 NFA中“由匹配转换所到达的”状态集合（matchTransferReachedStates）中的每一个状态，获取其 “在NFA中通过epsilon转换所能够到达的状态”，并把得到的状态添加到”可达顶点“的集合中
+    private Bag<Integer> renewETransferReachedStatesVia(Bag<Integer> startStates) {
+        Bag<Integer> reachableStates = new Bag<Integer>();
 
-        // 获取到 以指定顶点集合作为起点集合，可以到达的顶点
-        markedDigraph = new DirectedDFS(epsilonTransitionDigraph, matchTransferredStates);
-        reachableStates = new Bag<Integer>();
+        // #1 获取到 以指定顶点集合作为”起点集合“，所能够到达的所有顶点 aka 在NFA中通过epsilon转换所能够到达的状态
+        DirectedDFS markedDigraph = new DirectedDFS(epsilonTransitionDigraph, startStates);
 
         for (int currentVertex = 0; currentVertex < epsilonTransitionDigraph.getVertexAmount(); currentVertex++)
-            // 如果当前顶点 由任意起点可达，则：把它添加到 “可达顶点”的集合中
+            // 如果当前顶点 由”matchTransferReachedStates“中的任意起点可达，则：#2 把它添加到 “可达顶点”的集合中
             if (markedDigraph.isAccessibleFromStartVertex(currentVertex))
                 reachableStates.add(currentVertex);
 
         return reachableStates;
     }
 
-    private Bag<Integer> initMatchTransferReachedStatesVia(Bag<Integer> reachableStates, char txtCurrentCharacter) {
+    private Bag<Integer> getReachedStatesViaMatchTransferFrom(Bag<Integer> startStates, char currentTxtCharacter) {
         Bag<Integer> matchTransferReachedStates = new Bag<Integer>();
         // 检查 当前可达状态集合中，是否存在有 能够与当前文本字符 相匹配的状态
-        for (int currentState : reachableStates) {
-            if (isAcceptedState(currentState)) continue;
+        for (int currentStartState : startStates) {
+            // 如果当前状态 已经是 “接受状态”，说明 在文本字符串中已经找到了一个 正则表达式模式字符串的匹配，则：不再继续处理集合中的其他状态
+            if (isAcceptedState(currentStartState)) continue;
 
-            char regexCurrentCharacter = regExpStr.charAt(currentState);
+            char currentRegexCharacter = regExpStr.charAt(currentStartState);
             // 如果当前状态上的模式字符 与 当前文本字符 相匹配，则：
-            if (isMatchBetween(txtCurrentCharacter, regexCurrentCharacter))
+            if (isMatchBetween(currentTxtCharacter, currentRegexCharacter))
                 // 把 此匹配转换所到达的状态 添加到 “匹配所达的状态集合”中
-                matchTransferReachedStates.add(currentState + 1);
+                matchTransferReachedStates.add(currentStartState + 1);
         }
         return matchTransferReachedStates;
     }
@@ -268,11 +268,19 @@ public class NFA {
         return currentState == characterAmountInRegStr;
     }
 
-    private void initReachableStatesVia(DirectedDFS markedDigraph, Bag<Integer> reachableStates) {
+    // 可达性问题 - 有向图中，由指定顶点（顶点0）可达的所有其他顶点（包含起始顶点本身）
+    private Bag<Integer> getReachedStatesViaεTransferFrom0() {
+        Bag<Integer> reachableStates = new Bag<Integer>();
+
+        // 标记图中“从结点0可达的所有其他结点”
+        DirectedDFS markedDigraph = new DirectedDFS(epsilonTransitionDigraph, 0);
+
         for (int currentVertex = 0; currentVertex < epsilonTransitionDigraph.getVertexAmount(); currentVertex++)
             // 如果当前结点 “由起始结点可达”，则：把它添加到 reachableStates集合中
             if (markedDigraph.isAccessibleFromStartVertex(currentVertex))
                 reachableStates.add(currentVertex);
+
+        return reachableStates;
     }
 
     private boolean isMatchBetween(char txtCurrentCharacter, char regexCurrentCharacter) {
@@ -289,10 +297,19 @@ public class NFA {
      * @param args the command-line arguments
      */
     public static void main(String[] args) {
-        String regexp = "(" + args[0] + ")";
-        String txt = args[1];
-        NFA nfa = new NFA(regexp);
-        StdOut.println(nfa.recognizes(txt));
+        String originalRegexStr = args[0];
+        String wrappedRegexStr = "(" + originalRegexStr + ")";
+        String txtStr = args[1];
+
+        // #1 构造出 正则表达式字符串的NFA
+        NFA regexConstructedNFA = new NFA(wrappedRegexStr);
+        // #2 使用 其NFA 来 判断文本字符串中是否存在有 与正则表达式相匹配的子字符串
+        boolean matchResult = doesExistMatchIn(txtStr, regexConstructedNFA);
+        StdOut.println(matchResult);
+    }
+
+    private static boolean doesExistMatchIn(String txtStr, NFA regexConstructedNFA) {
+        return regexConstructedNFA.recognizes(txtStr);
     }
 
 }
