@@ -63,7 +63,7 @@ import edu.princeton.cs.algs4.StdOut;
 public class NFA {
 
     private Digraph epsilonTransitionDigraph;     // digraph of epsilon transitions
-    private String regExpStr;     // regular expression
+    private String regexStr;     // regular expression
     private final int characterAmountInRegStr;       // number of characters in regular expression
 
     /**
@@ -76,75 +76,76 @@ public class NFA {
      * #2 如果模式字符是一个 “非字母字符”，则：它会通过“ε转换” 来 转换到下一个状态/字符；  特征：ε转换 不会消耗 文本字符串中的字符，也就是说 模式字符与文本字符没有匹配时，仍旧会进行状态转移
      * ε转换的分类：#1 由当前状态转换为下一个状态； #2 支持闭包操作/重复操作； #3 支持选择/或操作
      */
-    public NFA(String regExpStr) {
+    public NFA(String regexStr) {
         Stack<Integer> openCharactersSpotStack = new Stack<Integer>();
-        this.regExpStr = regExpStr;
-        characterAmountInRegStr = regExpStr.length(); // stateAmountInRegStr
+        this.regexStr = regexStr;
+        characterAmountInRegStr = regexStr.length(); // stateAmountInRegStr
         epsilonTransitionDigraph = new Digraph(characterAmountInRegStr + 1);
 
         for (int currentSpot = 0; currentSpot < characterAmountInRegStr; currentSpot++) { // 对于模式字符串中的每一个位置/状态...
-            // 声明 leftParenthesisSpot变量，用于记录“当前左括号字符”的位置/状态
-            // 🐖 leftParenthesisSpot的值 初始化为 当前位置/状态
+            // 声明 leftParenthesisSpot变量，用于记录“当前左括号字符”的位置/状态 - 🐖 初始化为 当前位置/状态
             int leftParenthesisSpotCursor = currentSpot;
 
             /* 对“当前位置上字符/模式字符”进行分类讨论👇 */
-            // Ⅰ 如果当前位置上的字符是 “启动字符”（左括号字符、或字符） 或者 “结束字符”（右括号字符）的话,则：在遇到结束字符时，向NFA中添加所需的ε转换
-            leftParenthesisSpotCursor = whenItsBoundaryCharacterOn(regExpStr, currentSpot, openCharactersSpotStack, leftParenthesisSpotCursor);
+            // Ⅰ 如果当前位置上的字符是 边界字符 {① “启动字符”（左括号字符、或字符）；② “结束字符”（右括号字符）} 的话,则：在遇到结束字符时，向NFA中添加所需的ε转换
+            leftParenthesisSpotCursor = whenItIsBoundaryCharacterOn(regexStr, currentSpot, openCharactersSpotStack, leftParenthesisSpotCursor);
 
             // Ⅱ 如果“当前位置上的字符”的后面紧跟着“闭包操作符”,则：向NFA中添加对应的ε转换 来 支持闭包/重复操作
             // 用法：#1 X* #2 (X)*     🐖 这里只需要使用 leftParenthesisSpotCursor这个变量就能表示两种情况
-            if (isLegitState(currentSpot) && nextRegexCharacterIsAsterisk(regExpStr, currentSpot)) {
+            if (isLegitState(currentSpot) && nextRegexCharacterIsAsterisk(regexStr, currentSpot)) {
                 supportClosureOperation(currentSpot, leftParenthesisSpotCursor);
             }
 
             // Ⅲ 如果“当前位置上的字符”需要进行一个ε转换（因为它不可能产生一个匹配转换），则: 向NFA中添加 转换到下一个状态的ε转换 来 使NFA继续下去
-            if (isRequireEpsilonTransitionCharacter(regExpStr, currentSpot))
-                keepNFAContinue(currentSpot);
+            if (isRequireEpsilonTransitionCharacter(regexStr, currentSpot))
+                advanceNFAFrom(currentSpot);
         }
 
         if (openCharactersSpotStack.size() != 0)
             throw new IllegalArgumentException("Invalid regular expression");
     }
 
-    private int whenItsBoundaryCharacterOn(String regExpStr, int currentSpot, Stack<Integer> openCharactersSpotStack, int leftParenthesisSpot) {
-        if (isOpenCharacterOn(regExpStr, currentSpot)) // 如果是启动字符（左括号字符、或字符），则：不管是什么字符，都...
+    private int whenItIsBoundaryCharacterOn(String regexStr, int characterSpot, Stack<Integer> openCharactersSpotStack, int leftParenthesisSpotCursor) {
+        if (isOpenCharacterOn(regexStr, characterSpot)) // 如果是启动字符（左括号字符、或字符），则：不管是什么字符，都...
             // 把当前位置 记录到 一个栈结构中
-            openCharactersSpotStack.push(currentSpot);
-        else if (isCloseCharacterOn(regExpStr, currentSpot)) { // 如果当前模式字符 是 “结束字符”（右括号字符）,则：...
-            // 弹出以获取 栈顶当前所记录的“启动字符”
+            openCharactersSpotStack.push(characterSpot);
+        else if (isCloseCharacterOn(regexStr, characterSpot)) { // 如果当前模式字符 是 “结束字符”（右括号字符）,则：...
+            // 弹出以获取 栈顶当前所记录的“启动字符” - 可能是 左括号字符，也可能是 或字符
             int openCharacterSpot = openCharactersSpotStack.pop();
-            char openCharacter = regExpStr.charAt(openCharacterSpot);
-            int rightParenthesisSpot = currentSpot;
+            char openCharacter = regexStr.charAt(openCharacterSpot);
+            int rightParenthesisSpot = characterSpot;
 
             /* 对“此启动字符”进行分类讨论👇 */
             if (openCharacter == '|') { // 如果“此启动字符”是“或操作符”，则：向NFA中添加对应的ε转换 来 支持选择/或操作
                 // 再次弹出栈元素 来 获取 栈顶当前所记录的“启动字符”（按照合法的正则表达式的规则，会是左括号字符）的位置 - 由于对合法正则表达式字符串的定义，这里得到的必然是一个左括号字符
-                leftParenthesisSpot = openCharactersSpotStack.pop();
+                leftParenthesisSpotCursor = openCharactersSpotStack.pop();
                 int orCharacterSpot = openCharacterSpot;
-                supportChooseOperation(leftParenthesisSpot, orCharacterSpot, rightParenthesisSpot);
+                supportChooseOperation(leftParenthesisSpotCursor, orCharacterSpot, rightParenthesisSpot);
             } else if (openCharacter == '(') {// 如果“此启动字符”是“左括号字符”，则：...
                 // 用它来更新 leftParenthesisSpot变量的值
-                leftParenthesisSpot = openCharacterSpot;
+                leftParenthesisSpotCursor = openCharacterSpot;
             } else
                 assert false;
         }
-        return leftParenthesisSpot;
+        return leftParenthesisSpotCursor;
     }
 
-    private void keepNFAContinue(int currentSpot) {
+    // 推进NFA到下一个状态
+    private void advanceNFAFrom(int currentSpot) {
         // 向NFA中添加 “从当前状态 -> 当前状态的下一个状态”的epsilon转换👇
         // 手段：在epsilon有向图中，添加边
         epsilonTransitionDigraph.addEdge(currentSpot, currentSpot + 1);
     }
 
     // “闭包操作符” 在NFA中所能够产生的epsilon转换👇：
-    // ③-Ⅰ 如果出现在单个字符之后，则：在此字符 与 *字符之间，添加两条相互指向的epsilon转换；
-    // ③-Ⅱ 如果出现在 右括号字符之后，则：在当前左括号字符 与 此字符之间，添加两条相互指向的epsilon转换；
+    // #1 如果出现在单个字符之后，则：在此字符 与 *字符之间，添加两条相互指向的epsilon转换；
+    // #2 如果出现在 右括号字符之后，则：在当前左括号字符 与 此字符之间，添加两条相互指向的epsilon转换；
     private void supportClosureOperation(int currentSpot, int leftParenthesisSpotCursor) {
         // 在NFA中添加 上述的一对epsilon转换（两种类型二选一）👇
         // 手段：在epsilon有向图中，添加边
-        epsilonTransitionDigraph.addEdge(leftParenthesisSpotCursor, currentSpot + 1);
-        epsilonTransitionDigraph.addEdge(currentSpot + 1, leftParenthesisSpotCursor);
+        int asteriskSpot = currentSpot + 1;
+        epsilonTransitionDigraph.addEdge(leftParenthesisSpotCursor, asteriskSpot);
+        epsilonTransitionDigraph.addEdge(asteriskSpot, leftParenthesisSpotCursor);
     }
 
     // 或操作符 在NFA中所能够产生的 两种类型的epsilon转换 👇
@@ -177,8 +178,8 @@ public class NFA {
         return regexCurrentCharacter == '(' || regexCurrentCharacter == '*' || regexCurrentCharacter == ')';
     }
 
-    private boolean nextRegexCharacterIsAsterisk(String regExpStr, int currentState) {
-        return regExpStr.charAt(currentState + 1) == '*';
+    private boolean nextRegexCharacterIsAsterisk(String regexStr, int currentSpot) {
+        return regexStr.charAt(currentSpot + 1) == '*';
     }
 
     private boolean isLegitState(int currentState) {
@@ -255,7 +256,7 @@ public class NFA {
             // 如果当前状态 已经是 “接受状态”，说明 在文本字符串中已经找到了一个 正则表达式模式字符串的匹配，则：不再继续处理集合中的其他状态
             if (isAcceptedState(currentStartState)) continue;
 
-            char currentRegexCharacter = regExpStr.charAt(currentStartState);
+            char currentRegexCharacter = regexStr.charAt(currentStartState);
             // 如果当前状态上的模式字符 与 当前文本字符 相匹配，则：
             if (isMatchBetween(currentTxtCharacter, currentRegexCharacter))
                 // 把 此匹配转换所到达的状态 添加到 “匹配所达的状态集合”中
