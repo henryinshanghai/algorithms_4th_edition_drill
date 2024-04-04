@@ -1,20 +1,21 @@
 ===
 计算散列函数
 
-对于5位的数值，只需要使用int值 就能完成 所需的计算。
+对于5位（模式字符串的长度）的数值，只需要使用int值 就能完成 所需的计算。
 但是如果M是100 或者 1000怎么办？
 
 这里使用的是Horner方法，它和3.4节中见过的 用于字符串 和 其他多值类型的键 的计算方法 非常相似，
 代码如下👇
 private long hash(String key, int M) {
     // 计算key[0..M-1]的散列值
-    long h = 0;
-    for(int j = 0; j < M; j++) {
+    long currentHashResult = 0;
+    for(int currentSpot = 0; currentSpot < M; currentSpot++) {
         // 🐖 每次的计算过程，都会执行取余操作
-        h = (R * h + key.charAt(j)) % Q;
+        int currentDigit = key.charAt(currentSpot);
+        currentHashResult = (baseSize * currentHashResult + currentDigit) % Q; // baseSize表示进制的大小
     }
 
-    return h;
+    return currentHashResult;
 }
 Horner方法：使用 除留余数法 来 计算散列值👆
 

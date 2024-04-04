@@ -41,6 +41,7 @@ import java.util.Random;
 /**
  * The {@code RabinKarp} class finds the first occurrence of a pattern string
  * in a text string.
+ * 这个类 用于从文本字符串中寻找模式字符串第一个出现的位置(first occurrence)
  * <p>
  * This implementation uses the Rabin-Karp algorithm.
  * <p>
@@ -59,9 +60,9 @@ public class RabinKarp {
 
     /**
      * Preprocesses the pattern string.
-     *
-     * @param pattern                the pattern string
-     * @param characterOptionsAmount the alphabet size
+     * 预处理模式字符串
+     * @param pattern                the pattern string 模式字符串
+     * @param characterOptionsAmount the alphabet size 字母表的大小
      */
     public RabinKarp(char[] pattern, int characterOptionsAmount) {
         this.patternStr = String.valueOf(pattern);
@@ -71,13 +72,13 @@ public class RabinKarp {
 
     /**
      * Preprocesses the pattern string.
-     *
-     * @param patternStr the pattern string
+     * 预处理模式字符串
+     * @param passedPatternStr the pattern string
      */
-    public RabinKarp(String patternStr) {
-        this.patternStr = patternStr;      // save pattern (needed only for Las Vegas)
-        characterOptionsAmount = 256;
-        patStrLength = patternStr.length();
+    public RabinKarp(String passedPatternStr) {
+        this.patternStr = passedPatternStr;      // save pattern (needed only for Las Vegas)
+        characterOptionsAmount = 256; // aka baseSize
+        patStrLength = passedPatternStr.length();
         largePrime = longRandomPrime();
 
         // precompute R^(m-1) % q for use in removing leading digit
@@ -86,11 +87,11 @@ public class RabinKarp {
         for (int currentRound = 1; currentRound <= patStrLength - 1; currentRound++)
             weightOfFirstDigit = (weightOfFirstDigit * characterOptionsAmount) % largePrime;
 
-        patternStrHash = hashOfRange(patternStr, patStrLength);
+        patternStrHash = subStrHashOfRange(passedPatternStr, patStrLength);
     }
 
     // Compute hash for key[0..m-1].
-    private long hashOfRange(String passedStr, int rightBoundary) {
+    private long subStrHashOfRange(String passedStr, int rightBoundary) {
         long currentHashValue = 0;
 
         for (int currentSpot = 0; currentSpot < rightBoundary; currentSpot++) {
@@ -118,7 +119,7 @@ public class RabinKarp {
     /**
      * Returns the index of the first occurrence of the pattern string
      * in the text string.
-     *
+     * 返回 模式字符串在文本字符串中第一次出现的位置
      * @param passedTxtStr the text string
      * @return the index of the first occurrence of the pattern string
      * in the text string; n if no such match
@@ -127,35 +128,57 @@ public class RabinKarp {
         int txtStrLength = passedTxtStr.length();
         if (txtStrLength < patStrLength) return txtStrLength;
 
-        long txtHash = hashOfRange(passedTxtStr, patStrLength);
+        long txtHash = subStrHashOfRange(passedTxtStr, patStrLength);
 
         // check for match at offset 0
-        if ((patternStrHash == txtHash) && check(passedTxtStr, 0))
+        if (findAMatchInSpot0(passedTxtStr, txtHash))
             return 0;
 
         // check for hash match; if hash match, check for exact match
-        // 123456
-        // 初级计算公式：(12345 - 1 * 10^4) * 10 + 6 = 23456
+        // 检查hash匹配情况； 如果hash匹配的话，检查字符是否匹配
+        // 123456 初级计算公式：(12345 - 1 * 10^4) * 10 + 6 = 23456
         for (int currentCursorSpot = patStrLength; currentCursorSpot < txtStrLength; currentCursorSpot++) {
-            // Remove leading digit, add trailing digit, check for match.
-            char leadingDigit = passedTxtStr.charAt(currentCursorSpot - patStrLength);
-            long leadingDigitsValue = (leadingDigit * weightOfFirstDigit) % largePrime;
-            // 差值 = 当前值 - 首位数字的数值（这里为什么会有+素数 以及 %素数的操作呢？）
-            txtHash = (txtHash + largePrime - leadingDigitsValue) % largePrime;
-
-            // 差值 * 进制基数 + 下一个字符的数值（这里为什么会有 %素数的操作？）
-            char trailingDigit = passedTxtStr.charAt(currentCursorSpot);
-            txtHash = (txtHash * characterOptionsAmount + trailingDigit * 1) % largePrime;
+            txtHash = getCurrentTxtHash(passedTxtStr, txtHash, currentCursorSpot);
 
             // match: 哈希匹配 & 字符匹配
             // 计算出 相对于文本字符串首字符的偏移量
             int offset = currentCursorSpot - patStrLength + 1;
-            if ((patternStrHash == txtHash) && check(passedTxtStr, offset))
+            if (findAMatchInSpot(passedTxtStr, txtHash, offset))
                 return offset;
         }
 
         // no match：如果不匹配，则： 返回文本字符串的长度
         return txtStrLength;
+    }
+
+    private long getCurrentTxtHash(String passedTxtStr, long txtHash, int currentCursorSpot) {
+        // Remove leading digit, add trailing digit, check for match.
+        // 移除leading数码，添加trailing数码，并检查匹配
+        char leadingDigit = passedTxtStr.charAt(currentCursorSpot - patStrLength);
+        long leadingDigitsValue = (leadingDigit * weightOfFirstDigit) % largePrime;
+        // 差值 = 当前值 - 首位数字的数值（这里为什么会有+素数 以及 %素数的操作呢？）
+        txtHash = (txtHash + largePrime - leadingDigitsValue) % largePrime;
+
+        // 差值 * 进制基数 + 下一个字符的数值（这里为什么会有 %素数的操作？）
+        char trailingDigit = passedTxtStr.charAt(currentCursorSpot);
+        txtHash = (txtHash * characterOptionsAmount + trailingDigit * 1) % largePrime;
+        return txtHash;
+    }
+
+    private boolean findAMatchInSpot(String passedTxtStr, long txtHash, int offset) {
+        return (patternStrHash == txtHash) && check(passedTxtStr, offset);
+    }
+
+    private boolean findAMatchInSpot0(String passedTxtStr, long txtHash) {
+        return equalsToPatStrHash(txtHash) && everyCharacterMatchWithPatStr(passedTxtStr);
+    }
+
+    private boolean everyCharacterMatchWithPatStr(String passedTxtStr) {
+        return check(passedTxtStr, 0);
+    }
+
+    private boolean equalsToPatStrHash(long txtHash) {
+        return patternStrHash == txtHash;
     }
 
 
