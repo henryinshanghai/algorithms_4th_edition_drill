@@ -49,6 +49,7 @@ import java.util.Random;
  * see <a href="https://algs4.cs.princeton.edu/53substring">Section 5.3</a> of
  * <i>Algorithms, 4th Edition</i> by Robert Sedgewick and Kevin Wayne.
  */
+// 验证：使用Rabin-Karp算法（快速计算文本子字符串的散列值，并在txtSubStrHash与patStrHash相同时逐个比较字符），能够实现 在文本字符串中查找 与模式字符串匹配的子字符串
 public class RabinKarp {
     private String patternStr;      // the pattern  // needed only for Las Vegas
     private long patternStrHash;    // pattern hash value
@@ -95,6 +96,7 @@ public class RabinKarp {
         long currentHashValue = 0;
 
         for (int currentSpot = 0; currentSpot < rightBoundary; currentSpot++) {
+            // 计算公式：当前数值结果 * 进制数 + 当前数码 * 1
             char currentCharacter = passedStr.charAt(currentSpot);
             currentHashValue = (currentHashValue * characterOptionsAmount + currentCharacter * 1) % largePrime;
         }
@@ -103,11 +105,15 @@ public class RabinKarp {
     }
 
     // Las Vegas version: does pat[] match txt[i..i-m+1] ?
-    private boolean check(String passedTxt, int passedOffset) {
-        for (int currentSpot = 0; currentSpot < patStrLength; currentSpot++)
-            // 匹配的定义：对于特定的偏移量offset，文本字符串T[offset, offset + patLength]的子字符串 与 patternStr字符串 完全相同
-            if (patternStr.charAt(currentSpot) != passedTxt.charAt(currentSpot + passedOffset))
+    private boolean compareCharactersThenDetermineMatchOrNot(String passedTxt, int startingPointToCompare) {
+        // 匹配的定义：对于特定的偏移量offset，文本字符串T[offset, offset + patLength]的子字符串 与 patternStr字符串 完全相同
+        for (int currentSpot = 0; currentSpot < patStrLength; currentSpot++) {
+            char currentPatternCharacter = patternStr.charAt(currentSpot);
+            char currentTxtCharacter = passedTxt.charAt(startingPointToCompare + currentSpot);
+
+            if (currentPatternCharacter != currentTxtCharacter)
                 return false;
+        }
         return true;
     }
 
@@ -128,53 +134,57 @@ public class RabinKarp {
         int txtStrLength = passedTxtStr.length();
         if (txtStrLength < patStrLength) return txtStrLength;
 
-        long txtHash = subStrHashOfRange(passedTxtStr, patStrLength);
+        long txtSubStrHash = subStrHashOfRange(passedTxtStr, patStrLength);
 
         // check for match at offset 0
-        if (findAMatchInSpot0(passedTxtStr, txtHash))
+        if (findAMatchInSpot0(passedTxtStr, txtSubStrHash))
             return 0;
 
-        // check for hash match; if hash match, check for exact match
         // 检查hash匹配情况； 如果hash匹配的话，检查字符是否匹配
         // 123456 初级计算公式：(12345 - 1 * 10^4) * 10 + 6 = 23456
-        for (int currentCursorSpot = patStrLength; currentCursorSpot < txtStrLength; currentCursorSpot++) {
-            txtHash = getCurrentTxtHash(passedTxtStr, txtHash, currentCursorSpot);
+        // 🐖 这里使用endSpotCursor作为游标 是一个语义不很清晰的选择 - 原作者的代码未必是最好的代码
+        for (int endSpotCursor = patStrLength; endSpotCursor < txtStrLength; endSpotCursor++) {
+            txtSubStrHash = calculateNextTxtSubStrsHashBasedOn(txtSubStrHash, passedTxtStr, endSpotCursor);
 
             // match: 哈希匹配 & 字符匹配
             // 计算出 相对于文本字符串首字符的偏移量
-            int offset = currentCursorSpot - patStrLength + 1;
-            if (findAMatchInSpot(passedTxtStr, txtHash, offset))
-                return offset;
+            int offsetFromSpot0 = endSpotCursor - patStrLength + 1;
+            if (findAMatchInSpot(passedTxtStr, txtSubStrHash, offsetFromSpot0))
+                return offsetFromSpot0;
         }
 
         // no match：如果不匹配，则： 返回文本字符串的长度
         return txtStrLength;
     }
 
-    private long getCurrentTxtHash(String passedTxtStr, long txtHash, int currentCursorSpot) {
-        // Remove leading digit, add trailing digit, check for match.
+    // 有些上下文信息（参数的具体上下文）应该由真实的入参提供，这样方法的形参中就可以不包含这些信息，由此来简化方法中的变量名
+    // implement_SOP_05:（🐖 在txtHash的计算中，额外加上了一个Q 来 保证所有的数都为正，这样 取余操作 才能够得到预期的结果）
+    private long calculateNextTxtSubStrsHashBasedOn(long currentHash, String passedStr, int endSpot) {
         // 移除leading数码，添加trailing数码，并检查匹配
-        char leadingDigit = passedTxtStr.charAt(currentCursorSpot - patStrLength);
-        long leadingDigitsValue = (leadingDigit * weightOfFirstDigit) % largePrime;
-        // 差值 = 当前值 - 首位数字的数值（这里为什么会有+素数 以及 %素数的操作呢？）
-        txtHash = (txtHash + largePrime - leadingDigitsValue) % largePrime;
+        int startSpot = endSpot - patStrLength;
+        char startCharacter = passedStr.charAt(startSpot);
+        long startCharactersTrueValue = (startCharacter * weightOfFirstDigit) % largePrime;
 
-        // 差值 * 进制基数 + 下一个字符的数值（这里为什么会有 %素数的操作？）
-        char trailingDigit = passedTxtStr.charAt(currentCursorSpot);
-        txtHash = (txtHash * characterOptionsAmount + trailingDigit * 1) % largePrime;
-        return txtHash;
+        // #1 计算出移除首字符的真实值之后的剩余差值 = 当前哈希结果值 - 首位数字的真实值 🐖 这里 +大素数、%大素数的操作 是为了不溢出吗???
+        currentHash = (currentHash + largePrime - startCharactersTrueValue) % largePrime;
+
+        // #2 基于#1中的差值，计算出新的字符串的哈希结果 = 差值 * 进制基数/baseSize + 下一个字符的数值 🐖 这里%大素数的操作 是为了哈希结果能够落在散列表中??
+        char endCharacter = passedStr.charAt(endSpot);
+        currentHash = (currentHash * characterOptionsAmount + endCharacter * 1) % largePrime;
+        return currentHash;
     }
 
-    private boolean findAMatchInSpot(String passedTxtStr, long txtHash, int offset) {
-        return (patternStrHash == txtHash) && check(passedTxtStr, offset);
+    private boolean findAMatchInSpot(String passedTxtStr, long txtHash, int passedSpot) {
+        return (patternStrHash == txtHash) && compareCharactersThenDetermineMatchOrNot(passedTxtStr, passedSpot);
     }
 
-    private boolean findAMatchInSpot0(String passedTxtStr, long txtHash) {
-        return equalsToPatStrHash(txtHash) && everyCharacterMatchWithPatStr(passedTxtStr);
+    private boolean findAMatchInSpot0(String passedTxtStr, long txtSubStrHash) {
+        return equalsToPatStrHash(txtSubStrHash) && everyCharacterMatchWithPatStr(passedTxtStr);
     }
 
     private boolean everyCharacterMatchWithPatStr(String passedTxtStr) {
-        return check(passedTxtStr, 0);
+        int offsetFromSpot0InTxtStr = 0;
+        return compareCharactersThenDetermineMatchOrNot(passedTxtStr, offsetFromSpot0InTxtStr);
     }
 
     private boolean equalsToPatStrHash(long txtHash) {
