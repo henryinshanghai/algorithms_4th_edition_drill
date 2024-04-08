@@ -46,88 +46,116 @@ import edu.princeton.cs.algs4.StdOut;
  * <i>Algorithms, 4th Edition</i> by Robert Sedgewick and Kevin Wayne.
  */
 public class BoyerMoore {
-    private final int characterOptions;     // the radix
-    private int[] characterToItsRightmostSpotInPatStr;     // the bad-character skip array
+    private final int characterOptionAmount;     // the radix
+    private int[] characterToItsLastOccurrenceSpotInPatStr;     // characterToItsRightmostSpotInPatStr the bad-character skip array
 
     private char[] patternCharacterArr;  // store the pattern as a character array
     private String patternStr;      // or as a string
 
     /**
      * Preprocesses the pattern string.
-     *
+     * 预处理模式字符串
      * @param patternStr the pattern string
      */
     public BoyerMoore(String patternStr) {
-        this.characterOptions = 256;
         this.patternStr = patternStr;
+        this.characterOptionAmount = 256;
 
-        // position of rightmost occurrence of c in the pattern
-        // 构建跳跃表 - 手段：为每个字符，初始化其 xxx数组的值为 其在模式字符串中最右侧的位置
-        characterToItsRightmostSpotInPatStr = new int[characterOptions];
-        for (int currentCharacterOption = 0; currentCharacterOption < characterOptions; currentCharacterOption++)
-            characterToItsRightmostSpotInPatStr[currentCharacterOption] = -1;
+        // 记录下 字符->它在模式字符串中最后一次出现的位置（使用数组） aka 跳跃表??
+        initLastOccurrenceSpotForCharacters();
 
+        renewLastOccurrenceSpotOfCharacterIn(patternStr);
+    }
+
+    private void initLastOccurrenceSpotForCharacters() {
+        characterToItsLastOccurrenceSpotInPatStr = new int[characterOptionAmount];
+        // 把所有字符的 lastOccurrenceSpotInPatStr 都设置为 -1
+        for (int currentCharacterOption = 0; currentCharacterOption < characterOptionAmount; currentCharacterOption++)
+            characterToItsLastOccurrenceSpotInPatStr[currentCharacterOption] = -1;
+    }
+
+    private void renewLastOccurrenceSpotOfCharacterIn(String patternStr) {
         for (int currentCharacterSpot = 0; currentCharacterSpot < patternStr.length(); currentCharacterSpot++) {
             char currentPatCharacter = patternStr.charAt(currentCharacterSpot);
-            characterToItsRightmostSpotInPatStr[currentPatCharacter] = currentCharacterSpot;
+            characterToItsLastOccurrenceSpotInPatStr[currentPatCharacter] = currentCharacterSpot;
         }
+        // 没有在模式字符串中出现的字符，它所对应的 lastOccurrenceSpotInPatStr的值为-1
     }
 
     /**
      * Preprocesses the pattern string.
-     *
+     * 预处理模式字符串
      * @param patternCharacterArr the pattern string
-     * @param characterOptions       the alphabet size
+     * @param characterOptionAmount       the alphabet size
      */
-    public BoyerMoore(char[] patternCharacterArr, int characterOptions) {
-        this.characterOptions = characterOptions;
+    public BoyerMoore(char[] patternCharacterArr, int characterOptionAmount) {
+        this.characterOptionAmount = characterOptionAmount;
         this.patternCharacterArr = new char[patternCharacterArr.length];
 
         for (int currentCharacterSpot = 0; currentCharacterSpot < patternCharacterArr.length; currentCharacterSpot++)
             this.patternCharacterArr[currentCharacterSpot] = patternCharacterArr[currentCharacterSpot];
 
         // position of rightmost occurrence of c in the pattern
-        characterToItsRightmostSpotInPatStr = new int[characterOptions];
-        for (int currentCharacterOption = 0; currentCharacterOption < characterOptions; currentCharacterOption++)
-            characterToItsRightmostSpotInPatStr[currentCharacterOption] = -1;
+        characterToItsLastOccurrenceSpotInPatStr = new int[characterOptionAmount];
+        for (int currentCharacterOption = 0; currentCharacterOption < characterOptionAmount; currentCharacterOption++)
+            characterToItsLastOccurrenceSpotInPatStr[currentCharacterOption] = -1;
 
         for (int currentCharacterSpot = 0; currentCharacterSpot < patternCharacterArr.length; currentCharacterSpot++)
-            characterToItsRightmostSpotInPatStr[patternCharacterArr[currentCharacterSpot]] = currentCharacterSpot;
+            characterToItsLastOccurrenceSpotInPatStr[patternCharacterArr[currentCharacterSpot]] = currentCharacterSpot;
     }
 
     /**
      * Returns the index of the first occurrence of the pattern string
      * in the text string.
-     *
+     * 返回 文本字符串中，模式字符串第一次出现的位置
      * @param txtStr the text string
      * @return the index of the first occurrence of the pattern string
-     * in the text string; n if no such match
+     * in the text string; n if no such match 如果没有匹配的话，则返回n
      */
     public int search(String txtStr) {
         int patStrLength = patternStr.length();
         int txtStrLength = txtStr.length();
 
-        int skipPitch;
-        for (int currentTxtCursor = 0; currentTxtCursor <= txtStrLength - patStrLength; currentTxtCursor += skipPitch) {
-            skipPitch = 0;
-            // 对于当前文本字符 从右向左地逐个比较模式字符串的字符...
+        int txtCursorNeedJumpDistance;
+        // #1 使用文本指针 来 在可能的匹配位置上开始尝试匹配
+        // 特征：① 文本指针并不会直接指向“待比较的文本字符”；② 在匹配失败后，文本指针会向后跳动 txtCursorJumpDistance个位置； ③ 跳到新的位置后，会重复同样的过程-对字符进行比较
+        for (int currentTxtCursor = 0; currentTxtCursor <= txtStrLength - patStrLength; currentTxtCursor += txtCursorNeedJumpDistance) {
+            // #2 对于“当前可能字符串匹配的位置”（当前文本指针与模式指针）
+            // #2-〇 初始化“文本指针在匹配失败时应该跳转的距离”为0    🐖 对于每个可能匹配的位置，“跳动距离”都会被重新置零
+            txtCursorNeedJumpDistance = 0;
+
             for (int backwardsPatCursor = patStrLength - 1; backwardsPatCursor >= 0; backwardsPatCursor--) {
+                // #2-Ⅰ 得到文本字符与模式字符
+                int txtCharacterSpot = currentTxtCursor + backwardsPatCursor;
+                char txtCharacter = txtStr.charAt(txtCharacterSpot);
                 char patCharacter = patternStr.charAt(backwardsPatCursor);
-                char txtCharacter = txtStr.charAt(currentTxtCursor + backwardsPatCursor);
-                // 如果字符不匹配,则：把i增大(j-right['X']) 来 把文本和模式中的“不匹配字符”对其
-                if (patCharacter != txtCharacter) {
-                    int rightmostSpotOfTxtCharacter = characterToItsRightmostSpotInPatStr[txtCharacter];
-                    skipPitch = Math.max(1, backwardsPatCursor - rightmostSpotOfTxtCharacter);
+
+                // #2-Ⅱ 并进行字符间的比较
+                // 如果文本字符与模式字符之间不匹配,则：
+                if (txtCharacter != patCharacter) {
+                    // 计算出 文本指针应该跳转的距离
+                    txtCursorNeedJumpDistance = calculateTxtCursorJumpDistance(txtCharacter, backwardsPatCursor);
                     break;
                 }
             }
 
-            // 如果skipPitch等于0（保持原始值），说明 模式字符串中的每一个字符都匹配成功，则：字符串匹配成功，返回当前文本字符的指针位置
-            if (skipPitch == 0) return currentTxtCursor;    // found
+            // #2-Ⅲ 对于“当前可能字符串匹配的位置”，如果它的txtCursorJumpDistance 保持原始值（等于0），说明 模式字符串中的每一个字符都匹配成功，
+            // 则：模式字符串匹配成功，返回“当前文本字符指针“的位置
+            if (txtCursorNeedJumpDistance == 0) return currentTxtCursor;    // found
         }
 
-        // 如果程序执行到这里，说明 所有文本字符都检查完成后，仍旧没有找到成功的匹配。则：直接返回文本字符串的长度，表示查找失败
+        // #3 如果程序执行到这里，说明 所有“可能字符串匹配的位置”都检查完成后，仍旧没有找到成功的匹配。
+        // 则：直接返回文本字符串的长度，表示查找失败
         return txtStrLength;                       // not found
+    }
+
+    private int calculateTxtCursorJumpDistance(char txtCharacter, int backwardsPatCursor) {
+        // #1 获取到 此文本字符 在模式字符串中最后一次出现的位置
+        int txtCharactersLastOccurrenceInPatStr = characterToItsLastOccurrenceSpotInPatStr[txtCharacter];
+        // #2 计算出 模式字符串中，“匹配失败的位置”与“会匹配成功的位置”之间的距离
+        int distanceBetweenMismatchSpotAndWouldMatchSpot = backwardsPatCursor - txtCharactersLastOccurrenceInPatStr;
+        // #3 这个距离 就是“文本指针应该向后跳转的距离” 🐖 为了防止xxx出现负数，这里使用max()来保证文本指针最少往后移动一个位置
+        return Math.max(1, distanceBetweenMismatchSpotAndWouldMatchSpot);
     }
 
 
@@ -147,7 +175,7 @@ public class BoyerMoore {
             skip = 0;
             for (int j = m - 1; j >= 0; j--) {
                 if (patternCharacterArr[j] != text[i + j]) {
-                    skip = Math.max(1, j - characterToItsRightmostSpotInPatStr[text[i + j]]);
+                    skip = Math.max(1, j - characterToItsLastOccurrenceSpotInPatStr[text[i + j]]);
                     break;
                 }
             }
