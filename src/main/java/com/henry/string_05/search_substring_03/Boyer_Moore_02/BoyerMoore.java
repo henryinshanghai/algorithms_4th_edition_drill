@@ -45,6 +45,9 @@ import edu.princeton.cs.algs4.StdOut;
  * see <a href="https://algs4.cs.princeton.edu/53substring">Section 5.3</a> of
  * <i>Algorithms, 4th Edition</i> by Robert Sedgewick and Kevin Wayne.
  */
+// 验证：可以使用BoyerMoore算法(设置从前往后的文本指针与从后往前的模式指针，当字符不匹配时，把文本指针跳转到 下一个可能匹配的位置) 来 在文本字符串中查找 与模式字符串相匹配的子字符串
+// 字符匹配: pat_character = txt_character; 字符串匹配：每一个文本字符 都与模式字符匹配；
+// 特征：txt_cursor并不是直接指向 txt_character的，而是 txt_cursor + backward_pat_cursor
 public class BoyerMoore {
     private final int characterOptionAmount;     // the radix
     private int[] characterToItsLastOccurrenceSpotInPatStr;     // characterToItsRightmostSpotInPatStr the bad-character skip array
