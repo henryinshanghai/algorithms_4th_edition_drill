@@ -39,6 +39,7 @@ import edu.princeton.cs.algs4.StdOut;
     assert <预期目标>
  */
 // 验证：插入排序的算法就是 对于当前待插入的元素，把它插入到有序区中正确的位置上（保持有序区的有序性）
+// for the item to insert, insert it into a consecutive sorted zone and keep the zone sorted.
 public class InsertSortTemplate {
     /**
      * 对数组中的元素进行排序
@@ -49,17 +50,8 @@ public class InsertSortTemplate {
         int itemAmount = a.length;
 
         for (int anchorOfItemToInsert = 1; anchorOfItemToInsert < itemAmount; anchorOfItemToInsert++) {
-            // #2 把有序区域后面的一个元素（无序区的第一个元素） 插入到 有序区合适的位置
-            /*
-                手段：比较（游标指针指向的元素 与 它的前一个元素） & 交换（如果当前元素更小，就执行交换）
-                如果有必要（less & exch），则：比较的操作要向前推进(j--)
-                如果没必要（less不成立），则：比较操作终止（for循环）
-             */
-            for (int backwardsCursor = anchorOfItemToInsert; backwardsCursor > 0; backwardsCursor--) {
-                if (less(a[backwardsCursor], a[backwardsCursor - 1])) {
-                    exch(a, backwardsCursor, backwardsCursor - 1);
-                }
-            }
+            // 把有序区域后面的一个元素（无序区的第一个元素） 插入到 有序区合适的位置
+            insertItemToSortedZone(a, anchorOfItemToInsert);
 
             // 断言 当前的有序区域是元素有序的
             assert isSorted(a, 0, anchorOfItemToInsert);
@@ -67,6 +59,16 @@ public class InsertSortTemplate {
 
         // 断言 整个数组已经是有序的了
         assert isSorted(a);
+    }
+
+    // 手段：从后往前地逐个比较“待插入元素”与“其前一个元素”
+    private static void insertItemToSortedZone(Comparable[] a, int anchorOfItemToInsert) {
+        for (int backwardsCursor = anchorOfItemToInsert; backwardsCursor > 0; backwardsCursor--) {
+            // 如果比起前一个元素更小，则 交换元素
+            if (less(a[backwardsCursor], a[backwardsCursor - 1])) {
+                exch(a, backwardsCursor, backwardsCursor - 1);
+            }
+        }
     }
 
     private static boolean isSorted(Comparable[] a, int leftBar, int rightBar) {

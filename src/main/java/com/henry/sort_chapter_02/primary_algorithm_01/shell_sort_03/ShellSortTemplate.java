@@ -35,6 +35,7 @@ import edu.princeton.cs.algs4.StdOut;
         1 从序列的第二个元素开始，到数组的最后一个元素为止；
         2 执行交换时，backwardsCursor的边界位置在第二个元素上
  */
+// for every item, using insertion sort with a big span size(degressive) to move it to its arranged spot step by step.
 public class ShellSortTemplate {
 
     public static void sort(Comparable[] a) {
@@ -42,51 +43,59 @@ public class ShellSortTemplate {
         show(a);
         System.out.println("====================");
 
-        // 先把序列元素更新到 最大元素
+        // #0 先把segmentSize初始化成为 一个小于itemAmount的较大值
         int itemAmount = a.length;
-        int segmentSize = initSegmentSize(itemAmount); // segment、block、unit
+        int segmentSize = initABigSegmentSize(itemAmount); // segment、block、unit
 
-        // 完成对数组中所有元素的排序
-        // 手段：#1 对于当前的 segmentSize, 得到“分隔有序的元素序列”； #2 调整当前的blockSize，得到 “完全有序的元素序列”
-        while (segmentSize >= 1) { // 当N=1（子数组尺寸为1）时，整个数组排序完成
-            // #2 按照当前blockSize分组后，得到“分隔有序的元素序列”
-            // 手段：对于无序区(a[startPointOfDisorder, itemAmount - 1])中的每一个元素...
-            int startPointOfDisorder = segmentSize;
-            for (int anchorOfItemToInsert = startPointOfDisorder; anchorOfItemToInsert < itemAmount; anchorOfItemToInsert++) { // 内循环的次数
-                // 把它插入到“其对应的序列的正确位置”上    手段：插入排序
-                // #3 把a[anchorOfItemToInsert]插入到a[anchorOfItemToInsert-segmentSize],a[anchorOfItemToInsert-2*segmentSize],a[anchorOfItemToInsert-3*segmentSize]...之中
-                insertWithStepPitch(a, anchorOfItemToInsert, segmentSize);
-            }
+        /*  实现对数组中所有元素的完全排序 */
+        while (segmentSize >= 1) { // 🐖 当segmentSize=1（segment的尺寸为1）时，整个数组排序完成
+            System.out.println("+++ current segmentSize is：" + segmentSize + " +++");
 
-            // 对无序区中的每个元素执行插入排序后，各个元素离“它最终会被排定的位置”更近了一些👇
-            System.out.println("current segmentSize is：" + segmentSize);
+            // #1 对于当前的segmentSize，处理它所产生的无序区中的元素，把它们移动到离排定位置更近的地方
+            moveItemsInUnorderedZoneCloserToItsArrangedSpot(a, segmentSize);
+
             System.out.print("after this round's insertion, current array's items are：");
             show(a);
             System.out.println("~~~~~~~~~~~~~~~~~~");
 
-            // #4 缩小 segmentSize，来 最终得到 “完全排序的数组”。
+            // #2 缩小 segmentSize，来 让元素离它的排定位置更近。
             segmentSize = segmentSize / 3;
         }
     }
 
+    private static void moveItemsInUnorderedZoneCloserToItsArrangedSpot(Comparable[] a, int segmentSize) {
+        int itemAmount = a.length;
+        // #1 把 a[segmentSize, itemAmount-1] 区间视为无序区
+        int startPointOfDisorder = segmentSize;
+        System.out.println("--- during process for current segment size: " + segmentSize + " ---");
+        for (int anchorOfItemToInsert = startPointOfDisorder; anchorOfItemToInsert < itemAmount; anchorOfItemToInsert++) {
+            // #2 对于无序区中的每一个元素，使用 跨度为segmentSize的插入排序 来 把元素移动到 更靠近其排定位置的地方
+            // 🐖 虽然元素没有被排定，但是离排定位置更近了
+            insertItemWithStepPitch(a, anchorOfItemToInsert, segmentSize);
+            show(a);
+        }
+        System.out.println("--- process finished for current segment size: " + segmentSize + " ---");
+    }
+
     // 以stepPitch作为步距，对原始数组中指定位置上的元素 执行插入排序
-    // 🐖 比较 与 交换的单位都是 stepPitch（而不是1），这就是 shellsort 高效的原因
-    private static void insertWithStepPitch(Comparable[] originalArr, int anchorOfItemToInsert, int stepPitch) {
+    private static void insertItemWithStepPitch(Comparable[] originalArr, int anchorOfItemToInsert, int stepPitch) {
         for (int backwardsCursor = anchorOfItemToInsert; backwardsCursor >= stepPitch; backwardsCursor -= stepPitch) {
 
+            // 🐖 比较 与 交换的单位都是 stepPitch（而不是1），这就是 shellsort 高效的原因
             if (less(originalArr[backwardsCursor], originalArr[backwardsCursor - stepPitch])) {
                 exch(originalArr, backwardsCursor, backwardsCursor - stepPitch);
             }
         }
     }
 
-    private static int initSegmentSize(int itemAmount) {
+    private static int initABigSegmentSize(int itemAmount) {
+        // 按照一个公式，生成一个比较大的N值（小于itemAmount） 用于分割原始数组为子数组
         int blockSize = 1;
-
-        // #1 按照一个公式，生成一个比较大的N值（小于itemAmount） 用于分割原始数组为子数组
         while (blockSize < itemAmount / 3) {
             blockSize = 3 * blockSize + 1; // h序列：1, 4, 13, 40, 121, 364, 1093...
-        } // 循环结束时，h是一个比较大的值...
+        }
+
+        // 循环结束时，h是一个比较大的值...
         return blockSize;
     }
 

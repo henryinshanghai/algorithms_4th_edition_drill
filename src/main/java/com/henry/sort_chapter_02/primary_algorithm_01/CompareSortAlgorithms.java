@@ -29,6 +29,7 @@ import java.util.Arrays;
 // 得出 算法1比起算法2，平均要快多少（time2/time1）
 public class CompareSortAlgorithms {
 
+    // 获取到 使用指定排序算法 对指定数组进行完全排序的耗时
     public static double timeCostToSortWith(String passedAlg, Double[] passedArr) { // 参数：算法名称、被排序的数组
         // 开始计时 手段：创建一个StopWatch对象 - 专用于计算执行耗时的类
         Stopwatch sw = new Stopwatch();
@@ -53,43 +54,45 @@ public class CompareSortAlgorithms {
         return sw.elapsedTime();
     }
 
-    // Use alg to sort trials random arrays of length n.
-    // 使用算法来排序测试用的随机数组（长度为N）
+    // 使用排序算法 对随机数组进行完全排序操作
+    // itemAmount - 数组的元素数量 trialTimes - 对“多少个数组”完全排序
     public static double timeRandomInput(String passedAlg, int itemAmount, int trialTimes)  {
         double totalTimeCost = 0.0;
         Double[] itemArr = new Double[itemAmount];
 
         for (int currentTrial = 0; currentTrial < trialTimes; currentTrial++) { // 多次执行sort()计算总耗时
             // 生成一个 指定大小的数组itemArr
-            for (int currentItemSpot = 0; currentItemSpot < itemAmount; currentItemSpot++)
-                itemArr[currentItemSpot] = StdRandom.uniform(0.0, 1.0);
+            for (int currentItemCursor = 0; currentItemCursor < itemAmount; currentItemCursor++)
+                itemArr[currentItemCursor] = StdRandom.uniform(0.0, 1.0);
 
-            // 对生成的数组itemArr 进行排序 🐖 累计每次排序的耗时
-            totalTimeCost += timeCostToSortWith(passedAlg, itemArr); // 对数据进行排序，并返回排序的耗时t
+            // 累计 对“当前随机数组”进行完全排序 的耗时
+            totalTimeCost += timeCostToSortWith(passedAlg, itemArr);
         }
 
         return totalTimeCost;
     }
 
-    // Use alg to sort trials random arrays of length n. 
-    public static double timeSortedInput(String alg, int n, int trials) {
-        double total = 0.0;
-        Double[] a = new Double[n];
+    // 使用排序算法 对有序数组进行排序操作
+    // itemAmount - 数组的元素数量 trialTimes - 对“多少个数组”完全排序
+    public static double timeSortedInput(String passedAlg, int itemAmount, int trialTimes) {
+        double totalTimeCost = 0.0;
+        Double[] a = new Double[itemAmount];
         // Perform one experiment (generate and sort an array).
-        for (int t = 0; t < trials; t++) {
-            for (int i = 0; i < n; i++)
-                a[i] = 1.0 * i;
-            total += timeCostToSortWith(alg, a);
+        for (int currentTrial = 0; currentTrial < trialTimes; currentTrial++) {
+            for (int itemCursor = 0; itemCursor < itemAmount; itemCursor++)
+                a[itemCursor] = 1.0 * itemCursor; // 生成一个有序的数组
+
+            totalTimeCost += timeCostToSortWith(passedAlg, a);
         }
-        return total;
+        return totalTimeCost;
     }
 
     public static void main(String[] args) {
         String alg1 = args[0]; // 算法1：插入排序算法
         String alg2 = args[1]; // 算法2：选择排序算法
 
-        int itemAmount = Integer.parseInt(args[2]); // 数组的长度
-        int trialTimes = Integer.parseInt(args[3]); // 排序执行的次数
+        int itemAmount = Integer.parseInt(args[2]); // 待排序数组的长度
+        int trialTimes = Integer.parseInt(args[3]); // 进行多少次的完全排序
         double time1, time2;
 
         if (args.length == 5 && args[4].equals("sorted")) {
@@ -101,7 +104,7 @@ public class CompareSortAlgorithms {
             time2 = timeRandomInput(alg2, itemAmount, trialTimes);   // Total for alg2.
         }
 
-        // 打印两种算法的执行时间的比率
+        // 计算出两种算法的执行时间的比率，并打印出来
         StdOut.printf("For %d random Doubles\n    %s is", itemAmount, alg1);
         StdOut.printf(" %.1f times faster than %s\n", time2/time1, alg2);
     }

@@ -40,16 +40,10 @@ public class SelectionSortTemplate {
         // 对于“当前待排定的位置”...
         for (int currentSpotToArrange = 0; currentSpotToArrange < itemAmount; currentSpotToArrange++) {
             // #1 找到 “未排定区间”中的最小元素 - 确保cursorToMinItem指针指向的是最小元素
-            int cursorToMinItem = currentSpotToArrange; // 初始化 “最小元素指针” 为 “当前元素”
+            int cursorToMinItem = moveCursorToMinItem(a, currentSpotToArrange);
 
-            for (int dynamicCursor = currentSpotToArrange + 1; dynamicCursor < itemAmount; dynamicCursor++) {
-                if (less(a[dynamicCursor], a[cursorToMinItem])) {
-                    cursorToMinItem = dynamicCursor;
-                }
-            }
-
-            // #2 排定“最小元素” - 手段：交换 定锚指针（待排定位置）, 最小元素指针（待排定元素所在的位置）所指向的元素
-            exch(a, currentSpotToArrange, cursorToMinItem);
+            // #2 排定“最小元素”/当前待排定位置 - 手段：交换 定锚指针（待排定位置）, 最小元素指针（待排定元素所在的位置）所指向的元素
+            arrangeItemOn(currentSpotToArrange, cursorToMinItem, a);
 
             // 断言 从[0, currentSpotToArrange] 区间内的所有元素都已经是有序的
             assert isSorted(a, 0, currentSpotToArrange);
@@ -59,23 +53,39 @@ public class SelectionSortTemplate {
         assert isSorted(a);
     }
 
-    /* Check if array is sorted - 对于调试来说非常有用，以为它提供了验证阶段性预期的方法 */
-    // 1 判断整个数组是不是已经有序了
+    private static void arrangeItemOn(int currentSpotToArrange, int cursorToMinItem, Comparable[] a) {
+        exch(a, currentSpotToArrange, cursorToMinItem);
+    }
+
+    // 手段：先以当前元素作为最小元素，并通过比较来持续更新最小元素
+    private static int moveCursorToMinItem(Comparable[] a, int currentSpotToArrange) {
+        int cursorToMinItem = currentSpotToArrange;
+
+        int itemAmount = a.length;
+        for (int dynamicCursor = currentSpotToArrange + 1; dynamicCursor < itemAmount; dynamicCursor++) {
+            if (less(a[dynamicCursor], a[cursorToMinItem])) {
+                cursorToMinItem = dynamicCursor;
+            }
+        }
+        return cursorToMinItem;
+    }
+
+    // 1 判断整个数组是不是已经有序了 - 对于调试来说非常有用，以为它提供了验证阶段性预期的方法
     private static boolean isSorted(Comparable[] a) {
         return isSorted(a, 0, a.length - 1);
     }
 
     // 2 判断数组在a[lo] to a[hi]的区间内是不是已经有序了
     private static boolean isSorted(Comparable[] a, int lo, int hi) {
-        for (int i = lo + 1; i <= hi; i++)
+        for (int currentSpot = lo + 1; currentSpot <= hi; currentSpot++)
             // 当前元素 是否大于 它的前一个元素
-            if (less(a[i], a[i - 1])) return false;
+            if (less(a[currentSpot], a[currentSpot - 1])) return false;
         return true;
     }
 
     @SuppressWarnings("unchecked")
-    private static boolean less(Comparable v, Comparable w) {
-        return v.compareTo(w) < 0;
+    private static boolean less(Comparable itemV, Comparable itemW) {
+        return itemV.compareTo(itemW) < 0;
     }
 
     /**
