@@ -27,6 +27,7 @@ package com.henry.sort_chapter_02.merge_sort_algorithm_02.merge_top_to_down_01;
 再在右半区间逐步归并（左-右-完整区间 区间逐渐扩大）出一个完整的有序子数组；
 最终，对有序的左右子数组，一次性归并得到“完全排序的数组”
  */
+// 自顶向下的归并排序算法步骤：#1 使左半区间有序； #2 使右半区间有序； #3 使用归并操作归并两个有序的子数组，得到完全排序的数组
 public class MergeFromTopToDownTemplate {
     // 成员变量 - 好处：可以在当前类的所有方法中使用它
     private static Comparable[] aux;
@@ -60,16 +61,19 @@ public class MergeFromTopToDownTemplate {
     // 归并 a[leftBar, middle] 与 a[middle+1, rightBar] - 特征：两个子区间都已经是有序数组了
     private static void mergeSortedRange(Comparable[] originalArr, int leftBar, int middleSpot, int rightBar) {
         // #1 拷贝区间[leftBar, rightBar](闭区间)之间的元素 到 aux
-        for (int currentSpot = leftBar; currentSpot <= rightBar; currentSpot++) {
-            aux[currentSpot] = originalArr[currentSpot];
-        }
+        copyItemToAux(originalArr, leftBar, rightBar);
 
-        // #2 准备左区间的指针 与 右区间的指针 - 用于比较元素，得到“正确的元素”
+        // #2 找到辅助数组左右区间中的较小元素，写回到原始数组 来 得到完全排序的数组
+        writeItemBackToGetThemSorted(originalArr, leftBar, middleSpot, rightBar);
+    }
+
+    private static void writeItemBackToGetThemSorted(Comparable[] originalArr, int leftBar, int middleSpot, int rightBar) {
+        // #1 准备左区间的指针 与 右区间的指针 - 用于比较元素，得到“正确的元素”
         int leftHalfCursor = leftBar;
         int rightHalfCursor = middleSpot + 1;
 
-        // #3 对于原始数组中的“当前待排定的位置”...
-        for (int cursor = leftBar; cursor <= rightBar; cursor++) {
+        // #2 对于原始数组中的“当前待排定的位置”...
+        for (int cursor = leftBar; cursor <= rightBar; cursor++) { // for body无法抽取成一个方法，因为它做了不止一件事：排定元素 + 移动指针
             /* 比较辅助数组中，左右指针所指向的元素。然后把“较小的元素” 绑定到 原始数组“待排定的位置”上 */
             // 左半部分元素用尽
             if(leftHalfCursor > middleSpot) originalArr[cursor] = aux[rightHalfCursor++];
@@ -78,6 +82,12 @@ public class MergeFromTopToDownTemplate {
             // 比较左右指针指向的元素，并拷贝 较小值 到原数组中 并移动指针到下一位置
             else if(less(aux[leftHalfCursor], aux[rightHalfCursor])) originalArr[cursor] = aux[leftHalfCursor++];
             else originalArr[cursor] = aux[rightHalfCursor++];
+        }
+    }
+
+    private static void copyItemToAux(Comparable[] originalArr, int leftBar, int rightBar) {
+        for (int currentSpot = leftBar; currentSpot <= rightBar; currentSpot++) {
+            aux[currentSpot] = originalArr[currentSpot];
         }
     }
 

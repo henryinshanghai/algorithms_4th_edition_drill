@@ -37,6 +37,7 @@ package com.henry.sort_chapter_02.merge_sort_algorithm_02.marge_bottom_to_up_02;
         #4 原始数组的元素数量 - itemAmount
         #5 归并区间的中间位置 - middle
  */
+// 自底向上的归并算法的步骤：#1 使用一个小的unitSize来成对数组元素；#2 对得到的pair序列从左到右地逐个执行归并操作； #3 倍增unitSize，直到对左半、右半进行归并 - 数组被完全排序
 public class MergeSortBottomUpTemplate {
     private static Comparable[] aux;
 
@@ -45,15 +46,19 @@ public class MergeSortBottomUpTemplate {
         int itemAmount = originalArr.length;
         aux = new Comparable[itemAmount];
 
-        // #3 更新（倍增）N，重复#1、#2，直到（子组的元素数量 >= 原始数组的元素数量）得到“完全排序的数组”
-        for (int unitSize = 1; unitSize < itemAmount; unitSize = unitSize * 2) { // #1 初始化unitSize为1，在所有pair都归并完成后，倍增unitSize
-            // #2 按照当前 unitSize 分割后，对得到的子数组 从左到右 执行两两归并；
-            // 手段：先对当前Pair执行归并操作，再更新指针的位置，对新的Pair执行归并操作。直到 原始数组中的最后一个Pair
-            for (int leftBarOfCurrentPair = 0; leftBarOfCurrentPair < itemAmount - unitSize; leftBarOfCurrentPair += (unitSize * 2)) {
-                // 随着currentPair被不断更新，rightBarCursor可能会超出原始数组的边界。因此这里使用min()
-                mergeUnitsInPair(originalArr, leftBarOfCurrentPair, leftBarOfCurrentPair + unitSize - 1,
-                        Math.min((leftBarOfCurrentPair + unitSize * 2) - 1, itemAmount - 1));
-            }
+        // #1 初始化unitSize为1，并 以此为单位对数组中的元素成对
+        for (int unitSize = 1; unitSize < itemAmount; unitSize = unitSize * 2) { // #3 更新（倍增）unitSize，重复#1、#2，直到（unitSize >= 原始数组的元素数量）得到“完全排序的数组”
+            // #2 对数组中的元素对序列 从左到右 执行两两归并；
+            mergeUnitsByPairTillEnd(originalArr, itemAmount, unitSize);
+        }
+    }
+
+    private static void mergeUnitsByPairTillEnd(Comparable[] originalArr, int itemAmount, int unitSize) {
+        // 通过 成组地移动指针(左指针、中间指针、右指针) 来 对每一个pair进行归并排序 直到最后一个pair👇
+        for (int leftBarOfCurrentPair = 0; leftBarOfCurrentPair < itemAmount - unitSize; leftBarOfCurrentPair += (unitSize * 2)) { // ① 移动左指针
+            // 🐖 随着currentPair被不断更新，rightBarCursor可能会超出原始数组的边界。因此这里使用min()
+            mergeUnitsInPair(originalArr, leftBarOfCurrentPair, leftBarOfCurrentPair + unitSize - 1,
+                    Math.min((leftBarOfCurrentPair + unitSize * 2) - 1, itemAmount - 1)); // ② 计算中间指针与右指针
         }
     }
 
@@ -61,21 +66,30 @@ public class MergeSortBottomUpTemplate {
     // 特征：a[leftBar, middle] 与 a[middle+1, rightBar] - 均为闭区间
     private static void mergeUnitsInPair(Comparable[] originalArr, int leftBarOfPair, int middleOfPair, int rightBarOfPair) {
         // #1 把原始数组中“指定区间”中的元素，拷贝到辅助数组aux中
-        for (int currentSpotCursor = leftBarOfPair; currentSpotCursor <= rightBarOfPair; currentSpotCursor++) {
-            aux[currentSpotCursor] = originalArr[currentSpotCursor];
-        }
+        copyItemToAux(originalArr, leftBarOfPair, rightBarOfPair);
 
-        // #2 准备左右游标指针 - 用于比较元素，得到“正确的元素”
+        // #2 把元素写回到原始数组中 来 得到完全有序的数组
+        writeItemToGetThemSorted(originalArr, leftBarOfPair, middleOfPair, rightBarOfPair);
+    }
+
+    private static void writeItemToGetThemSorted(Comparable[] originalArr, int leftBarOfPair, int middleOfPair, int rightBarOfPair) {
+        // #1 准备左右游标指针 - 用于比较元素，得到“正确的元素”
         int leftHalfCursor = leftBarOfPair;
         int rightHalfCursor = middleOfPair + 1;
 
-        // #3 对于原始数组中的“当前待排定的位置”...
+        // #2 对于原始数组中的“当前待排定的位置”...
         for (int currentSpotToArrange = leftBarOfPair; currentSpotToArrange <= rightBarOfPair; currentSpotToArrange++) {
             // 比较辅助数组中，左右指针所指向的元素。然后把“较小的元素” 绑定到 原始数组“待排定的位置”上
             if (leftHalfCursor > middleOfPair) originalArr[currentSpotToArrange] = aux[rightHalfCursor++];
             else if (rightHalfCursor > rightBarOfPair) originalArr[currentSpotToArrange] = aux[leftHalfCursor++];
             else if (less(aux[leftHalfCursor], aux[rightHalfCursor])) originalArr[currentSpotToArrange] = aux[leftHalfCursor++];
             else originalArr[currentSpotToArrange] = aux[rightHalfCursor++];
+        }
+    }
+
+    private static void copyItemToAux(Comparable[] originalArr, int leftBarOfPair, int rightBarOfPair) {
+        for (int currentSpotCursor = leftBarOfPair; currentSpotCursor <= rightBarOfPair; currentSpotCursor++) {
+            aux[currentSpotCursor] = originalArr[currentSpotCursor];
         }
     }
 
