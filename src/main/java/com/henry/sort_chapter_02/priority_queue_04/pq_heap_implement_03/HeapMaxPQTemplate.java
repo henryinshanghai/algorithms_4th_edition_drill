@@ -25,12 +25,13 @@ import java.util.NoSuchElementException;
 
 /**
  * 这个类表示的是 由泛型key组成的优先队列（逻辑结构）。
- * 手段：使用堆这种逻辑结构 堆 = 满足特定条件的完全二叉树; 条件：堆有序 aka 对于任意节点，它的值都大于等于它的两个子节点。
- * 它支持 常见的 #1 insert操作 与 #2 删除最大值的操作，以及 #3 查看最大的key, #4 测试优先队列是否为空, #5 遍历所有的key的操作
+ * 手段：使用堆这种逻辑结构 堆 = 满足特定条件的完全二叉树(结构约束：结点从上往下，从左往右逐个排定); 条件：堆有序 aka 对于任意节点，它的值都大于等于它的两个子节点的值。
+ * 它支持 常见的 #1 insert新结点的操作 与 #2 删除“值最大的结点”的操作，以及 #3 查看最大的key, #4 测试优先队列是否为空, #5 遍历所有的key的操作
  */
+// 结论：可以使用 堆这种逻辑结构 来 实现优先队列(#1 向队列中添加元素； #2 从队列中删除最大元素)；
 
 public class HeapMaxPQTemplate<Item> implements Iterable<Item> { // 类本身实现了 Iterables接口
-    private Item[] itemHeap;                    // 用[1, itemAmount]的区间 来 存储元素
+    private Item[] itemHeap;                    // 底层使用“单数组物理结构”来实现“堆逻辑结构” 具体来说，用[1, itemAmount]的区间 来 存储元素
     private int itemAmount;                       // 优先队列中的元素数量
     private Comparator<Item> comparator;  // 比较器（可选的）
 
@@ -83,7 +84,7 @@ public class HeapMaxPQTemplate<Item> implements Iterable<Item> { // 类本身实
         // 原因：对某个位置，执行了sink(index)后，则：这个位置上的节点 就一定会大于 它的子节点了。
         // 因此保证前一半的节点被排定后，剩下的节点必然也符合 堆对元素的数值约束了
         for (int k = itemAmount / 2; k >= 1; k--)
-            sink(k);
+            sinkNodeOn(k);
         assert isMaxHeap();
     }
 
@@ -130,21 +131,38 @@ public class HeapMaxPQTemplate<Item> implements Iterable<Item> { // 类本身实
 
 
     /**
-     * 先优先队列中添加一个新的key
+     * 向优先队列中添加一个新的key
      *
      * @param newItem the new key to add to this priority queue
      */
-    public void insert(Item newItem) {
+    public void insert(Item newItem) { // 对于优先队列，使用者使用insert()时，只会提供一个item
+        // #1 如果数组中元素的数量 与 数组的长度相等，说明堆空间已经满了，则：在插入之前，先把数组空间翻倍
+        resizeHeapSizeAsNeededOnInsertion();
 
-        // double size of array if necessary
-        if (itemAmount == itemHeap.length - 1) resize(2 * itemHeap.length);
+        /* #2 把元素作为结点添加到堆中，然后维护堆的约束/不变性 - 对于堆，我们使用“堆结点”的术语 */
+        performInsertingNewNodeToHeap(newItem);
 
-        // add newItem, and percolate it up to maintain heap invariant
-        itemHeap[++itemAmount] = newItem;
-
-        // 在数组末尾插入元素后，通过上浮最后一个位置的元素 来 保持数组的堆有序
-        swim(itemAmount);
         assert isMaxHeap();
+    }
+
+    private void performInsertingNewNodeToHeap(Item newItem) {
+        // #2-1 把新元素添加到 堆的最后一个叶子节点的下一个位置    手段：把新元素添加到数组末尾；
+        addNewNodeAfterLastSpot(newItem);
+        // #2-2 添加完新节点后，维护堆的约束(对于任意节点，它的值都大于等于它的两个子节点的值) 手段：利用“数组元素之间的关系”来适当地处理新添加的元素
+        fixBreachIntroducedByAdding();
+    }
+
+    private void fixBreachIntroducedByAdding() {
+        swimNodeOn(itemAmount);
+    }
+
+    private void addNewNodeAfterLastSpot(Item newItem) {
+        itemHeap[++itemAmount] = newItem;
+    }
+
+    private void resizeHeapSizeAsNeededOnInsertion() {
+        if (itemAmount == itemHeap.length - 1)
+            resize(2 * itemHeap.length);
     }
 
     /**
@@ -155,19 +173,54 @@ public class HeapMaxPQTemplate<Item> implements Iterable<Item> { // 类本身实
      */
     public Item delMax() {
         if (isEmpty()) throw new NoSuchElementException("Priority queue underflow");
-        Item maxItemInHeap = itemHeap[1];
-        // 把 堆中最大的元素(aka itemHeap[1]) 与 数组末尾的元素交换 - 这样最大元素被交换到 堆的最后一个位置
-        exch(1, itemAmount--);
-        // 下沉堆中第一个位置上的元素， 来 维持数组的堆有序
-        sink(1);
+        Item maxNodeInHeap = itemHeap[1];
 
-        // 删除数组中最后一个位置上的元素(它已经不属于堆) 以防止对象游离
-        itemHeap[itemAmount + 1] = null;     // to avoid loitering and help with garbage collection
+        performDeletingHeapsMaxNode();
+        postDeletingMaxNode();
+        assert isMaxHeap();
 
+        return maxNodeInHeap;
+    }
+
+    private void postDeletingMaxNode() {
+        // 物理移除堆中的最后一个结点
+        removeLastNodePhysically();
+        // 根据删除的情况 来 决定要不要减少堆空间
+        resizeHeapAsNeededOnDeletion();
+    }
+
+    private void performDeletingHeapsMaxNode() {
+        // 把 堆顶结点(aka itemHeap[1]) 与 堆中的最后一个结点 交换
+        exchTopNodeWithLastNode();
+        // 逻辑上移除堆中的最后一个结点
+        removeLastNodeLogically();
+        // 修复堆中可能存在的breach
+        fixBreachIntroducedByExchanging();
+    }
+
+    private void resizeHeapAsNeededOnDeletion() {
         // 删除元素后，查看是不是需要调整 数组的容量大小
         if ((itemAmount > 0) && (itemAmount == (itemHeap.length - 1) / 4)) resize(itemHeap.length / 2);
-        assert isMaxHeap();
-        return maxItemInHeap;
+    }
+
+    private void removeLastNodePhysically() {
+        // 删除数组中最后一个位置上的元素(它已经不属于堆) 以防止对象游离
+        itemHeap[itemAmount + 1] = null;     // to avoid loitering and help with garbage collection
+    }
+
+    private void fixBreachIntroducedByExchanging() {
+        // 下沉堆中第一个位置上的元素， 来 维持数组的堆有序
+        sinkNodeOn(1);
+    }
+
+    private void removeLastNodeLogically() {
+        itemAmount--;
+    }
+
+    private void exchTopNodeWithLastNode() {
+        int heapTopSpot = 1;
+        int heapLastSpot = itemAmount;
+        exch(heapTopSpot, heapLastSpot);
     }
 
 
@@ -175,40 +228,59 @@ public class HeapMaxPQTemplate<Item> implements Iterable<Item> { // 类本身实
      * Helper functions to restore the heap invariant（堆的不变性）.
      ***************************************************************************/
 
-    // 把指定位置上的元素（更大的元素） 上浮到 堆中正确的位置 - 作用：恢复完全二叉树的“堆有序”
-    private void swim(int currentSpot) {
+    // 把指定位置上的结点 上浮到 堆中正确的位置 - 作用：恢复完全二叉树的“堆有序”
+    private void swimNodeOn(int currentSpot) {
+        // #1 如果父节点 小于 当前节点，说明违反了堆的约束，则：
         while (currentSpot > 1 && less(currentSpot / 2, currentSpot)) {
+            // 把结点上浮一层
             exch(currentSpot, currentSpot / 2);
+
+            // #2 继续考察 交换到的位置
             currentSpot = currentSpot / 2;
         }
     }
 
     // 把指定位置上的元素（更小的元素） 下沉到 堆中正确的位置  - 作用：恢复完全二叉树的“堆有序”
-    private void sink(int currentSpot) {
+    private void sinkNodeOn(int currentSpot) {
         while (2 * currentSpot <= itemAmount) {
+            // #1 找出 当前节点的较大的子节点的位置
             int biggerChildSpot = 2 * currentSpot;
             if (biggerChildSpot < itemAmount && less(biggerChildSpot, biggerChildSpot + 1)) biggerChildSpot++;
+
+            // #2 如果 当前节点 比 它较大的子节点 更小，说明违反了堆的约束，则：
             if (!less(currentSpot, biggerChildSpot)) break;
+            // 把它与较大的子节点交换
             exch(currentSpot, biggerChildSpot);
+
+            // #3 继续考察 交换到的位置
             currentSpot = biggerChildSpot;
         }
     }
 
     /***************************************************************************
      * Helper functions for compares and swaps（比较与交换）.
-     ***************************************************************************/
-    private boolean less(int i, int j) {
+     **************************************************************************
+     * @param spotI
+     * @param spotJ*/
+    // 比较堆中 位置i与位置j上的元素大小
+    // 手段：获取到 对应位置上的数组元素，进行比较
+    private boolean less(int spotI, int spotJ) {
+        Item itemOnSpotJ = itemHeap[spotJ];
+
         if (comparator == null) {
-            return ((Comparable<Item>) itemHeap[i]).compareTo(itemHeap[j]) < 0;
+            Comparable<Item> itemOnSpotI = (Comparable<Item>) itemHeap[spotI];
+            return itemOnSpotI.compareTo(itemOnSpotJ) < 0;
         } else {
-            return comparator.compare(itemHeap[i], itemHeap[j]) < 0;
+            return comparator.compare(itemHeap[spotI], itemOnSpotJ) < 0;
         }
     }
 
-    private void exch(int i, int j) {
-        Item swap = itemHeap[i];
-        itemHeap[i] = itemHeap[j];
-        itemHeap[j] = swap;
+    // 交换堆中 位置i与位置j上的结点
+    // 手段：获取到 对应位置上的数组元素，进行交换
+    private void exch(int spotI, int spotJ) {
+        Item swap = itemHeap[spotI];
+        itemHeap[spotI] = itemHeap[spotJ];
+        itemHeap[spotJ] = swap;
     }
 
     // 判断当前的数组 是否是 一个二叉堆？ 原理：根据二叉堆的特性
@@ -288,17 +360,17 @@ public class HeapMaxPQTemplate<Item> implements Iterable<Item> { // 类本身实
      * @param args 命令行参数
      */
     public static void main(String[] args) {
-        HeapMaxPQTemplate<String> pq = new HeapMaxPQTemplate<String>();
+        HeapMaxPQTemplate<String> maxPQ = new HeapMaxPQTemplate<String>();
 
         while (!StdIn.isEmpty()) { // 判断标准输入流是否为空
             // 读取标准输入流中的字符串
             String item = StdIn.readString();
             // 如果当前字符串不是 - 就把它添加到 优先队列中
-            if (!item.equals("-")) pq.insert(item);
+            if (!item.equals("-")) maxPQ.insert(item);
                 // 如果遇到了 - 字符，就删除掉并打印 优先队列中当前的最大元素
-            else if (!pq.isEmpty()) StdOut.print(pq.delMax() + " ");
+            else if (!maxPQ.isEmpty()) StdOut.print(maxPQ.delMax() + " ");
         }
 
-        StdOut.println("(" + pq.size() + " left on itemHeap)");
+        StdOut.println("(" + maxPQ.size() + " left on itemHeap)");
     }
 }

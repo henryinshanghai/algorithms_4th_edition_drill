@@ -46,6 +46,7 @@ import edu.princeton.cs.algs4.StdRandom;
     #3 判断元素的分拣工作是否已经完成（左指针是不是已经大于右指针） 如果是，则：停止分拣工作
     #4 对元素进行分拣 - 把它们分别分拣到左半区间、右半区间中
  */
+// 基础版本的快速排序的步骤：#1 排定基准元素(使用两个边界指针)； #2 排序小于基准元素的元素区域； #3 排序大于基准元素的元素区域
 public class QuickSortTemplate {
     /**
      * 对数组中的元素进行排序
@@ -66,17 +67,16 @@ public class QuickSortTemplate {
      * @param rightBar
      */
     private static void sortGivenRangeOf(Comparable[] originalArr, int leftBar, int rightBar) {
-        // 1 排序区间只有一个元素时，数组已经有序。这时应该return
+        // #1 递归结束条件：区间的左右边界重叠，说明范围中只有一个元素，区间元素已经有序，直接return
         if (rightBar <= leftBar) {
             return;
         }
 
-        // 2 选择一个切分元素，并把它放到正确的位置
+        // #2 选择一个切分元素，并把它放到正确的位置
         int arrangedSpot = arrangePivotViaPartition(originalArr, leftBar, rightBar); // 选取一个元素作为切分元素————把该元素放到正确的位置上
-
-        // 3 对左半区间进行排序
+        // #3 对左半区间进行排序
         sortGivenRangeOf(originalArr, leftBar, arrangedSpot - 1);
-        // 对右半区间进行排序
+        // #4 对右半区间进行排序
         sortGivenRangeOf(originalArr, arrangedSpot + 1, rightBar);
     }
 

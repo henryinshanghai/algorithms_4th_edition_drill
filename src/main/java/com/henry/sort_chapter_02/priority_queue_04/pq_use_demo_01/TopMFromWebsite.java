@@ -58,28 +58,27 @@ public class TopMFromWebsite {
         MinPQ<Transaction> collectionForBiggestMItems = new MinPQ<Transaction>(M+1); // this is the key point~
 
         while (StdIn.hasNextLine()) {
-            // 读取标准输入的下一行的数据
+            // 读取标准输入的当前行的数据
             String transactionInLine = StdIn.readLine();
             // 从读取的数据中创建出 transaction对象
             Transaction transaction = new Transaction(transactionInLine);
             // 把它添加到 最大元素集合中 - API#1
             collectionForBiggestMItems.insert(transaction);
 
-            // 如果集合中已经添加了多过“M”个元素，则：把其中最小的元素移除(API#2) 来 确保队列中只有M个元素
+            // 如果集合中已经添加了超过“M”个元素，则：把其中最小的元素移除(API#2) 来 确保队列中只有M个元素
             if (collectionForBiggestMItems.size() > M)
                 collectionForBiggestMItems.delMin();
         }
         // 👆 循环结束后，最大的M个元素就被存放在 collectionForBiggestMItems 中了
 
         // 从 collectionForBiggestMItems 中按序取出元素打印
-        // 手段：#1 先使用一个栈结构 来 从队列中获取元素&存储元素
+        // step#1 先使用一个栈结构 来 从队列中获取元素&存储元素
         Stack<Transaction> transactionStack = new Stack<Transaction>();
-        // collectionForBiggestMItems是 支持迭代操作的集合
-        // 数据类型中需要实现自己的迭代器 - 它会决定迭代的具体方式
-        for (Transaction transaction : collectionForBiggestMItems)
+        for (Transaction transaction : collectionForBiggestMItems) // collectionForBiggestMItems是 “支持迭代操作的集合”
+            // 🐖 数据类型中需要实现自己的迭代器 - 它会决定使用者进行迭代操作时的具体用法
             transactionStack.push(transaction);
 
-        // 手段：#2 遍历栈结构，打印栈中的元素
+        // step#2 遍历栈结构，打印栈中的元素
         for (Transaction transaction : transactionStack)
             StdOut.println(transaction);
     }

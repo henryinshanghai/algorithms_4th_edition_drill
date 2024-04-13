@@ -2,8 +2,8 @@ package com.henry.sort_chapter_02.priority_queue_04.pq_primary_implement_02.orde
 
 import edu.princeton.cs.algs4.StdOut;
 
-// #1 insert item into a sorted array via keep comparing and a final insert;
-
+// 结论：可以使用有序数组来实现优先队列(#1 添加元素; #2 从中删除最大元素)；
+// 步骤：#1 添加元素时，维护一个有序的元素数组； #2 删除最大元素时，直接删除；
 public class OrderedArrayMaxPQTemplate<Key extends Comparable<Key>> {
     private Key[] itemArray;
     private int itemAmount;

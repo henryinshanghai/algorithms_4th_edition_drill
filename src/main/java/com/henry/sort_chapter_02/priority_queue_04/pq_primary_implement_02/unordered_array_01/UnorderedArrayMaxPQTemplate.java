@@ -24,6 +24,8 @@ import edu.princeton.cs.algs4.StdOut;
     特征：实际的参数必须是引用类型；
     应用： Java会使用类型参数 来 检查类型不匹配的错误；
  */
+// 结论：可以使用无序数组来实现优先队列(#1 添加元素; #2 从中删除最大元素)；
+// 步骤：#1 添加元素时，直接把元素添加到数组末尾； #2 删除最大元素时，从数组中先找到最大元素，再进行删除（挖空&补齐）；
 public class UnorderedArrayMaxPQTemplate<Key extends Comparable<Key>> { // 类型参数 - 作为“某种具体类型的象征性占位符号”
 
     private Key[] itemArray;
