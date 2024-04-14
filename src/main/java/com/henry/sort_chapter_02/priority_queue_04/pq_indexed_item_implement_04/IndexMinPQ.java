@@ -41,7 +41,7 @@ public class IndexMinPQ<Item extends Comparable<Item>> {
 
     private void fixBreachIntroducedByAdding() {
         // 上浮动作本身，会维护 {spotToIndexArray, indexToSpotArray}两个数组
-        swimNodeOn(itemAmount);
+        swimUpNodeOn(itemAmount);
     }
 
     // 🐖 对于堆这种逻辑结构来说，我们唯一可以直接使用的就只有它的结点位置
@@ -58,7 +58,7 @@ public class IndexMinPQ<Item extends Comparable<Item>> {
     }
 
     // 对于 MinPQ, 其约束是：对于任意结点，其结点值要小于它的任意子节点
-    private void swimNodeOn(int currentNodeSpot) {
+    private void swimUpNodeOn(int currentNodeSpot) {
         // #1 如果父节点 大于 当前节点，说明违反了堆的约束，则：
         while (currentNodeSpot > 1 && greater(currentNodeSpot / 2, currentNodeSpot)) {
             // 把结点上浮一层
@@ -69,29 +69,35 @@ public class IndexMinPQ<Item extends Comparable<Item>> {
         }
     }
 
-    // 交换堆中 spotI位置上的元素，与 spotJ位置上的元素
-    // 手段：对所有 包含有spot信息的数组{spotToIndexArray, indexToSpotArray}，使用spot来交换元素
+    // 交换堆中 spotI位置上的元素，与 spotJ位置上的元素; 并更新 对应的反向映射数组(index->spot)
+    // 手段：交换 {spotToIndexArray}中spot所映射到的index； #2 并同步更新 {indexToSpotArray}中，映射到spot的index；
     private void exch(int spotI, int spotJ) {
         // 交换 spot->index
-        exchItemsInSpotToIndexArrFor(spotI, spotJ);
+        exchNodesOn(spotI, spotJ);
 
-        // 维护index -> spot
-        correctItemsInIndexToSpotArrFor(spotI, spotJ);
+        // 维护 index->spot
+        correctIndexToSpotToConsistentWithHeap(spotI, spotJ);
     }
 
-    private void correctItemsInIndexToSpotArrFor(int spotI, int spotJ) {
+    private void correctIndexToSpotToConsistentWithHeap(int spotI, int spotJ) {
         // 对于这两个spot...
-        // #1 获取到 其对应的新的index
-        int indexOfSpotI = spotToIndexArray[spotI];
-        // #2 更新到 index -> spot的映射中
-        indexToSpotArray[indexOfSpotI] = spotI;
-        int indexOfSpotJ = spotToIndexArray[spotJ];
-        indexToSpotArray[indexOfSpotJ] = spotJ;
+        updateIndexToSpotFor(spotI);
+        updateIndexToSpotFor(spotJ);
     }
 
-    private void exchItemsInSpotToIndexArrFor(int spotI, int spotJ) {
+
+    private void updateIndexToSpotFor(int spotI) {
+        // #1 获取 映射到该spot的index
+        int indexOfSpotI = spotToIndexArray[spotI];
+        // #2 使用 该index->该spot 来更新 {indexToSpotArray}中的映射
+        indexToSpotArray[indexOfSpotI] = spotI;
+    }
+
+    // 交换堆中的两个结点(spot -> node(index, item))
+    private void exchNodesOn(int spotI, int spotJ) {
+        // 手段：由于 以结点为单位进行交换，所以 index->item不会变化。只需要 对spot->index进行交换即可
         int temp = spotToIndexArray[spotI];
-        spotToIndexArray[spotI]= spotToIndexArray[spotJ];
+        spotToIndexArray[spotI] = spotToIndexArray[spotJ];
         spotToIndexArray[spotJ] = temp;
     }
 
@@ -124,7 +130,7 @@ public class IndexMinPQ<Item extends Comparable<Item>> {
     public int delMinItem() {
 
         // #1 获取到堆中的最小堆结点，并从此最小节点上获取到其index
-        int indexOfMinNode = retrieveIndexOfMinNodeInHeap();
+        int indexOfMinNode = getIndexOfMinNodeInHeap();
 
         // #2 删除堆中的最小结点，并修复堆中的breach
         performDeletingHeapsMinNode(indexOfMinNode);
@@ -135,13 +141,14 @@ public class IndexMinPQ<Item extends Comparable<Item>> {
         return indexOfMinNode;
     }
 
-    // 物理清除 对此index的记录
+    // 物理删除 与此index相关的记录
     private void postDeletingMinNode(int indexOfMinNode) {
-        // 移除 index -> element的关联
+        // 把 spot->index映射中的index 设置为-1
+        spotToIndexArray[itemAmount + 1] = -1;
+        // 把 index->element映射中的element设置为null
         indexToItemArray[indexOfMinNode] = null;
-        // 删除 spot -> index中的index
-        spotToIndexArray[itemAmount +1] = -1;
-        // 删除 index -> spot中的spot
+
+        // 把 index->spot映射中的spot 设置为-1
         indexToSpotArray[indexOfMinNode] = -1;
     }
 
@@ -169,7 +176,7 @@ public class IndexMinPQ<Item extends Comparable<Item>> {
         exch(heapTopNodesSpot, heapLastNodesSpot);
     }
 
-    private int retrieveIndexOfMinNodeInHeap() {
+    private int getIndexOfMinNodeInHeap() {
         // 根据最小堆的约束，堆中的最小结点在spot=1的位置
         int indexOfMinElement = spotToIndexArray[1];
         // 堆中最小结点的定义：持有最小element的结点
@@ -179,16 +186,20 @@ public class IndexMinPQ<Item extends Comparable<Item>> {
         return indexOfMinElement;
     }
 
-    // 下沉堆中指定位置上的元素
+    // 下沉堆中指定位置上的结点
     private void sinkNodeOn(int currentNodeSpot) {
         while (currentNodeSpot * 2 <= itemAmount) {
+            // #1 获取到 当前节点的较小子结点的位置
             int smallerChildSpot = currentNodeSpot * 2;
             if (greater(smallerChildSpot, smallerChildSpot + 1)) smallerChildSpot++;
 
+            // #2 如果当前结点 比它的较小子结点 更大，则...
             if (greater(currentNodeSpot, smallerChildSpot)) {
+                // 把结点下沉一层
                 exch(currentNodeSpot, smallerChildSpot);
             }
 
+            // 继续考察交换到的位置
             currentNodeSpot = smallerChildSpot;
         }
     }
