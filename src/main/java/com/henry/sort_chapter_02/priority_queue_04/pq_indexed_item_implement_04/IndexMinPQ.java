@@ -199,7 +199,7 @@ public class IndexMinPQ<Item extends Comparable<Item>> {
                 exch(currentNodeSpot, smallerChildSpot);
             }
 
-            // 继续考察交换到的位置
+            // #3 继续考察交换到的位置
             currentNodeSpot = smallerChildSpot;
         }
     }
