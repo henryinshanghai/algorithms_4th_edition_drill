@@ -29,7 +29,8 @@ import java.util.NoSuchElementException;
  * 它支持 常见的 #1 insert新结点的操作 与 #2 删除“值最大的结点”的操作，以及 #3 查看最大的key, #4 测试优先队列是否为空, #5 遍历所有的key的操作
  */
 // 结论：可以使用 堆这种逻辑结构 来 实现优先队列(#1 向队列中添加元素； #2 从队列中删除最大元素)；
-
+// 步骤：#1 通过向堆的末尾添加结点并修复breach的方式 来 实现添加队列元素； #2 通过删除堆顶结点并修复breach的方式 来 实现删除最大队列元素；
+// 术语：队列元素 <=> 堆结点 | 堆结点 <=> 数组元素、结点在堆中的位置 <=> 数组元素在数组中的位置
 public class HeapMaxPQTemplate<Item> implements Iterable<Item> { // 类本身实现了 Iterables接口
     private Item[] itemHeap;                    // 底层使用“单数组物理结构”来实现“堆逻辑结构” 具体来说，用[1, itemAmount]的区间 来 存储元素
     private int itemAmount;                       // 优先队列中的元素数量
@@ -131,9 +132,9 @@ public class HeapMaxPQTemplate<Item> implements Iterable<Item> { // 类本身实
 
 
     /**
-     * 向优先队列中添加一个新的key
+     * 向优先队列中添加一个新的item
      *
-     * @param newItem the new key to add to this priority queue
+     * @param newItem the new item to add to this priority queue
      */
     public void insert(Item newItem) { // 对于优先队列，使用者使用insert()时，只会提供一个item
         // #1 如果数组中元素的数量 与 数组的长度相等，说明堆空间已经满了，则：在插入之前，先把数组空间翻倍
@@ -166,19 +167,24 @@ public class HeapMaxPQTemplate<Item> implements Iterable<Item> { // 类本身实
     }
 
     /**
-     * 移除并返回 优先队列中最大的key
+     * 移除并返回 优先队列中最大的item
      *
-     * @return a largest key on this priority queue
+     * @return a largest item on this priority queue
      * @throws NoSuchElementException if this priority queue is empty
      */
     public Item delMax() {
         if (isEmpty()) throw new NoSuchElementException("Priority queue underflow");
-        Item maxNodeInHeap = itemHeap[1];
 
+        Item maxNodeInHeap = retrieveMaxNodeOfHeap();
         performDeletingHeapsMaxNode();
         postDeletingMaxNode();
-        assert isMaxHeap();
 
+        assert isMaxHeap();
+        return maxNodeInHeap;
+    }
+
+    private Item retrieveMaxNodeOfHeap() {
+        Item maxNodeInHeap = itemHeap[1];
         return maxNodeInHeap;
     }
 
@@ -317,7 +323,7 @@ public class HeapMaxPQTemplate<Item> implements Iterable<Item> { // 类本身实
      ***************************************************************************/
 
     /**
-     * 返回一个迭代器 它会以降序的方式 来 遍历优先队列中的所有key
+     * 返回一个迭代器 它会以降序的方式 来 遍历优先队列中的所有item
      * 当前迭代器 没有实现 remove()方法 - 因为这个方法是可选的
      */
     public Iterator<Item> iterator() {
@@ -330,7 +336,7 @@ public class HeapMaxPQTemplate<Item> implements Iterable<Item> { // 类本身实
         private HeapMaxPQTemplate<Item> copy;
 
         // add all items to copy of heap
-        // takes linear time since already in heap order so no keys move
+        // takes linear time since already in heap order so no items move
         public HeapIterator() {
             // 初始化 优先队列对象
             if (comparator == null) copy = new HeapMaxPQTemplate<Item>(size());
