@@ -115,8 +115,12 @@ public class HeapMaxPQTemplate<Item> implements Iterable<Item> { // 类本身实
      * @return a largest key on this priority queue
      * @throws NoSuchElementException if this priority queue is empty
      */
-    public Item max() {
+    public Item getMaxItem() {
         if (isEmpty()) throw new NoSuchElementException("Priority queue underflow");
+        return getTopNodeInHeap();
+    }
+
+    private Item getTopNodeInHeap() {
         return itemHeap[1];
     }
 
