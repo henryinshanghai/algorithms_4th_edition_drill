@@ -30,35 +30,40 @@ public class AStarSearchTemplate {
      */
     public static Grid aStarSearch(Grid startGrid, Grid endGrid) {
         // #0 准备辅助列表对象 - 这里最好使用优先队列，执行起来会更快
-        ArrayList<Grid> candidateGridsToChooseMinGridFrom = new ArrayList<Grid>();
+        ArrayList<Grid> candidateGrids = new ArrayList<Grid>();
         ArrayList<Grid> discoveredGrids = new ArrayList<Grid>();
 
-        // #1 把 “起点方格” 加入到 candidateGridsToChooseMinGridFrom  中
-        candidateGridsToChooseMinGridFrom.add(startGrid);
+        // #1 把 “起点方格” 加入到 candidateGrids  中
+        candidateGrids.add(startGrid);
 
-        // #2 从 “候选方格集合” 中选择 “估值最小的方格”处理 - 直到“候选方格集合”中没有方格
-        while (candidateGridsToChooseMinGridFrom.size() > 0) {
-            // 2-1 从候选方格中找到 “估值最小的方格” 来 作为“当前方格”
-            Grid currentGrid = findMinGrid(candidateGridsToChooseMinGridFrom);
-            // 2-2 把 “当前方格” 从 candidateGridsToChooseMinGridFrom 中移除
-            candidateGridsToChooseMinGridFrom.remove(currentGrid);
-            // 2-3 把 “当前格子” 添加到 discoveredGrids
-            discoveredGrids.add(currentGrid);
+        // 从 “候选方格集合” 中选择 “估值最小的方格”处理 - 直到“候选方格集合”中没有方格
+        while (candidateGrids.size() > 0) {
+            // #2 从候选方格中找到 “估值最小的方格” 来 作为“当前方格”
+            Grid currentGrid = findMinGridFrom(candidateGrids);
 
-            // 2-4 找到 当前方格 所有的“有效邻居方格”
-            List<Grid> validNeighbors = findValidNeighbors(currentGrid, candidateGridsToChooseMinGridFrom, discoveredGrids);
-            // 2-5 把所有的有效邻居方格 添加到 “候选方格集合中”
-            addValidNeighborsInCandidates(validNeighbors, candidateGridsToChooseMinGridFrom, currentGrid, endGrid);
+            // #3 更新 “候选方格集合”
+            update(candidateGrids, discoveredGrids, currentGrid, endGrid);
 
-            // 2-6 如果 “终点方格” 在 candidateGridsToChooseMinGridFrom 中，说明下一步就能够到达终点。则：
+            // #4 如果 “终点方格” 在 candidateGrids 中，说明下一步就能够到达终点。则：
             // 直接返回“候选方格集合”中的终点方格 （终点可以一步到达）
-            if (findEndGridExistInCandidates(endGrid, candidateGridsToChooseMinGridFrom).isPresent()) {
-                return findEndGridExistInCandidates(endGrid, candidateGridsToChooseMinGridFrom).get();
+            if (findEndGridExistInCandidates(endGrid, candidateGrids).isPresent()) {
+                return findEndGridExistInCandidates(endGrid, candidateGrids).get();
             }
         }
 
-        // 2-7 candidateGridsToChooseMinGridFrom 用尽，仍旧没有找到终点 说明终点不可达，返回null
+        // 如果 candidateGrids 用尽，仍旧没有找到终点 说明终点不可达，返回null
         return null;
+    }
+
+    private static void update(ArrayList<Grid> candidateGrids, ArrayList<Grid> discoveredGrids, Grid currentGrid, Grid endGrid) {
+        // #1 把 “当前方格” 从 candidateGridsToChooseMinGridFrom 中移除
+        candidateGrids.remove(currentGrid);
+        // #2 把 “当前格子” 添加到 discoveredGrids
+        discoveredGrids.add(currentGrid);
+        // #3 找到 当前方格 所有的“有效邻居方格”
+        List<Grid> validNeighbors = findValidNeighbors(currentGrid, candidateGrids, discoveredGrids);
+        // #4 把所有的有效邻居方格 添加到 “候选方格集合中”
+        addValidNeighborsInCandidates(validNeighbors, candidateGrids, currentGrid, endGrid);
     }
 
     private static void addValidNeighborsInCandidates(List<Grid> validNeighbors,
@@ -66,7 +71,8 @@ public class AStarSearchTemplate {
                                                       Grid currentGrid,
                                                       Grid endGrid) {
         for (Grid neighbor : validNeighbors) {
-            neighbor.initGrid(currentGrid, endGrid); // 在添加进集合之前，先 初始化 父方格 & 方格的估值信息
+            // 在添加进集合之前，先 初始化 父方格（用于回溯出方格路径） & 方格的估值信息（用于获取下一个方格）
+            neighbor.initGrid(currentGrid, endGrid);
             candidateGridsToChooseMinGridFrom.add(neighbor);
         }
     }
@@ -143,7 +149,7 @@ public class AStarSearchTemplate {
      * @param candidateGridsToChooseMinGridFrom
      * @return
      */
-    private static Grid findMinGrid(ArrayList<Grid> candidateGridsToChooseMinGridFrom) {
+    private static Grid findMinGridFrom(ArrayList<Grid> candidateGridsToChooseMinGridFrom) {
         Grid minGrid = candidateGridsToChooseMinGridFrom.get(0);
 
         for (Grid currentGrid : candidateGridsToChooseMinGridFrom) {
