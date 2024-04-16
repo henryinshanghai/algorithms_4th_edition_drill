@@ -1,4 +1,4 @@
-package com.henry.sort_chapter_02.creative_exercies_05;
+package com.henry.sort_chapter_02.creative_exercies_05.kendall_tau_distance;
 
 public class KendallTauDistanceDrill {
 

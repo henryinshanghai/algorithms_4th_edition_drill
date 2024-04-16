@@ -1,4 +1,4 @@
-package com.henry.sort_chapter_02.creative_exercies_05;
+package com.henry.sort_chapter_02.creative_exercies_05.aStar_search;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -222,9 +222,12 @@ public class AStarSearchTemplate {
         }
     }
 
+    // 从终点方格中回溯出整个路径
+    // 手段：在每个方格中，都会记录它的父方格(打哪儿来)
     private static ArrayList<Grid> generateThePath(Grid finalGrid) {
         ArrayList<Grid> path = new ArrayList<>();
         Grid currentGrid = finalGrid;
+        // 起始方格没有父方格
         while (currentGrid != null) {
             path.add(new Grid(currentGrid.x, currentGrid.y));
             currentGrid = currentGrid.parent;
