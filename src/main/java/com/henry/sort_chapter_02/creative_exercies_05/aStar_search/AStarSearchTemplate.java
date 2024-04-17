@@ -11,6 +11,7 @@ A*算法步骤：
         1 删掉优先级最高的状态；
         2 把 从1中的状态，在一步之内能够达到的所有状态 全部添加到优先队列中(除去1的状态本身)
 
+🐖 代码中并没有使用优先队列，而是常见的minCursor的方式
  */
 public class AStarSearchTemplate {
     // 迷宫地图
@@ -46,7 +47,7 @@ public class AStarSearchTemplate {
             update(candidateGrids, discoveredGrids, currentGrid, endGrid);
 
             // #4 如果 “终点方格” 在 candidateGrids 中，说明下一步就能够到达终点。则：
-            Optional<Grid> searchResult = searchEndGridExistInCandidates(endGrid, candidateGrids);
+            Optional<Grid> searchResult = searchEndGridInCandidates(endGrid, candidateGrids);
             if (searchResult.isPresent()) {
                 // 直接返回“候选方格集合”中的终点方格 （终点可以一步到达）
                 return searchResult.get();
@@ -79,15 +80,15 @@ public class AStarSearchTemplate {
         }
     }
 
-    private static Optional<Grid> searchEndGridExistInCandidates(Grid endGrid, ArrayList<Grid> candidateGridsToChooseMinGridFrom) {
-        Grid findResult = null;
+    private static Optional<Grid> searchEndGridInCandidates(Grid endGrid, ArrayList<Grid> candidateGridsToChooseMinGridFrom) {
+        Grid searchResult = null;
         for (Grid currentGrid : candidateGridsToChooseMinGridFrom) {
             if ((currentGrid.x == endGrid.x) && (currentGrid.y == endGrid.y)) {
-                findResult = currentGrid;
+                searchResult = currentGrid;
             }
         }
         // 这里返回的是 “候选方格集合”中 与结束方格坐标相同的那个方法 - 它包含有parentGrid的信息
-        return Optional.ofNullable(findResult);
+        return Optional.ofNullable(searchResult);
     }
 
     /**
