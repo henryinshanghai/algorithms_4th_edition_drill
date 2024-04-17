@@ -7,9 +7,12 @@ public class ArrayUtil {
     // 打乱数组中的元素（洗牌）
     public static void shuffle(int[] a) {
         int itemAmount = a.length;
+        // 对于当前位置...
         for (int currentSpot = 0; currentSpot < itemAmount; currentSpot++) {
+            // #1 为它找到一个随机的位置 作为交换位置 - 实现随机的手段：random.nextInt(N)
             int spotToSwap = currentSpot + uniform(itemAmount - currentSpot);
 
+            // #2 把两个位置上的元素进行交换 来 实现打乱的操作
             int temp = a[currentSpot];
             a[currentSpot] = a[spotToSwap];
             a[spotToSwap] = temp;
@@ -23,10 +26,12 @@ public class ArrayUtil {
     }
 
     // 获取到数组中存在的“逆序对”的数量
+    // 手段：借助 归并排序；
+    // 原理：归并排序的过程 其实就是 找到并消除 数组中存在的逆序对的过程
     public static <Item extends Comparable<Item>> int getInversionNumber(Item[] originalArray) {
         // with help of merge-sort
         int itemAmount = originalArray.length;
-        Item[] arrayToSort = originalArray.clone(); // 被排序的数组 - 作用：放置原始数组被修改
+        Item[] arrayToSort = originalArray.clone(); // 被排序的数组 - 作用：防止原始数组被修改
         Item[] aux = originalArray.clone(); // 辅助数组 - 作用：用于找出“当前待排定位置”上，正确的元素
         return getInversionNumber(originalArray, arrayToSort, aux, 0, itemAmount - 1);
     }
@@ -76,7 +81,7 @@ public class ArrayUtil {
             else if(rightHalfCursor > rightBar) arrayToSort[currentSpot] = aux[leftHalfCursor++];
             else if (less(aux[rightHalfCursor], aux[leftHalfCursor])) { // 右侧指针指向的元素更小时，说明出现了逆序对
                 arrayToSort[currentSpot] = aux[rightHalfCursor++];
-                // 把这种情况下“所产生的逆序对👇”，累计到“逆序对总数量”中
+                // 把(由于右指针指向的元素 比起 左指针指向的元素更小)产生的逆序对，累计到“逆序对总数量”中
                 inversionNumber += (middle - leftHalfCursor + 1);
             } else {
                 arrayToSort[currentSpot] = aux[leftHalfCursor++];
