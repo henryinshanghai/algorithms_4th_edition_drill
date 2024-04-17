@@ -25,29 +25,31 @@ public class AStarSearchTemplate {
     /**
      * A*寻路的主要逻辑
      * 找到从 startGrid -> endGrid 的一个可行的最短路径
+     *
      * @param startGrid
      * @param endGrid
      */
     public static Grid aStarSearch(Grid startGrid, Grid endGrid) {
         // #0 准备辅助列表对象 - 这里最好使用优先队列，执行起来会更快
-        ArrayList<Grid> candidateGrids = new ArrayList<Grid>();
+        ArrayList<Grid> candidateGrids = new ArrayList<Grid>(); // 用于从中选择 其估值最小的方格 来 作为路径中的当前方格
         ArrayList<Grid> discoveredGrids = new ArrayList<Grid>();
 
-        // #1 把 “起点方格” 加入到 candidateGrids  中
+        // #1 把 “起点方格” 加入到 candidateGrids中
         candidateGrids.add(startGrid);
 
-        // 从 “候选方格集合” 中选择 “估值最小的方格”处理 - 直到“候选方格集合”中没有方格
+        // 从 “候选方格集合” 中选择 “估值最小的方格”进行处理 - 直到“候选方格集合”中没有方格
         while (candidateGrids.size() > 0) {
-            // #2 从候选方格中找到 “估值最小的方格” 来 作为“当前方格”
+            // #2 从候选方格集合中找到 “估值最小的方格” 来 作为“当前方格”
             Grid currentGrid = findMinGridFrom(candidateGrids);
 
-            // #3 更新 “候选方格集合”
+            // #3 更新 “候选方格集合” 更新流程：currentGrid -> (discoveredGrids, candidateGrids) -> validNeighborGrids -> candidateGrids
             update(candidateGrids, discoveredGrids, currentGrid, endGrid);
 
             // #4 如果 “终点方格” 在 candidateGrids 中，说明下一步就能够到达终点。则：
-            // 直接返回“候选方格集合”中的终点方格 （终点可以一步到达）
-            if (findEndGridExistInCandidates(endGrid, candidateGrids).isPresent()) {
-                return findEndGridExistInCandidates(endGrid, candidateGrids).get();
+            Optional<Grid> searchResult = searchEndGridExistInCandidates(endGrid, candidateGrids);
+            if (searchResult.isPresent()) {
+                // 直接返回“候选方格集合”中的终点方格 （终点可以一步到达）
+                return searchResult.get();
             }
         }
 
@@ -61,27 +63,27 @@ public class AStarSearchTemplate {
         // #2 把 “当前格子” 添加到 discoveredGrids
         discoveredGrids.add(currentGrid);
         // #3 找到 当前方格 所有的“有效邻居方格”
-        List<Grid> validNeighbors = findValidNeighbors(currentGrid, candidateGrids, discoveredGrids);
+        List<Grid> validNeighborGrids = findValidNeighborGridsOf(currentGrid, candidateGrids, discoveredGrids);
         // #4 把所有的有效邻居方格 添加到 “候选方格集合中”
-        addValidNeighborsInCandidates(validNeighbors, candidateGrids, currentGrid, endGrid);
+        addValidNeighborsIntoCandidates(validNeighborGrids, candidateGrids, currentGrid, endGrid);
     }
 
-    private static void addValidNeighborsInCandidates(List<Grid> validNeighbors,
-                                                      ArrayList<Grid> candidateGridsToChooseMinGridFrom,
-                                                      Grid currentGrid,
-                                                      Grid endGrid) {
-        for (Grid neighbor : validNeighbors) {
-            // 在添加进集合之前，先 初始化 父方格（用于回溯出方格路径） & 方格的估值信息（用于获取下一个方格）
-            neighbor.initGrid(currentGrid, endGrid);
-            candidateGridsToChooseMinGridFrom.add(neighbor);
+    private static void addValidNeighborsIntoCandidates(List<Grid> validNeighborGrids,
+                                                        ArrayList<Grid> candidateGrids,
+                                                        Grid currentGrid,
+                                                        Grid endGrid) {
+        for (Grid neighborGrid : validNeighborGrids) {
+            // 在添加进 candidateGrids 之前，先 完善方格信息 - #1 添加 父方格信息（用于回溯出方格路径）； #2 添加 方格的估值信息（用于从candidateGrids中获取下一个方格时，评估最小方格）
+            neighborGrid.completeGridInfoWith(currentGrid, endGrid);
+            candidateGrids.add(neighborGrid);
         }
     }
 
-    private static Optional<Grid> findEndGridExistInCandidates(Grid endGrid, ArrayList<Grid> candidateGridsToChooseMinGridFrom) {
+    private static Optional<Grid> searchEndGridExistInCandidates(Grid endGrid, ArrayList<Grid> candidateGridsToChooseMinGridFrom) {
         Grid findResult = null;
         for (Grid currentGrid : candidateGridsToChooseMinGridFrom) {
             if ((currentGrid.x == endGrid.x) && (currentGrid.y == endGrid.y)) {
-                findResult =  currentGrid;
+                findResult = currentGrid;
             }
         }
         // 这里返回的是 “候选方格集合”中 与结束方格坐标相同的那个方法 - 它包含有parentGrid的信息
@@ -92,35 +94,38 @@ public class AStarSearchTemplate {
      * 找到当前格子的所有临近格子，并添加到openList中
      *
      * @param currentGrid
-     * @param accessibleGridsFromCurrentGrid
+     * @param candidateGrids
      * @param discoveredGrids
      * @return
      */
-    private static List<Grid> findValidNeighbors(Grid currentGrid, ArrayList<Grid> accessibleGridsFromCurrentGrid,
-                                                 ArrayList<Grid> discoveredGrids) {
+    private static List<Grid> findValidNeighborGridsOf(Grid currentGrid, ArrayList<Grid> candidateGrids,
+                                                       ArrayList<Grid> discoveredGrids) {
         ArrayList<Grid> currentGridsNeighbors = new ArrayList<>();
 
-        // 上下左右四个方向上的邻居
-        if (isValidNeighborGrid(currentGrid.x, currentGrid.y - 1, accessibleGridsFromCurrentGrid, discoveredGrids)) {
+        /* 上下左右四个方向上的邻居，各自判断它们是不是“有效邻居” */
+        // 如果是"有效的邻居"(其坐标满足条件)，则...
+        if (isAValidNeighbor(currentGrid.x, currentGrid.y - 1, candidateGrids, discoveredGrids)) {
+            // 为此邻居创建一个Grid，并添加到 有效邻居方格集合中
             currentGridsNeighbors.add(new Grid(currentGrid.x, currentGrid.y - 1));
         }
-        if (isValidNeighborGrid(currentGrid.x, currentGrid.y + 1, accessibleGridsFromCurrentGrid, discoveredGrids)) {
+        if (isAValidNeighbor(currentGrid.x, currentGrid.y + 1, candidateGrids, discoveredGrids)) {
             currentGridsNeighbors.add(new Grid(currentGrid.x, currentGrid.y + 1));
         }
 
-        if (isValidNeighborGrid(currentGrid.x - 1, currentGrid.y, accessibleGridsFromCurrentGrid, discoveredGrids)) {
+        if (isAValidNeighbor(currentGrid.x - 1, currentGrid.y, candidateGrids, discoveredGrids)) {
             currentGridsNeighbors.add(new Grid(currentGrid.x - 1, currentGrid.y));
         }
 
-        if (isValidNeighborGrid(currentGrid.x + 1, currentGrid.y, accessibleGridsFromCurrentGrid, discoveredGrids)) {
+        if (isAValidNeighbor(currentGrid.x + 1, currentGrid.y, candidateGrids, discoveredGrids)) {
             currentGridsNeighbors.add(new Grid(currentGrid.x + 1, currentGrid.y));
         }
 
         return currentGridsNeighbors;
     }
 
-    private static boolean isValidNeighborGrid(int x, int y, ArrayList<Grid> accessibleGridsFromCurrentGrid,
-                                               ArrayList<Grid> discoveredGrids) {
+    // 判断 指定的邻居 是不是有效邻居 - 其坐标需要满足4个条件：#1 在迷宫范围内； #2 不是障碍方格； #3 不存在于candidateGrids中； #4 不存在于 discoveredGrids中；
+    private static boolean isAValidNeighbor(int x, int y, ArrayList<Grid> candidateGrids,
+                                            ArrayList<Grid> discoveredGrids) {
         // #1 是否超过迷宫边界
         if (x < 0 || x >= MAZE.length || y < 0 || y >= MAZE[0].length) {
             return false;
@@ -131,8 +136,8 @@ public class AStarSearchTemplate {
             return false;
         }
 
-        // #3 是否已经在 accessibleGridsFromCurrentGrid 中了
-        if (containGivenGrid(accessibleGridsFromCurrentGrid, x, y)) {
+        // #3 是否已经在 candidateGrids 中了
+        if (containGivenGrid(candidateGrids, x, y)) {
             return false;
         }
 
@@ -146,6 +151,7 @@ public class AStarSearchTemplate {
 
     /**
      * 找到当前openList中F值最小的格子
+     *
      * @param candidateGridsToChooseMinGridFrom
      * @return
      */
@@ -172,7 +178,7 @@ public class AStarSearchTemplate {
     }
 
     // 方格内部类
-    static class  Grid {
+    static class Grid {
         // 方格在Maze中的坐标 （x, y）
         public int x;
         public int y;
@@ -180,7 +186,7 @@ public class AStarSearchTemplate {
         // 当前方格的估值
         public int movedStepsFromStartGrid; // 从起点到当前格子所需要的步数
         public int toMoveStepsToEndGridWithoutObstacles; // 在不考虑障碍的情况下，从当前格子到目标格子所需要的步数
-        public int totalExpectStepsRouteViaCurrentGrid; // movedStepsFromStartGrid+h的和
+        public int totalExpectStepsRouteViaCurrentGrid; // movedStepsFromStartGrid + toMoveStepsToEndGridWithoutObstacles 的和
 
         // 当前方格的 父方格 - 用于回溯出完整的路径（像链表一样）
         public Grid parent;
@@ -190,8 +196,8 @@ public class AStarSearchTemplate {
             this.y = y;
         }
 
-        // 初始化完整的方格信息
-        public void initGrid(Grid parentGrid, Grid endGrid) {
+        // 为当前方格添加完整的方格信息
+        public void completeGridInfoWith(Grid parentGrid, Grid endGrid) {
             // #1 父方格
             this.parent = parentGrid;
 
