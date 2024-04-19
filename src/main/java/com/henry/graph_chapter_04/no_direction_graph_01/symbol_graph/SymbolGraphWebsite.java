@@ -1,3 +1,5 @@
+package com.henry.graph_chapter_04.no_direction_graph_01.symbol_graph;
+
 /******************************************************************************
  *  Compilation:  javac SymbolGraph.java
  *  Execution:    java SymbolGraph filename.txt delimiter
@@ -66,9 +68,9 @@ import edu.princeton.cs.algs4.*;
  *  @author Kevin Wayne
  */
 public class SymbolGraphWebsite {
-    private ST<String, Integer> st;  // string -> index
-    private String[] keys;           // index  -> string
-    private Graph graph;             // the underlying graph
+    private ST<String, Integer> vertexNameToIdST;  // string -> index
+    private String[] vertexIdToNameArr;           // index  -> string
+    private Graph vertexesIdGraph;             // the underlying graph
 
     /**
      * Initializes a graph from a file using the specified delimiter.
@@ -79,58 +81,70 @@ public class SymbolGraphWebsite {
      * @param delimiter the delimiter between fields
      */
     public SymbolGraphWebsite(String filename, String delimiter) {
-        st = new ST<String, Integer>();
+        constructVertexNameToIdSTBasedOn(filename, delimiter);
+        constructVertexIdToNameArr();
+        constructVertexIdGraphBasedOn(filename, delimiter);
+    }
 
-        // First pass builds the index by reading strings to associate
-        // distinct strings with an index
+    private void constructVertexIdGraphBasedOn(String filename, String delimiter) {
+        vertexesIdGraph = new Graph(vertexNameToIdST.size());
         In in = new In(filename);
-        // while (in.hasNextLine()) {
-        while (!in.isEmpty()) {
-            String[] a = in.readLine().split(delimiter);
-            for (int i = 0; i < a.length; i++) {
-                if (!st.contains(a[i]))
-                    st.put(a[i], st.size());
+        while (in.hasNextLine()) {
+            String[] vertexNameArr = in.readLine().split(delimiter);
+            int idOfFirstVertex = vertexNameToIdST.get(vertexNameArr[0]);
+
+            for (int currentSpot = 1; currentSpot < vertexNameArr.length; currentSpot++) {
+                String currentVertexName = vertexNameArr[currentSpot];
+                int idOfCurrentVertex = vertexNameToIdST.get(currentVertexName);
+                // 向图中添加 idA->idB的边
+                vertexesIdGraph.addEdge(idOfFirstVertex, idOfCurrentVertex);
             }
         }
+    }
 
-        // inverted index to get string keys in an array
-        keys = new String[st.size()];
-        for (String name : st.keys()) {
-            keys[st.get(name)] = name;
+    private void constructVertexIdToNameArr() {
+        vertexIdToNameArr = new String[vertexNameToIdST.size()];
+        for (String currentVertexName : vertexNameToIdST.keys()) {
+            Integer currentVertexId = vertexNameToIdST.get(currentVertexName);
+            vertexIdToNameArr[currentVertexId] = currentVertexName;
         }
+    }
 
-        // second pass builds the graph by connecting first vertex on each
-        // line to all others
-        graph = new Graph(st.size());
-        in = new In(filename);
-        while (in.hasNextLine()) {
-            String[] a = in.readLine().split(delimiter);
-            int v = st.get(a[0]);
-            for (int i = 1; i < a.length; i++) {
-                int w = st.get(a[i]);
-                graph.addEdge(v, w);
+    private void constructVertexNameToIdSTBasedOn(String filename, String delimiter) {
+        vertexNameToIdST = new ST<String, Integer>();
+        // distinct strings with an index
+        In fileStream = new In(filename);
+        // while (fileStream.hasNextLine()) {
+        while (!fileStream.isEmpty()) {
+            String[] vertexNameArr = fileStream.readLine().split(delimiter);
+            for (int currentSpot = 0; currentSpot < vertexNameArr.length; currentSpot++) {
+                String currentVertexName = vertexNameArr[currentSpot];
+                if (!vertexNameToIdST.contains(currentVertexName)) {
+                    int vertexIdToFill = vertexNameToIdST.size();
+                    vertexNameToIdST.put(currentVertexName, vertexIdToFill);
+                }
             }
         }
     }
 
     /**
      * Does the graph contain the vertex named {@code s}?
-     * @param s the name of a vertex
+     * @param name the name of a vertex
      * @return {@code true} if {@code s} is the name of a vertex, and {@code false} otherwise
      */
-    public boolean contains(String s) {
-        return st.contains(s);
+    public boolean containsVertexWith(String name) {
+        return vertexNameToIdST.contains(name);
     }
 
     /**
      * Returns the integer associated with the vertex named {@code s}.
-     * @param s the name of a vertex
+     * @param name the name of a vertex
      * @return the integer (between 0 and <em>V</em> - 1) associated with the vertex named {@code s}
      * @deprecated Replaced by {@link #indexOf(String)}.
      */
     @Deprecated
-    public int index(String s) {
-        return st.get(s);
+    public int idOfVertexWith(String name) {
+        return vertexNameToIdST.get(name);
     }
 
 
@@ -140,31 +154,31 @@ public class SymbolGraphWebsite {
      * @return the integer (between 0 and <em>V</em> - 1) associated with the vertex named {@code s}
      */
     public int indexOf(String s) {
-        return st.get(s);
+        return vertexNameToIdST.get(s);
     }
 
     /**
      * Returns the name of the vertex associated with the integer {@code v}.
-     * @param  v the integer corresponding to a vertex (between 0 and <em>V</em> - 1) 
+     * @param  vertexId the integer corresponding to a vertex (between 0 and <em>V</em> - 1)
      * @return the name of the vertex associated with the integer {@code v}
      * @throws IllegalArgumentException unless {@code 0 <= v < V}
-     * @deprecated Replaced by {@link #nameOf(int)}.
+     * @deprecated Replaced by {@link #vertexNameOf(int)}.
      */
     @Deprecated
-    public String name(int v) {
-        validateVertex(v);
-        return keys[v];
+    public String nameOf(int vertexId) {
+        validateVertex(vertexId);
+        return vertexIdToNameArr[vertexId];
     }
 
     /**
      * Returns the name of the vertex associated with the integer {@code v}.
-     * @param  v the integer corresponding to a vertex (between 0 and <em>V</em> - 1) 
+     * @param  id the integer corresponding to a vertex (between 0 and <em>V</em> - 1)
      * @throws IllegalArgumentException unless {@code 0 <= v < V}
      * @return the name of the vertex associated with the integer {@code v}
      */
-    public String nameOf(int v) {
-        validateVertex(v);
-        return keys[v];
+    public String vertexNameOf(int id) {
+        validateVertex(id);
+        return vertexIdToNameArr[id];
     }
 
     /**
@@ -175,7 +189,7 @@ public class SymbolGraphWebsite {
      */
     @Deprecated
     public Graph G() {
-        return graph;
+        return vertexesIdGraph;
     }
 
     /**
@@ -184,12 +198,12 @@ public class SymbolGraphWebsite {
      * @return the graph associated with the symbol graph
      */
     public Graph graph() {
-        return graph;
+        return vertexesIdGraph;
     }
 
     // throw an IllegalArgumentException unless {@code 0 <= v < V}
     private void validateVertex(int v) {
-        int V = graph.V();
+        int V = vertexesIdGraph.V();
         if (v < 0 || v >= V)
             throw new IllegalArgumentException("vertex " + v + " is not between 0 and " + (V-1));
     }
@@ -203,20 +217,18 @@ public class SymbolGraphWebsite {
     public static void main(String[] args) {
         String filename  = args[0];
         String delimiter = args[1];
-        SymbolGraphWebsite sg = new SymbolGraphWebsite(filename, delimiter);
-        Graph graph = sg.graph();
-
+        SymbolGraphWebsite symbolGraph = new SymbolGraphWebsite(filename, delimiter);
+        Graph underlyingGraph = symbolGraph.graph();
 
         while (StdIn.hasNextLine()) {
-            String source = StdIn.readLine();
-            if (sg.contains(source)) {
-                int s = sg.index(source);
-                for (int v : graph.adj(s)) {
-                    StdOut.println("   " + sg.name(v));
+            String vertexName = StdIn.readLine();
+            if (symbolGraph.containsVertexWith(vertexName)) {
+                int vertexId = symbolGraph.idOfVertexWith(vertexName);
+                for (int currentNeighborVertex : underlyingGraph.adj(vertexId)) {
+                    StdOut.println("   " + symbolGraph.nameOf(currentNeighborVertex));
                 }
-            }
-            else {
-                StdOut.println("input not contain '" + source + "'");
+            } else {
+                StdOut.println("input not contain '" + vertexName + "'");
             }
         }
     }
