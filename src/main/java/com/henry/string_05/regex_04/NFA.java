@@ -28,7 +28,7 @@ package com.henry.string_05.regex_04;
 
 import com.henry.basic_chapter_01.collection_types.stack.implementation.via_linked_node.Stack;
 import com.henry.graph_chapter_04.direction_graph_02.graph.Digraph;
-import com.henry.graph_chapter_04.direction_graph_02.if_accessible_from_startVertex.DirectedDFS;
+import com.henry.graph_chapter_04.direction_graph_02.if_accessible_from_startVertex.AccessibleVertexesInDigraph;
 import edu.princeton.cs.algs4.Bag;
 import edu.princeton.cs.algs4.StdOut;
 
@@ -239,7 +239,7 @@ public class NFA {
         Bag<Integer> reachableStates = new Bag<Integer>();
 
         // #1 获取到 以指定顶点集合作为”起点集合“，所能够到达的所有顶点 aka 在NFA中通过epsilon转换所能够到达的状态
-        DirectedDFS markedDigraph = new DirectedDFS(epsilonTransitionDigraph, startStates);
+        AccessibleVertexesInDigraph markedDigraph = new AccessibleVertexesInDigraph(epsilonTransitionDigraph, startStates);
 
         for (int currentVertex = 0; currentVertex < epsilonTransitionDigraph.getVertexAmount(); currentVertex++)
             // 如果当前顶点 由”matchTransferReachedStates“中的任意起点可达，则：#2 把它添加到 “可达顶点”的集合中
@@ -274,7 +274,7 @@ public class NFA {
         Bag<Integer> reachableStates = new Bag<Integer>();
 
         // 标记图中“从结点0可达的所有其他结点”
-        DirectedDFS markedDigraph = new DirectedDFS(epsilonTransitionDigraph, 0);
+        AccessibleVertexesInDigraph markedDigraph = new AccessibleVertexesInDigraph(epsilonTransitionDigraph, 0);
 
         for (int currentVertex = 0; currentVertex < epsilonTransitionDigraph.getVertexAmount(); currentVertex++)
             // 如果当前结点 “由起始结点可达”，则：把它添加到 reachableStates集合中

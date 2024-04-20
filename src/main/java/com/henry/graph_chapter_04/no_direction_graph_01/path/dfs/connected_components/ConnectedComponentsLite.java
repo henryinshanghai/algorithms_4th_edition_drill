@@ -11,7 +11,7 @@ public class ConnectedComponentsLite {
     private boolean[] vertexToIsMarked;
     // 记录顶点所属的分组 id[顶点x] = groupNum
     private int[] vertexToItsComponentId; // 这里的componentId 使用 componentAmount来设置
-    // 记录当前组的Num index
+    // 记录component的数量   应用：可以用来 设置组的id（因为它是按照自然数序列递增的）
     private int componentAmount;
 
     // 构造器
@@ -52,8 +52,9 @@ public class ConnectedComponentsLite {
     }
 
     // APIs
-    // 判断顶点v 与 顶点w是否相连通
+    // 判断顶点v 与 顶点w是否相连通(“连通”是无向图中的一个概念)
     public boolean isConnectedBetween(int vertexV, int vertexW) {
+        // 手段：判断两个顶点所属的组id是否相同
         return vertexToItsComponentId[vertexV] == vertexToItsComponentId[vertexW];
     }
 
@@ -69,41 +70,56 @@ public class ConnectedComponentsLite {
 
 
     public static void main(String[] args) {
-        // 创建图 与 连通分量的对象
+        // #1 创建图 与 连通分量的对象
         Graph graph = new Graph(new In(args[0]));
+        // 通过类的构造方法 来 完成此任务(统计图中的连通分量)
         ConnectedComponentsLite dividedGraph = new ConnectedComponentsLite(graph);
 
-        // APIs获取图的性质 - 图中有几个子图
+        // 使用APIs获取图的性质👇
+        // #2 图中有几个子图
         int componentAmount = dividedGraph.componentAmount();
         StdOut.println(componentAmount + " components.");
 
-        // 打印图中所有的连通分量 - 这需要准备邻接表数组
-        // 手段：邻接表数组 aka Bag[]
-        Bag<Integer>[] componentIdToComponent;
-        componentIdToComponent = new Bag[componentAmount];
+        // #3 打印图中所有的连通分量 - 这需要准备邻接表数组
+        // 获取到所有连通分量的数组
+        Bag<Integer>[] componentIdToComponent = getComponentsFrom(dividedGraph, graph);
 
-        // 初始化components
-        for (int currentComponentId = 0; currentComponentId < componentAmount; currentComponentId++) {
-            componentIdToComponent[currentComponentId] = new Bag<Integer>();
-        }
+        // 打印每一个连通分量中的顶点
+        printVertexesInEachComponent(componentIdToComponent);
+    }
 
-        // 调用API，为components中的item逐一赋值
-        for (int currentVertex = 0; currentVertex < graph.vertexAmount(); currentVertex++) {
-            // 把节点v添加到它所属的分组中 - 获取分组id的手段：dividedGraph.ids[顶点]
-            componentIdToComponent[dividedGraph.vertexToItsComponentId[currentVertex]].add(currentVertex);
-        }
-
-        // 打印每一个分组中的节点
-        // M个子图 循环M次
-        for (int currentComponentId = 0; currentComponentId < componentAmount; currentComponentId++) {
+    private static void printVertexesInEachComponent(Bag<Integer>[] componentIdToComponent) {
+        for (int currentComponentId = 0; currentComponentId < componentIdToComponent.length; currentComponentId++) {
             // 对于子图中的每一个顶点...
-            for (int currentVertex : componentIdToComponent[currentComponentId]) {
+            Bag<Integer> currentComponent = componentIdToComponent[currentComponentId];
+            for (int currentVertex : currentComponent) {
                 // 打印
                 StdOut.print(currentVertex + " ");
             }
 
             StdOut.println();
         }
+    }
+
+    private static Bag<Integer>[] getComponentsFrom(ConnectedComponentsLite dividedGraph, Graph graph) {
+        // #1 初始化componentId[]的大小(元素数量)
+        int componentAmount = dividedGraph.componentAmount();
+        Bag<Integer>[] componentIdToComponent = new Bag[componentAmount];
+
+        // #2 实例化components元素
+        for (int currentComponentId = 0; currentComponentId < componentAmount; currentComponentId++) {
+            componentIdToComponent[currentComponentId] = new Bag<Integer>();
+        }
+
+        // #3 调用API，为components中的item逐一赋值
+        for (int currentVertex = 0; currentVertex < graph.vertexAmount(); currentVertex++) {
+            // 把节点v添加到它所属的分组中👇
+            // 获取顶点的所属分组
+            int componentIdOfVertex = dividedGraph.vertexToItsComponentId[currentVertex];
+            // 把它添加到对应分组中
+            componentIdToComponent[componentIdOfVertex].add(currentVertex);
+        }
+        return componentIdToComponent;
     }
 }
 // 上海 居转户

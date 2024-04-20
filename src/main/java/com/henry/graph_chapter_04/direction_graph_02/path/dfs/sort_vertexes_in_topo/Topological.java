@@ -29,7 +29,7 @@ package com.henry.graph_chapter_04.direction_graph_02.path.dfs.sort_vertexes_in_
  ******************************************************************************/
 
 import com.henry.graph_chapter_04.direction_graph_02.graph.Digraph;
-import com.henry.graph_chapter_04.direction_graph_02.path.dfs.exist_loop.DirectedCycle;
+import com.henry.graph_chapter_04.direction_graph_02.path.dfs.exist_loop.CycleExistInDiGraph;
 import com.henry.graph_chapter_04.direction_graph_02.path.dfs.vertex_traverse_order.DepthFirstOrder;
 import com.henry.graph_chapter_04.direction_graph_02.symbol_graph.SymbolDigraph;
 import edu.princeton.cs.algs4.StdOut;
@@ -49,7 +49,7 @@ import edu.princeton.cs.algs4.StdOut;
  * Each instance method takes &Theta;(1) time.
  * It uses &Theta;(<em>V</em>) extra space (not including the digraph).
  * <p>
- * See {@link DirectedCycle}, {@link DirectedCycleX}, and
+ * See {@link CycleExistInDiGraph}, {@link DirectedCycleX}, and
  * {@link EdgeWeightedDirectedCycle} for computing a directed cycle
  * if the digraph is not a DAG.
  * See {@link TopologicalX} for a nonrecursive queue-based algorithm
@@ -77,8 +77,8 @@ public class Topological {
      * @param digraph the digraph
      */
     public Topological(Digraph digraph) {
-        DirectedCycle cycleFoundDigraph = new DirectedCycle(digraph);
-        if (!cycleFoundDigraph.hasCycle()) {
+        CycleExistInDiGraph cycleFoundDigraph = new CycleExistInDiGraph(digraph);
+        if (!cycleFoundDigraph.findACycle()) {
             DepthFirstOrder vertexesTraversedDigraph = new DepthFirstOrder(digraph);
             // 图中结点的拓扑排序结果 就是 图中结点的逆后序遍历的结果
             vertexesInTopoOrder = vertexesTraversedDigraph.vertexesInReversePostOrder();

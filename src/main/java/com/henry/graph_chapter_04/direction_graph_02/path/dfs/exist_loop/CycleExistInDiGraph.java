@@ -53,9 +53,9 @@ import edu.princeton.cs.algs4.Topological;
 // 结论#2：在有向图的DFS算法中，能够“获取到环中的所有结点”。
 // 手段：使用名为 terminalVertexToDepartVertex的数组，指定 正确的 backwardsVertexCursor 与 startVertex 就能用for循环，把所有结点收集到栈集合中
 public class CycleExistInDiGraph {
-    private boolean[] vertexToIsMarked;        // 作为DFS算法的基础操作 用于标记顶点是否已经被标记
-    private int[] terminalVertexToDepartVertex;            // 用于记录单条边中 结束顶点->出发顶点的映射关系 可以用来反溯出整个路径
-    private boolean[] vertexToIsBelongToCurrentPath;       // 用于记录 当前路径中的结点/结点是否属于当前路径 可以用来 在出现被标记的邻居顶点时，判断是否出现了环
+    private final boolean[] vertexToIsMarked;        // 作为DFS算法的基础操作 用于标记顶点是否已经被标记
+    private final int[] terminalVertexToDepartVertex;            // 用于记录单条边中 结束顶点->出发顶点的映射关系 可以用来反溯出整个路径
+    private final boolean[] vertexToIsBelongToCurrentPath;       // 用于记录 当前路径中的结点/结点是否属于当前路径 可以用来 在出现被标记的邻居顶点时，判断是否出现了环
 
     private Stack<Integer> vertexesInCycleViaStack;    // 用于临时记录出现的环中的所有顶点 只有在找到环的时候才会使用它
 
@@ -63,7 +63,8 @@ public class CycleExistInDiGraph {
      * Determines whether the digraph {@code G} has a directed cycle and, if so,
      * finds such a cycle.
      * 确定有向图G中是否存在有有向环，如果存在的话，找到这个环
-     * @param digraph the digraph
+     * 🐖 在构造方法中执行任务
+     * @param digraph the digraph 待检查的有向图
      */
     public CycleExistInDiGraph(Digraph digraph) {
         vertexToIsMarked = new boolean[digraph.getVertexAmount()];
@@ -73,53 +74,53 @@ public class CycleExistInDiGraph {
         // 对于当前顶点...
         for (int currentVertex = 0; currentVertex < digraph.getVertexAmount(); currentVertex++)
             // 如果它还没有被标记 && 当前还没有找到环...
-            if (isNotMarked(currentVertex) && cycleNotFoundYet())
+            if (isNotMarked(currentVertex) && notFindCycleYet())
                 // 则：对它进行标记，并把它记录进当前路径中...
                 markVertexAndRecordVertexInCurrentPathViaDFS(digraph, currentVertex);
     }
 
-    private boolean cycleNotFoundYet() {
+    private boolean notFindCycleYet() {
         return vertexesInCycleViaStack == null;
     }
 
-    // run DFS and find a directed cycle (if one exists)
     // 🐖  如果有向图中存在有环，则：vertexesInCycle 会不为空
     private void markVertexAndRecordVertexInCurrentPathViaDFS(Digraph digraph, int currentVertex) {
-        // #1 处理当前结点
-        process(currentVertex);
+        // #1 为成员变量中的当前结点 绑定 boolean值
+        flag(currentVertex);
 
-        // #2 对于 当前结点 所有的邻居节点
+        // #2 对于 当前结点 所有的邻居节点，记录路径中的边 && 验证是否找到了环
         for (int currentAdjacentVertex : digraph.adjacentVertexesOf(currentVertex)) {
-            // 〇 如果发现了环，则：short circuit(短路/提前返回)
-            if (cycleFound()) return;
-
-            // #2 如果邻居结点是未被标记的结点，则：继续递归地处理它
-            else if (isNotMarked(currentAdjacentVertex)) {
-                // #2-1 在搜索过程中，记录下搜索路径上的结点
+            if (findACycle()) { // 〇 如果发现了环，则：short circuit(短路/提前返回)
+                return;
+            } else if (isNotMarked(currentAdjacentVertex)) { // Ⅰ 如果“当前邻居结点”是未被标记的结点，则：继续递归地处理它
+                // 在搜索过程中，记录下搜索路径上当前边的 结束顶点->出发顶点的映射关系  用于回溯出“路径本身”
                 terminalVertexToDepartVertex[currentAdjacentVertex] = currentVertex;
-                // #2-2 递归处理此结点
+                // 递归处理此结点
                 markVertexAndRecordVertexInCurrentPathViaDFS(digraph, currentAdjacentVertex);
-            }
-
-            // #3 如果在搜索过程中，当前邻居结点 ① 已经被标记； ② 且属于当前路径中，说明 图中出现了环
-            else if (vertexToIsBelongToCurrentPath[currentAdjacentVertex]) {
-                // 则：从 当前结点 开始，沿着路径，一直回溯到 它当前的邻居结点 - 得到环中所有的结点
+            } else if (belongToCurrentSearchPath(currentAdjacentVertex)) { // Ⅲ 如果在搜索过程中，当前邻居结点 ① 已经被标记； ② 且属于当前路径中，说明 图中出现了环
+                // 则：从 当前结点 开始，沿着路径，一直回溯到 它当前的邻居结点 来 得到环中所有的结点
                 collectVertexesInCycleIntoStack(currentVertex, currentAdjacentVertex);
-                assert check();
+                assert verifyIfCycleReallyExist();
             }
         }
 
-        // 🐖 递归结束后，需要把 当前结点 从当前路径中移除 - 这样DFS算法才能够继续尝试其他的路径
+        // #3 递归结束后，需要把 当前结点 从当前路径中移除 - 这样DFS算法才能够继续尝试其他的路径
         vertexToIsBelongToCurrentPath[currentVertex] = false;
     }
 
-    private void process(int currentVertex) {
-        // #1-1 把 当前结点 设置为 “已标记”
+    private boolean belongToCurrentSearchPath(int currentAdjacentVertex) {
+        return vertexToIsBelongToCurrentPath[currentAdjacentVertex];
+    }
+
+    private void flag(int currentVertex) {
+        // #1 把 当前结点 设置为 “已标记”
         vertexToIsMarked[currentVertex] = true;
-        // #1-2 把 当前结点 设置为 “属于当前路径”
+        // #2 把 当前结点 设置为 “属于当前路径”
         vertexToIsBelongToCurrentPath[currentVertex] = true;
     }
 
+    // 从 terminalVertexToDepartVertex[] 中，获取到 环路径中的所有顶点
+    // endVertex - 路径中的最后一个顶点(终止顶点) startVertex - 路径中的第一个顶点(起始顶点)
     private void collectVertexesInCycleIntoStack(int endVertex, int startVertex) {
         vertexesInCycleViaStack = new Stack<Integer>();
         // #1 向stack中添加 由数组记录下的结点
@@ -134,49 +135,38 @@ public class CycleExistInDiGraph {
         vertexesInCycleViaStack.push(endVertex);
     }
 
-    private boolean cycleFound() {
-        return vertexesInCycleViaStack != null;
-    }
-
     private boolean isNotMarked(int currentAdjacentVertex) {
         return !vertexToIsMarked[currentAdjacentVertex];
     }
 
-    /**
-     * Does the digraph have a directed cycle?
-     *
-     * @return {@code true} if the digraph has a directed cycle, {@code false} otherwise
-     */
-    public boolean hasCycle() {
+    // 有向图中是否含有一个 有向环?
+    public boolean findACycle() {
+        // 手段：检查用于存储环中顶点的栈 是否为空
         return vertexesInCycleViaStack != null;
     }
 
-    /**
-     * Returns a directed cycle if the digraph has a directed cycle, and {@code null} otherwise.
-     *
-     * @return a directed cycle (as an iterable) if the digraph has a directed cycle,
-     * and {@code null} otherwise
-     */
+    // 获取到有向图中的有向环(以有向环中所有顶点的可迭代集合的方式)
+    // 如果不存在环，则：返回null
     public Iterable<Integer> getVertexesInCycle() {
+        // 手段：算法中，有向环中的顶点 会被顺序添加到 栈中👇
         return vertexesInCycleViaStack;
     }
 
 
-    // certify(保证) that digraph has a directed cycle if it reports one
-    private boolean check() {
-
-        if (hasCycle()) {
-            // verify cycle
+    // 确保算法的正确性：如果算法报告发现了环，使用此方法验证算法的结论
+    private boolean verifyIfCycleReallyExist() {
+        if (findACycle()) {
+            // 验证环是否真的存在    手段：定指针 + 动指针
             int anchorCursor = -1, dynamicCursor = -1;
             for (int currentVertex : getVertexesInCycle()) {
-                // anchorCursor 会一直指在 环的第一个结点上
+                // anchorCursor 会一直指在 环的第一个结点上(aka 起始顶点)
                 if (anchorCursor == -1) anchorCursor = currentVertex;
 
-                // dynamicCursor 会最终指在 环的最后一个结点上
+                // dynamicCursor 会沿着环上的结点一直向后移动 - 最终指在 栈的最后一个结点上(aka 起始顶点)
                 dynamicCursor = currentVertex;
             }
 
-            // 预期：两个指针指向的位置/结点 应该是相等的
+            // 预期：如果存在环的话，两个指针指向的位置/结点 应该是相等的
             if (anchorCursor != dynamicCursor) {
                 System.err.printf("cycle begins with %d and ends with %d\n", anchorCursor, dynamicCursor);
                 return false;
@@ -193,18 +183,20 @@ public class CycleExistInDiGraph {
      */
     public static void main(String[] args) {
         In in = new In(args[0]);
-        // 构造图
+        // #1 构造图
         Digraph digraph = new Digraph(in);
-
-        // 执行任务 - 检查有向图中的环
+        // #2 执行任务 - 检查有向图中的环   手段：调用构造方法
         CycleExistInDiGraph markedDigraph = new CycleExistInDiGraph(digraph);
-        if (markedDigraph.hasCycle()) {
+        // #3 获取任务的执行结果     手段：调用public APIs
+        if (markedDigraph.findACycle()) {
+            // 有环的话，打印出来
             StdOut.print("Directed cycle: ");
             for (int currentVertex : markedDigraph.getVertexesInCycle()) {
                 StdOut.print(currentVertex + " ");
             }
             StdOut.println();
         } else {
+            // 没有的话，打印语句
             StdOut.println("No directed cycle");
         }
         StdOut.println();
