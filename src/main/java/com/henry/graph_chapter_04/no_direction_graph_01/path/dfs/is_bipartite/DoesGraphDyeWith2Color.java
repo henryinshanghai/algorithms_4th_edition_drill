@@ -4,12 +4,12 @@ import com.henry.graph_chapter_04.no_direction_graph_01.graph.Graph;
 
 // 验证：可以使用在图中从指定起点开始进行DFS（递归地标记结点）的方式 来 判断给定的一幅图是不是二分图(bipartite)
 // aka 是否能够仅使用两种颜色对图中的结点进行着色，使得 图中任意一条边的两个端点的颜色都不相同？
-public class DyeWithTwoColor {
+public class DoesGraphDyeWith2Color {
     private boolean[] vertexToIsMarked;
     private boolean[] vertexToItsColor;
     private boolean isTwoColorable = true; // 图是否能够通过两种颜色染色成为二分图？
 
-    public DyeWithTwoColor(Graph passedGraph) {
+    public DoesGraphDyeWith2Color(Graph passedGraph) {
         // 初始化 成员变量
         vertexToIsMarked = new boolean[passedGraph.vertexAmount()];
         vertexToItsColor = new boolean[passedGraph.vertexAmount()];

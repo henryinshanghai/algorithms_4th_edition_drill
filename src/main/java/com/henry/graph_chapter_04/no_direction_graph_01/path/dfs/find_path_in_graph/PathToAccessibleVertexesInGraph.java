@@ -9,7 +9,7 @@ import edu.princeton.cs.algs4.StdOut;
 // 获取到 起始结点 到 其所有可达结点的对应路径。
 // 目标：从图中，获取到 从起始顶点到其所有可达顶点的 对应路径。
 // 命令行参数：E:\development_project\algorithms_4th_edition_drill\src\main\java\com\henry\graph_chapter_04\no_direction_graph_01\path\dfs\go_through_graph\tinyCG 0
-public class DepthFirstPaths {
+public class PathToAccessibleVertexesInGraph {
     /* 根据具体任务进行成员变量的设置 */
     // 当前变量有没有被标记过
     private boolean[] vertexToIsMarked;
@@ -19,7 +19,7 @@ public class DepthFirstPaths {
     private final int startVertex;
 
     // 构造方法的语法中不能够添加返回值类型
-    public DepthFirstPaths(Graph graph, int startVertex) {
+    public PathToAccessibleVertexesInGraph(Graph graph, int startVertex) {
         // 初始状态都是未标记
         vertexToIsMarked = new boolean[graph.vertexAmount()];
         // 数组中所有位置的值初始都是0 -  路径的长度 不会超过 图中总节点的数量
@@ -57,7 +57,7 @@ public class DepthFirstPaths {
         return vertexToIsMarked[passedVertex];
     }
 
-    // 获取到从起点s 到 指定顶点v的路径 - 具体方式：从数组中得到 一个可迭代的数据
+    // 获取到从起始顶点 到 指定顶点v的路径 - 具体方式：从数组中得到 一个可迭代的数据
     public Iterable<Integer> pathFromStartVertexTo(int endVertex) {
         if (!doesStartVertexHasPathTo(endVertex)) return null;
 
@@ -83,7 +83,7 @@ public class DepthFirstPaths {
         int startVertex = Integer.parseInt(args[1]);
 
         // 创建 path对象
-        DepthFirstPaths markedGraph = new DepthFirstPaths(graph, startVertex);
+        PathToAccessibleVertexesInGraph markedGraph = new PathToAccessibleVertexesInGraph(graph, startVertex);
 
         // 对于图中的每一个顶点
         for (int currentVertex = 0; currentVertex < graph.vertexAmount(); currentVertex++) {
