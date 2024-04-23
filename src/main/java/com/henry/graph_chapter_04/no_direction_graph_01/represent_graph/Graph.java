@@ -1,4 +1,4 @@
-package com.henry.graph_chapter_04.no_direction_graph_01.graph; /******************************************************************************
+package com.henry.graph_chapter_04.no_direction_graph_01.represent_graph; /******************************************************************************
  *  Compilation:  javac Graph.java        
  *  Execution:    java Graph input.txt
  *  Dependencies: Bag.java StackViaNodeTemplate.java In.java StdOut.java

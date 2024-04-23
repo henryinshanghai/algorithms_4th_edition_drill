@@ -1,0 +1,12 @@
+起始顶点 start_vertex
+
+// DFS代码
+dfs(current_vertex) { // mark_accessible_vertexes_from(current_vertex)
+    vertexToIsMarked[current_vertex] = true;
+
+    for(current_neighbor_vertex : graph.adjacentVertexes(current_vertex)) {
+        if(!vertexToIsMarked[current_neighbor_vertex]) {
+            dfs(current_neighbor_vertex);
+        }
+    }
+}

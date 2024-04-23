@@ -1,4 +1,4 @@
-package com.henry.graph_chapter_04.no_direction_graph_01.graph;
+package com.henry.graph_chapter_04.no_direction_graph_01.represent_graph;
 
 import com.henry.graph_chapter_04.no_direction_graph_01.Bag;
 import edu.princeton.cs.algs4.In;

@@ -1,13 +1,13 @@
-package com.henry.graph_chapter_04.no_direction_graph_01.if_connect;
+package com.henry.graph_chapter_04.no_direction_graph_01.is_a_connected_graph.code_execution;
 
-import com.henry.graph_chapter_04.no_direction_graph_01.graph.Graph;
+import com.henry.graph_chapter_04.no_direction_graph_01.represent_graph.Graph;
 import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.StdOut;
 
 // 验证：可以使用在图中从指定起点开始进行DFS（标记结点）的方式 来 判断给定的一幅图 是不是连通图
 // 任务：遍历图中的每一个顶点、边，以实现某些更具体的作用
 // 命令行参数：E:\development_project\algorithms_4th_edition_drill\src\main\java\com\henry\graph_chapter_04\no_direction_graph_01\dfs\tinyG 0
-public class DepthFirstSearch {
+public class IsConnectedGraph {
     // 记录某个顶点是否可以通过起点到达 手段：使用一个size和图中顶点数量相同的boolean类型数组
     private boolean[] vertexToIsMarkedArr;
     // 记录 被标记的节点数量
@@ -16,7 +16,7 @@ public class DepthFirstSearch {
 
     // 构造器 - 完成成员变量的初始化
     // 在构造方法中，调用dfs()。  作用：创建graph对象时，连通的顶点就已经被标记了
-    public DepthFirstSearch(Graph graph, int startVertex) {
+    public IsConnectedGraph(Graph graph, int startVertex) {
         // 初始化 boolean数组 起始默认为false
         vertexToIsMarkedArr = new boolean[graph.vertexAmount()];
         // 调用dfs 在遍历的同时：标记顶点、检查顶点
@@ -61,7 +61,7 @@ public class DepthFirstSearch {
         int startVertex = Integer.parseInt(args[1]);
 
         // 1 创建 DFS对象
-        DepthFirstSearch markedGraph = new DepthFirstSearch(graph, startVertex);
+        IsConnectedGraph markedGraph = new IsConnectedGraph(graph, startVertex);
 
         // 2 调用API来获取图的性质
         for (int currentVertex = 0; currentVertex < graph.vertexAmount(); currentVertex++) {

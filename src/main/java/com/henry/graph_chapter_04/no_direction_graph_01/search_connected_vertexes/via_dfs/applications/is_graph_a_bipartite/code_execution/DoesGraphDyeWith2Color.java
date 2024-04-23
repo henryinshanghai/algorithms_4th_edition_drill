@@ -1,6 +1,6 @@
-package com.henry.graph_chapter_04.no_direction_graph_01.path.dfs.is_bipartite;
+package com.henry.graph_chapter_04.no_direction_graph_01.search_connected_vertexes.via_dfs.applications.is_graph_a_bipartite.code_execution;
 
-import com.henry.graph_chapter_04.no_direction_graph_01.graph.Graph;
+import com.henry.graph_chapter_04.no_direction_graph_01.represent_graph.Graph;
 
 // 验证：可以使用在图中从指定起点开始进行DFS（递归地标记结点）的方式 来 判断给定的一幅图是不是二分图(bipartite)
 // aka 是否能够仅使用两种颜色对图中的结点进行着色，使得 图中任意一条边的两个端点的颜色都不相同？

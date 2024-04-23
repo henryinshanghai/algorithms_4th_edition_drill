@@ -1,4 +1,4 @@
-package com.henry.graph_chapter_04.no_direction_graph_01.path.dfs.connected_components;// CC.java
+package com.henry.graph_chapter_04.no_direction_graph_01.search_connected_vertexes.via_dfs.applications.connected_components_in_graph.code_execution;// CC.java
 // Below is the syntax highlighted version of CC.java from §4.1 Undirected Graphs.
 
 
@@ -33,7 +33,7 @@ package com.henry.graph_chapter_04.no_direction_graph_01.path.dfs.connected_comp
  *
  ******************************************************************************/
 
-import com.henry.graph_chapter_04.no_direction_graph_01.graph.Graph;
+import com.henry.graph_chapter_04.no_direction_graph_01.represent_graph.Graph;
 import edu.princeton.cs.algs4.*;
 
 /**

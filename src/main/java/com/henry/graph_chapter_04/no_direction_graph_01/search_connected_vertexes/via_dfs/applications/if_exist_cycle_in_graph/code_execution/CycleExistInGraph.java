@@ -1,6 +1,6 @@
-package com.henry.graph_chapter_04.no_direction_graph_01.path.dfs.exist_loop;
+package com.henry.graph_chapter_04.no_direction_graph_01.search_connected_vertexes.via_dfs.applications.if_exist_cycle_in_graph.code_execution;
 
-import com.henry.graph_chapter_04.no_direction_graph_01.graph.Graph;
+import com.henry.graph_chapter_04.no_direction_graph_01.represent_graph.Graph;
 
 // 验证：可以使用在图中从指定起点开始进行DFS（递归地标记结点）的方式&结点被标记的特征 来 判断给定的图中 是否存在环结构
 // 特征：“当前结点” 它的所有“被标记的邻居结点”中，存在有 不是“它的出发结点”的结点，说明存在环；

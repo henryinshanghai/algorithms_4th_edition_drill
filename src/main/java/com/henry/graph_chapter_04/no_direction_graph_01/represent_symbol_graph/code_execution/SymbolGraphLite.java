@@ -1,4 +1,4 @@
-package com.henry.graph_chapter_04.no_direction_graph_01.symbol_graph;
+package com.henry.graph_chapter_04.no_direction_graph_01.represent_symbol_graph.code_execution;
 
 import edu.princeton.cs.algs4.*;
 

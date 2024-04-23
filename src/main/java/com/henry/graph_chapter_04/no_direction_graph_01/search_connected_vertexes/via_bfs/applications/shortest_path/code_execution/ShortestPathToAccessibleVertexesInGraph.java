@@ -1,6 +1,6 @@
-package com.henry.graph_chapter_04.no_direction_graph_01.path.bfs;
+package com.henry.graph_chapter_04.no_direction_graph_01.search_connected_vertexes.via_bfs.applications.shortest_path.code_execution;
 
-import com.henry.graph_chapter_04.no_direction_graph_01.graph.Graph;
+import com.henry.graph_chapter_04.no_direction_graph_01.represent_graph.Graph;
 import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.Queue;
 import edu.princeton.cs.algs4.Stack;

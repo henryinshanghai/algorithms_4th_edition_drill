@@ -1,0 +1,27 @@
+起始顶点：start_vertex
+
+// BFS
+bfs(graph, start_vertex) { // mark_accessible_vertexes_from(current_vertex)
+    // mark it
+    vertexToIsMarked[start_vertex] = true;
+    // enlist it to queue
+    vertexes_queue.enqueue(start_vertex);
+
+    while(!vertexes_queue.isEmpty()) {
+        int vertex_to_process = vertexes_queue.dequeue();
+        process(vertex_to_process);
+    }
+}
+
+process(vertex_to_process) {
+    for(current_neighbor_vertex : graph.adjacentVertexes(vertex_to_process)) {
+        if(!vertexToIsMarked[current_neighbor_vertex]) {
+            // mark it
+            vertexToIsMarked[current_neighbor_vertex] = true;
+            // enlist it to queue
+            vertexes_queue.enqueue(current_neighbor_vertex);
+        }
+    }
+}
+
+
