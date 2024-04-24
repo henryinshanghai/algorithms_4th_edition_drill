@@ -9,12 +9,12 @@ import edu.princeton.cs.algs4.StdOut;
 // 验证：可以使用在图中从指定起点开始进行BFS（广度优先搜索）的方式 来 得到图中“指定起始结点” 到 “其所有可达结点” 对应的“最短路径”
 // 广度优先搜索的应用：找到 图中，由 起始顶点 到 指定目的顶点结束的最短路径；
 // 原理/BFS的特征：在图中搜索边时，BFS会按照距离 起始顶点的远近 来 递进地遍历顶点。
-public class ShortestPathToAccessibleVertexesInGraph {
+public class ShortestPathToConnectedVertexesInGraph {
     private boolean[] vertexToIsMarked; // 顶点->顶点是否已经被标记的映射关系
     private int[] terminalVertexToDepartVertex; // 结束顶点->出发顶点的映射关系（用于描述一条边的术语）
     private final int startVertex; // 起始顶点（用于描述一条路径的术语）
 
-    public ShortestPathToAccessibleVertexesInGraph(Graph graph, int startVertex) {
+    public ShortestPathToConnectedVertexesInGraph(Graph graph, int startVertex) {
         vertexToIsMarked = new boolean[graph.vertexAmount()];
         terminalVertexToDepartVertex = new int[graph.vertexAmount()];
         this.startVertex = startVertex;
@@ -101,7 +101,7 @@ public class ShortestPathToAccessibleVertexesInGraph {
         int startVertex = Integer.parseInt(args[1]);
 
         // #2 使用BFS的方式 来 标记图中所有“由起始顶点可达的”所有顶点，并记录下所有“起始顶点->可达结点(作为终止顶点)”的路径
-        ShortestPathToAccessibleVertexesInGraph markedGraph = new ShortestPathToAccessibleVertexesInGraph(graph, startVertex);
+        ShortestPathToConnectedVertexesInGraph markedGraph = new ShortestPathToConnectedVertexesInGraph(graph, startVertex);
 
         // #3 打印出 所有 起始顶点->可达顶点 的路径
         // 对于图中的当前顶点...

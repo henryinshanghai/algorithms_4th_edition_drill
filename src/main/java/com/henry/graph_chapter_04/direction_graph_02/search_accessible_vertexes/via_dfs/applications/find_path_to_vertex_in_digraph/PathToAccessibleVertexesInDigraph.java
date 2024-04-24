@@ -44,7 +44,7 @@ import edu.princeton.cs.algs4.StdOut;
  *  Each instance method takes &Theta;(1) time.
  *  It uses &Theta;(<em>V</em>) extra space (not including the digraph).
  *  <p>
- *  See {@link DepthFirstDirectedPaths} for a nonrecursive implementation.
+ *  See {@link PathToAccessibleVertexesInDigraph} for a nonrecursive implementation.
  *  For additional documentation,
  *  see <a href="https://algs4.cs.princeton.edu/42digraph">Section 4.2</a> of
  *  <i>Algorithms, 4th Edition</i> by Robert Sedgewick and Kevin Wayne.
@@ -55,7 +55,7 @@ import edu.princeton.cs.algs4.StdOut;
 // 结论：在有向图的DFS算法中，能够得到 “指定的起始结点” 到 “其可以到达的任意结点”的路径。
 // 手段：使用一个名叫  terminalVertexToDepartVertex的数组 来 记录下 路径中所经历的各个结点
 // 具体用法：在获取路径的API（pathFromStartVertexTo）中，使用一个for循环 来 从后往前读取数组中的结点，并添加到一个栈集合中。
-public class DepthFirstDirectedPaths {
+public class PathToAccessibleVertexesInDigraph {
     private boolean[] vertexToIsMarked;  // marked[v] = true iff v is reachable from s
     private int[] terminalVertexToDepartVertex;      // edgeTo[v] = last edge on path from s to v
     private final int startVertex;       // source vertex
@@ -66,7 +66,7 @@ public class DepthFirstDirectedPaths {
      * @param  startVertex the source vertex
      * @throws IllegalArgumentException unless {@code 0 <= s < V}
      */
-    public DepthFirstDirectedPaths(Digraph digraph, int startVertex) {
+    public PathToAccessibleVertexesInDigraph(Digraph digraph, int startVertex) {
         vertexToIsMarked = new boolean[digraph.getVertexAmount()];
         terminalVertexToDepartVertex = new int[digraph.getVertexAmount()];
         this.startVertex = startVertex;
@@ -136,7 +136,7 @@ public class DepthFirstDirectedPaths {
         // StdOut.println(digraph);
 
         int startVertex = Integer.parseInt(args[1]);
-        DepthFirstDirectedPaths markedDigraph = new DepthFirstDirectedPaths(digraph, startVertex);
+        PathToAccessibleVertexesInDigraph markedDigraph = new PathToAccessibleVertexesInDigraph(digraph, startVertex);
 
         for (int currentVertex = 0; currentVertex < digraph.getVertexAmount(); currentVertex++) {
             if (markedDigraph.doesStartVertexHasPathTo(currentVertex)) {

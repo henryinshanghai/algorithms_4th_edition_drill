@@ -57,7 +57,7 @@ import edu.princeton.cs.algs4.StdOut;
 // 手段：#1 使用一个名叫  terminalVertexToDepartVertex的数组 来 记录下 路径中所经历的各个结点；
 // #2 使用一个名叫 vertexToPathLength 来 记录 当前结点距离起始结点（作为方法参数传入）的最短距离
 // 具体用法：在获取路径的API（pathFromStartVertexTo）中，使用一个for循环 来 从后往前读取数组中的结点，并添加到一个栈集合中
-public class BreadthFirstDirectedPaths {
+public class ShortestPathToAccessibleVertexesInDiGraph {
     private static final int INFINITY = Integer.MAX_VALUE;
     private boolean[] vertexToIsMarked;  // marked[v] = is there an s->v path?
     private int[] terminalVertexToDepartVertex;      // edgeTo[v] = last edge on shortest s->v path
@@ -70,7 +70,7 @@ public class BreadthFirstDirectedPaths {
      * @param startVertex the source vertex
      * @throws IllegalArgumentException unless {@code 0 <= v < V}
      */
-    public BreadthFirstDirectedPaths(Digraph digraph, int startVertex) {
+    public ShortestPathToAccessibleVertexesInDiGraph(Digraph digraph, int startVertex) {
         vertexToIsMarked = new boolean[digraph.getVertexAmount()];
         vertexToItsMinPathLength = new int[digraph.getVertexAmount()];
         terminalVertexToDepartVertex = new int[digraph.getVertexAmount()];
@@ -92,7 +92,7 @@ public class BreadthFirstDirectedPaths {
      * @throws IllegalArgumentException unless each vertex {@code v} in
      *                                  {@code sources} satisfies {@code 0 <= v < V}
      */
-    public BreadthFirstDirectedPaths(Digraph digraph, Iterable<Integer> startVertexes) {
+    public ShortestPathToAccessibleVertexesInDiGraph(Digraph digraph, Iterable<Integer> startVertexes) {
         vertexToIsMarked = new boolean[digraph.getVertexAmount()];
         vertexToItsMinPathLength = new int[digraph.getVertexAmount()];
         terminalVertexToDepartVertex = new int[digraph.getVertexAmount()];
@@ -241,7 +241,7 @@ public class BreadthFirstDirectedPaths {
         // StdOut.println(digraph);
 
         int startVertex = Integer.parseInt(args[1]);
-        BreadthFirstDirectedPaths markedDigraph = new BreadthFirstDirectedPaths(digraph, startVertex);
+        ShortestPathToAccessibleVertexesInDiGraph markedDigraph = new ShortestPathToAccessibleVertexesInDiGraph(digraph, startVertex);
 
         for (int currentVertex = 0; currentVertex < digraph.getVertexAmount(); currentVertex++) {
             if (markedDigraph.doesStartVertexHasPathTo(currentVertex)) {
