@@ -1,4 +1,4 @@
-package com.henry.graph_chapter_04.direction_graph_02.search_accessible_vertexes.via_dfs.applications.find_path_to_vertex_in_digraph; /******************************************************************************
+package com.henry.graph_chapter_04.direction_graph_02.search_accessible_vertexes.via_dfs.applications.find_path_to_vertex_in_digraph_02; /******************************************************************************
  *  Compilation:  javac DepthFirstDirectedPaths.java
  *  Execution:    java DepthFirstDirectedPaths digraph.txt s
  *  Dependencies: Digraph.java Stack.java
@@ -33,24 +33,24 @@ import edu.princeton.cs.algs4.Stack;
 import edu.princeton.cs.algs4.StdOut;
 
 /**
- *  The {@code DepthFirstDirectedPaths} class represents a data type for
- *  finding directed paths from a source vertex <em>s</em> to every
- *  other vertex in the digraph.
- *  <p>
- *  This implementation uses depth-first search.
- *  The constructor takes &Theta;(<em>V</em> + <em>E</em>) time in the
- *  worst case, where <em>V</em> is the number of vertices and <em>E</em>
- *  is the number of edges.
- *  Each instance method takes &Theta;(1) time.
- *  It uses &Theta;(<em>V</em>) extra space (not including the digraph).
- *  <p>
- *  See {@link PathToAccessibleVertexesInDigraph} for a nonrecursive implementation.
- *  For additional documentation,
- *  see <a href="https://algs4.cs.princeton.edu/42digraph">Section 4.2</a> of
- *  <i>Algorithms, 4th Edition</i> by Robert Sedgewick and Kevin Wayne.
+ * The {@code DepthFirstDirectedPaths} class represents a data type for
+ * finding directed paths from a source vertex <em>s</em> to every
+ * other vertex in the digraph.
+ * <p>
+ * This implementation uses depth-first search.
+ * The constructor takes &Theta;(<em>V</em> + <em>E</em>) time in the
+ * worst case, where <em>V</em> is the number of vertices and <em>E</em>
+ * is the number of edges.
+ * Each instance method takes &Theta;(1) time.
+ * It uses &Theta;(<em>V</em>) extra space (not including the digraph).
+ * <p>
+ * See {@link PathToAccessibleVertexesInDigraph} for a nonrecursive implementation.
+ * For additional documentation,
+ * see <a href="https://algs4.cs.princeton.edu/42digraph">Section 4.2</a> of
+ * <i>Algorithms, 4th Edition</i> by Robert Sedgewick and Kevin Wayne.
  *
- *  @author Robert Sedgewick
- *  @author Kevin Wayne
+ * @author Robert Sedgewick
+ * @author Kevin Wayne
  */
 // 结论：在有向图的DFS算法中，能够得到 “指定的起始结点” 到 “其可以到达的任意结点”的路径。
 // 手段：使用一个名叫  terminalVertexToDepartVertex的数组 来 记录下 路径中所经历的各个结点
@@ -62,8 +62,9 @@ public class PathToAccessibleVertexesInDigraph {
 
     /**
      * Computes a directed path from {@code s} to every other vertex in digraph {@code G}.
-     * @param  digraph the digraph
-     * @param  startVertex the source vertex
+     *
+     * @param digraph     the digraph
+     * @param startVertex the source vertex
      * @throws IllegalArgumentException unless {@code 0 <= s < V}
      */
     public PathToAccessibleVertexesInDigraph(Digraph digraph, int startVertex) {
@@ -85,27 +86,14 @@ public class PathToAccessibleVertexesInDigraph {
         }
     }
 
-    /**
-     * Is there a directed path from the source vertex {@code s} to vertex {@code v}?
-     * @param  passedVertex the vertex
-     * @return {@code true} if there is a directed path from the source
-     *         vertex {@code s} to vertex {@code v}, {@code false} otherwise
-     * @throws IllegalArgumentException unless {@code 0 <= v < V}
-     */
+    // key API*1: 在图中，是否存在有 由起始顶点到指定顶点的路径?
     public boolean doesStartVertexHasPathTo(int passedVertex) {
         validateVertex(passedVertex);
         return vertexToIsMarked[passedVertex];
     }
 
 
-    /**
-     * Returns a directed path from the source vertex {@code s} to vertex {@code v}, or
-     * {@code null} if no such path.
-     * @param  passedVertex the vertex
-     * @return the sequence of vertices on a directed path from the source vertex
-     *         {@code s} to vertex {@code v}, as an Iterable
-     * @throws IllegalArgumentException unless {@code 0 <= v < V}
-     */
+    // key API*2：返回图中 由起始顶点到指定顶点的有向路径（如果存在的话）。如果路径不存在，则返回null
     public Iterable<Integer> pathFromStartVertexTo(int passedVertex) {
         validateVertex(passedVertex);
         if (!doesStartVertexHasPathTo(passedVertex)) return null;
@@ -122,7 +110,7 @@ public class PathToAccessibleVertexesInDigraph {
     private void validateVertex(int passedVertex) {
         int vertexAmount = vertexToIsMarked.length;
         if (passedVertex < 0 || passedVertex >= vertexAmount)
-            throw new IllegalArgumentException("vertex " + passedVertex + " is not between 0 and " + (vertexAmount-1));
+            throw new IllegalArgumentException("vertex " + passedVertex + " is not between 0 and " + (vertexAmount - 1));
     }
 
     /**
@@ -144,12 +132,10 @@ public class PathToAccessibleVertexesInDigraph {
                 // 从栈中读取结点 - 栈中结点的顺序 就是 路径中结点的顺序
                 for (int currentVertexInPath : markedDigraph.pathFromStartVertexTo(currentVertex)) {
                     if (currentVertexInPath == startVertex) StdOut.print(currentVertexInPath);
-                    else        StdOut.print("-" + currentVertexInPath);
+                    else StdOut.print("-" + currentVertexInPath);
                 }
                 StdOut.println();
-            }
-
-            else {
+            } else {
                 StdOut.printf("%d to %d:  not connected\n", startVertex, currentVertex);
             }
 
