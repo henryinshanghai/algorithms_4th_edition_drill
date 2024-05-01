@@ -1,4 +1,4 @@
-package com.henry.graph_chapter_04.direction_graph_02.search_accessible_vertexes.via_dfs.applications.construct_vertex_traverse_results_in_different_order;
+package com.henry.graph_chapter_04.direction_graph_02.search_accessible_vertexes.via_dfs.applications.construct_vertex_traverse_results_in_different_order_04;
 
 /******************************************************************************
  *  Compilation:  javac DepthFirstOrder.java
@@ -63,7 +63,7 @@ import edu.princeton.cs.algs4.StdOut;
 // 原理#2：使用DFS对图中的所有结点进行标记时，DFS能够保证 每个结点都只会被访问一次 & 处理完成一次
 // 手段：使用一个名叫 vertexesInPreOrder的队列 来 收集前序遍历序列中的当前结点...
 // 🐖 记录结点在序列中的位置 会是一个好主意 - 这样能够从另一个方面提供图的信息给用例使用
-public class DepthFirstOrder {
+public class DigraphPreAndPostTraverseOrderViaDFS {
     private boolean[] vertexToIsMarked;          // marked[v] = has v been marked in dfs?
     private Queue<Integer> vertexesInPreOrder;   // vertices in preorder
     private Queue<Integer> vertexesInPostOrder;  // vertices in postorder
@@ -78,7 +78,7 @@ public class DepthFirstOrder {
      *
      * @param digraph the digraph
      */
-    public DepthFirstOrder(Digraph digraph) {
+    public DigraphPreAndPostTraverseOrderViaDFS(Digraph digraph) {
         vertexToItsSpotInPreSequence = new int[digraph.getVertexAmount()];
         vertexToItsSpotInPostSequence = new int[digraph.getVertexAmount()];
 
@@ -121,8 +121,7 @@ public class DepthFirstOrder {
         vertexToIsMarked[currentVertex] = true;
 
         // 得到前序遍历的序列 - 手段：在递归调用之前/当前调用中，把当前结点添加到队列中
-        vertexToItsSpotInPreSequence[currentVertex] = cursorOfPreSequence++;
-        vertexesInPreOrder.enqueue(currentVertex);
+        constructPreOrderSequence(currentVertex);
 
         for (int currentAdjacentVertex : digraph.adjacentVertexesOf(currentVertex)) {
             if (isNotMarked(currentAdjacentVertex)) {
@@ -131,8 +130,17 @@ public class DepthFirstOrder {
         }
 
         // 得到后序遍历的序列 - 手段：在递归调用完成之后，把当前结点添加到队列中
+        constructPostOrderSequence(currentVertex);
+    }
+
+    private void constructPostOrderSequence(int currentVertex) {
         vertexesInPostOrder.enqueue(currentVertex);
         vertexToItsSpotInPostSequence[currentVertex] = cursorOfPostSequence++;
+    }
+
+    private void constructPreOrderSequence(int currentVertex) {
+        vertexToItsSpotInPreSequence[currentVertex] = cursorOfPreSequence++;
+        vertexesInPreOrder.enqueue(currentVertex);
     }
 
     // run DFS in edge-weighted digraph G from vertex v and compute preorder/postorder
@@ -150,53 +158,29 @@ public class DepthFirstOrder {
 //        vertexToooo[v] = postCounter++;
 //    }
 
-    /**
-     * Returns the preorder number of vertex {@code v}.
-     *
-     * @param currentVertex the vertex
-     * @return the preorder number of vertex {@code v}
-     * @throws IllegalArgumentException unless {@code 0 <= v < V}
-     */
+    // key API*1: 获取到 指定顶点在前序遍历结果序列中的位置
     public int spotInPreOrderSequence(int currentVertex) {
         validateVertex(currentVertex);
         return vertexToItsSpotInPreSequence[currentVertex];
     }
 
-    /**
-     * Returns the postorder number of vertex {@code v}.
-     *
-     * @param currentVertex the vertex
-     * @return the postorder number of vertex {@code v}
-     * @throws IllegalArgumentException unless {@code 0 <= v < V}
-     */
+    // key API*2: 获取到 指定顶点在后序遍历结果序列中的位置
     public int spotInPostOrderSequence(int currentVertex) {
         validateVertex(currentVertex);
         return vertexToItsSpotInPostSequence[currentVertex];
     }
 
-    /**
-     * Returns the vertices in postorder.
-     *
-     * @return the vertices in postorder, as an iterable of vertices
-     */
+    // key API*3: 以可迭代的方式获取到 有向图结点的后序遍历结果序列
     public Iterable<Integer> vertexesInPostOrder() {
         return vertexesInPostOrder;
     }
 
-    /**
-     * Returns the vertices in preorder.
-     *
-     * @return the vertices in preorder, as an iterable of vertices
-     */
+    // key API*4: 以可迭代的方式获取到 有向图结点的前序遍历结果序列
     public Iterable<Integer> vertexesInPreOrder() {
         return vertexesInPreOrder;
     }
 
-    /**
-     * Returns the vertices in reverse postorder.
-     *
-     * @return the vertices in reverse postorder, as an iterable of vertices
-     */
+    // key API*5: 以可迭代的方式获取到 有向图结点的逆后序遍历结果序列
     public Iterable<Integer> vertexesInReversePostOrder() {
         Stack<Integer> reversedVertexes = new Stack<Integer>();
 
@@ -249,7 +233,7 @@ public class DepthFirstOrder {
         In in = new In(args[0]);
         Digraph digraph = new Digraph(in);
 
-        DepthFirstOrder markedDigraph = new DepthFirstOrder(digraph);
+        DigraphPreAndPostTraverseOrderViaDFS markedDigraph = new DigraphPreAndPostTraverseOrderViaDFS(digraph);
         StdOut.println("currentVertex  spotInPreOrderSequence spotInPostOrderSequence");
         StdOut.println("----------------------------------------------------------------------");
         for (int currentVertex = 0; currentVertex < digraph.getVertexAmount(); currentVertex++) {
