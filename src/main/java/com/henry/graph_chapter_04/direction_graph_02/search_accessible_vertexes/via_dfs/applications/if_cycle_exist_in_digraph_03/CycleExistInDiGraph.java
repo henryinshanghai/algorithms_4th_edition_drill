@@ -1,4 +1,4 @@
-package com.henry.graph_chapter_04.direction_graph_02.search_accessible_vertexes.via_dfs.applications.if_cycle_exist_in_digraph;
+package com.henry.graph_chapter_04.direction_graph_02.search_accessible_vertexes.via_dfs.applications.if_cycle_exist_in_digraph_03;
 
 /******************************************************************************
  *  Compilation:  javac DirectedCycle.java
@@ -55,8 +55,8 @@ import edu.princeton.cs.algs4.Topological;
 public class CycleExistInDiGraph {
     private final boolean[] vertexToIsMarked;        // 作为DFS算法的基础操作 用于标记顶点是否已经被标记
     private final int[] terminalVertexToDepartVertex;            // 用于记录单条边中 结束顶点->出发顶点的映射关系 可以用来反溯出整个路径
-    private final boolean[] vertexToIsBelongToCurrentPath;       // 用于记录 当前路径中的结点/结点是否属于当前路径 可以用来 在出现被标记的邻居顶点时，判断是否出现了环
 
+    private final boolean[] vertexToIsBelongToCurrentPath;       // 用于记录 当前路径中的结点/结点是否属于DFS的当前路径 应用：可以用来 在出现被标记的邻居顶点时，判断是否出现了环
     private Stack<Integer> vertexesInCycleViaStack;    // 用于临时记录出现的环中的所有顶点 只有在找到环的时候才会使用它
 
     /**
@@ -139,13 +139,13 @@ public class CycleExistInDiGraph {
         return !vertexToIsMarked[currentAdjacentVertex];
     }
 
-    // 有向图中是否含有一个 有向环?
+    // key API*1:有向图中是否含有一个 有向环?
     public boolean findACycle() {
         // 手段：检查用于存储环中顶点的栈 是否为空
         return vertexesInCycleViaStack != null;
     }
 
-    // 获取到有向图中的有向环(以有向环中所有顶点的可迭代集合的方式)
+    // key API*2:获取到有向图中的有向环(以有向环中所有顶点的可迭代集合的方式)
     // 如果不存在环，则：返回null
     public Iterable<Integer> getVertexesInCycle() {
         // 手段：算法中，有向环中的顶点 会被顺序添加到 栈中👇

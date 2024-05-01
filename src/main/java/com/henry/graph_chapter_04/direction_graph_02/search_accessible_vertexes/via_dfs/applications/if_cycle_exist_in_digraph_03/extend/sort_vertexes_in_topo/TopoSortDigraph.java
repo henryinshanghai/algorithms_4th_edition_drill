@@ -1,4 +1,4 @@
-package com.henry.graph_chapter_04.direction_graph_02.search_accessible_vertexes.via_dfs.applications.if_cycle_exist_in_digraph.extend.sort_vertexes_in_topo;
+package com.henry.graph_chapter_04.direction_graph_02.search_accessible_vertexes.via_dfs.applications.if_cycle_exist_in_digraph_03.extend.sort_vertexes_in_topo;
 
 /******************************************************************************
  *  Compilation:  javac Topological.java
@@ -29,8 +29,8 @@ package com.henry.graph_chapter_04.direction_graph_02.search_accessible_vertexes
  ******************************************************************************/
 
 import com.henry.graph_chapter_04.direction_graph_02.represent_digraph.Digraph;
-import com.henry.graph_chapter_04.direction_graph_02.search_accessible_vertexes.via_dfs.applications.construct_vertex_traverse_results_in_different_order.DepthFirstOrder;
-import com.henry.graph_chapter_04.direction_graph_02.search_accessible_vertexes.via_dfs.applications.if_cycle_exist_in_digraph.CycleExistInDiGraph;
+import com.henry.graph_chapter_04.direction_graph_02.search_accessible_vertexes.via_dfs.applications.construct_vertex_traverse_results_in_different_order_04.DigraphPreAndPostTraverseOrderViaDFS;
+import com.henry.graph_chapter_04.direction_graph_02.search_accessible_vertexes.via_dfs.applications.if_cycle_exist_in_digraph_03.CycleExistInDiGraph;
 import com.henry.graph_chapter_04.direction_graph_02.represent_a_symbol_graph.SymbolDigraph;
 import edu.princeton.cs.algs4.StdOut;
 
@@ -66,7 +66,7 @@ import edu.princeton.cs.algs4.StdOut;
 // 拓扑排序的应用：优先级限制下的调度问题（比如 在多个课程中，存在先导课程的限制。而学生一次只能修一门课）
 // 证明：见 introduce
 // 🐖 记录“结点在序列中的位置”是一个好主意 - 这样能够从另一个方面提供图的信息给用例使用
-public class Topological {
+public class TopoSortDigraph {
     private Iterable<Integer> vertexesInTopoOrder;  // topological order
     private int[] vertexToItsSpotInTopoSequence;               // rank[v] = rank of vertex v in order
 
@@ -76,10 +76,10 @@ public class Topological {
      *
      * @param digraph the digraph
      */
-    public Topological(Digraph digraph) {
+    public TopoSortDigraph(Digraph digraph) {
         CycleExistInDiGraph cycleFoundDigraph = new CycleExistInDiGraph(digraph);
         if (!cycleFoundDigraph.findACycle()) {
-            DepthFirstOrder vertexesTraversedDigraph = new DepthFirstOrder(digraph);
+            DigraphPreAndPostTraverseOrderViaDFS vertexesTraversedDigraph = new DigraphPreAndPostTraverseOrderViaDFS(digraph);
             // 图中结点的拓扑排序结果 就是 图中结点的逆后序遍历的结果
             vertexesInTopoOrder = vertexesTraversedDigraph.vertexesInReversePostOrder();
 
@@ -172,7 +172,7 @@ public class Topological {
         SymbolDigraph symbolDigraph = new SymbolDigraph(filename, delimiter);
 
         // 获取到 符号图底层的有向图的 拓扑排序结果
-        Topological topoOrderedGraph = new Topological(symbolDigraph.underlyingDigraph());
+        TopoSortDigraph topoOrderedGraph = new TopoSortDigraph(symbolDigraph.underlyingDigraph());
 
         // 打印拓扑排序结果（结点序列）中的每个结点
         for (int currentVertex : topoOrderedGraph.getVertexesInTopoOrder()) {
