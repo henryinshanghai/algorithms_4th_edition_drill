@@ -1,4 +1,4 @@
-package com.henry.graph_chapter_04.direction_graph_02.search_accessible_vertexes.via_dfs.applications.if_vertex_accessible_from_startVertex;
+package com.henry.graph_chapter_04.direction_graph_02.search_accessible_vertexes.via_dfs.applications.if_vertex_accessible_from_startVertex_01;
 
 import com.henry.graph_chapter_04.direction_graph_02.represent_digraph.Digraph;
 import edu.princeton.cs.algs4.Bag;
@@ -40,6 +40,7 @@ public class AccessibleVertexesInDigraph {
         }
     }
 
+    // 关键API - 回答图中的指定结点 是否由起始结点可达?
     public boolean isAccessibleFromStartVertex(int vertexV) {
         return vertexToIsMarked[vertexV];
     }
