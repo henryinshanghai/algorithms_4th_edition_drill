@@ -132,7 +132,7 @@ public class TarjanSCC {
         /* ① 继续收集SCC中的结点 */
         // 如果 “当前节点”的minTraverseId 被更新，说明 当前节点及其子节点中 存在能够返回 “当前节点的祖先结点”的边（返祖边），
         // 进一步说明 它是SCC中的一个结点，则：更新 “当前节点”的minTraverseId后，当前节点 即“处理完成”，直接处理 路径中的下一个结点
-        if (isAnSCCVertex(currentVertex, minTraverseIdOfCurrentVertex)) return;
+        if (isAnIntermdiateSCCVertex(currentVertex, minTraverseIdOfCurrentVertex)) return;
 
         /* ② 开始从栈中弹出SCC的结点 */
         // 如果 minTraverseId 没有被更新，说明 当前节点（及其子节点）无法返回到 它的祖先结点（返祖边），进一步说明 当前节点是 SCC的“桥接结点”
@@ -142,7 +142,7 @@ public class TarjanSCC {
         SCCAmount++;
     }
 
-    private boolean isAnSCCVertex(int currentVertex, int minTraverseIdOfCurrentVertex) {
+    private boolean isAnIntermdiateSCCVertex(int currentVertex, int minTraverseIdOfCurrentVertex) {
         if (minTraverseIdOfCurrentVertex < vertexToItsMinTraverseId[currentVertex]) {
             vertexToItsMinTraverseId[currentVertex] = minTraverseIdOfCurrentVertex;
             return true;
