@@ -113,36 +113,36 @@ public class TarjanSCC {
         /* Tarjan算法的准备操作👇 */
         setup(currentVertex);
 
-        // #3 设置一个变量，用于记录 “当前节点”的 所有可达结点（以及 它自己）中的 最小的traverseId - 初始值设置为“当前结点自己的traverseId”
+        // #1 设置一个变量，用于记录 “当前节点”的 所有可达结点（以及 它自己）中的 最小的traverseId - 初始值设置为“当前结点自己的traverseId”
         int minTraverseIdOfCurrentVertex = vertexToItsMinTraverseId[currentVertex];
 
         // 遍历 “当前结点”的所有邻居结点(aka 直接可达的子节点)
         for (int currentAdjacentVertex : digraph.adjacentVertexesOf(currentVertex)) {
-            // DFS的标准操作：如果“当前邻居节点”还没有被标记，则：对它递归地执行DFS进行标记
+            // 如果“当前邻居节点”还没有被标记，则：对它递归地执行DFS进行标记 - DFS的标准操作
             if (isNotMarked(currentAdjacentVertex)) {
                 markVertexAndUpdateVertexesMinTraverseIdToDecideSCCViaDFS(digraph, currentAdjacentVertex);
             }
 
             /* Tarjan算法的实际操作👇 */
-            // #1 在DFS返回后，按照实际情况 使用“当前邻居结点”的minTraverseId 来 尝试更新minTraverseIdOfCurrentVertex变量的值
+            // #2 在DFS返回后，按照实际情况 使用“当前邻居结点”的minTraverseId 来 尝试更新minTraverseIdOfCurrentVertex变量的值
             minTraverseIdOfCurrentVertex = update(minTraverseIdOfCurrentVertex, currentAdjacentVertex);
         }
 
-        // #2 根据traverseId是否被更新 来 决定：① 是 继续收集SCC中的结点 还是 ② 开始从栈中弹出SCC的结点
+        // #3 根据traverseId是否被更新 来 决定：① 是 继续收集SCC中的结点 还是 ② 开始从栈中弹出SCC的结点
         /* ① 继续收集SCC中的结点 */
         // 如果 “当前节点”的minTraverseId 被更新，说明 当前节点及其子节点中 存在能够返回 “当前节点的祖先结点”的边（返祖边），
         // 进一步说明 它是SCC中的一个结点，则：更新 “当前节点”的minTraverseId后，当前节点 即“处理完成”，直接处理 路径中的下一个结点
-        if (isAnIntermdiateSCCVertex(currentVertex, minTraverseIdOfCurrentVertex)) return;
+        if (isAnIntermediateSCCVertex(currentVertex, minTraverseIdOfCurrentVertex)) return;
 
         /* ② 开始从栈中弹出SCC的结点 */
         // 如果 minTraverseId 没有被更新，说明 当前节点（及其子节点）无法返回到 它的祖先结点（返祖边），进一步说明 当前节点是 SCC的“桥接结点”
         // 则：从stack中获取到SCC中的所有结点
-        collectSCCVertexes(digraph, currentVertex);
+        collectVertexesInSCC(digraph, currentVertex);
 
         SCCAmount++;
     }
 
-    private boolean isAnIntermdiateSCCVertex(int currentVertex, int minTraverseIdOfCurrentVertex) {
+    private boolean isAnIntermediateSCCVertex(int currentVertex, int minTraverseIdOfCurrentVertex) {
         if (minTraverseIdOfCurrentVertex < vertexToItsMinTraverseId[currentVertex]) {
             vertexToItsMinTraverseId[currentVertex] = minTraverseIdOfCurrentVertex;
             return true;
@@ -150,7 +150,7 @@ public class TarjanSCC {
         return false;
     }
 
-    private void collectSCCVertexes(Digraph digraph, int currentVertex) {
+    private void collectVertexesInSCC(Digraph digraph, int currentVertex) {
         int currentVertexInStack;
 
         // 从栈中弹出当前SCC中的结点 - 手段：不断弹出结点，直到遇到 当前节点

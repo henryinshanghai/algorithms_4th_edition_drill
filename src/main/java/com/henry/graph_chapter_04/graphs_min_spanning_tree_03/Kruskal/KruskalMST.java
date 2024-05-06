@@ -95,51 +95,61 @@ public class KruskalMST {
     public KruskalMST(EdgeWeightedGraph weightedGraph) {
 
         // #1 获取 加权图的所有边（以可迭代集合的形式），然后 转换为数组形式
-        Edge[] edges = new Edge[weightedGraph.getEdgeAmount()];
-        int currentSpot = 0;
-        for (Edge currentEdge : weightedGraph.edges()) {
-            edges[currentSpot++] = currentEdge;
-        }
+        Edge[] edges = getEdgesIn(weightedGraph);
+
         // #2 根据 Edge对象compareTo()方法的定义，来 对数组中的Edge对象 进行排序
         Arrays.sort(edges);
 
         // #3 执行贪心算法
         QuickFind forest = new QuickFind(weightedGraph.getVertexAmount());
-        for (int currentEdgeCursor = 0; meetEdgeCursorConditionAndMSTEdgeAmountCondition(weightedGraph, currentEdgeCursor); currentEdgeCursor++) {
-            // #3-1 从排序后的数组中，获取到 当前边 & 当前边的两个端点
+        for (int currentEdgeCursor = 0; withinLegitRange(weightedGraph, currentEdgeCursor); currentEdgeCursor++) {
             Edge currentEdge = edges[currentEdgeCursor];
-            int oneVertex = currentEdge.eitherVertex();
-            int theOtherVertex = currentEdge.theOtherVertexAgainst(oneVertex);
-
-            /* 🐖 当前边的两个端点 不会形成一个环; 连接同一个连通分量中的两个顶点 会形成一个环 */
-            // #3-2 如果 边的两个端点 不在同一个连通分量中，说明 这条边 能够把两棵树连接成一棵更大的树（这是一个横切边?），则：
-            if (notInSameComponent(forest, oneVertex, theOtherVertex)) {
-                // ① 把两个顶点 合并到 同一个连通分量中
-                forest.unionToSameComponent(oneVertex, theOtherVertex);     // merge oneVertex and theOtherVertex components
-                // ② 把这条边添加到MST中( 为什么这条边一定是MST中的边???)
-                edgesQueueInMST.enqueue(currentEdge);     // add edge currentEdge to mst
-                // ③ 更新MST的权重值
-                weightOfMST += currentEdge.weight();
-            }
+            constructMST(forest, currentEdge);
         }
 
         // check optimality conditions
         assert check(weightedGraph);
     }
 
+    private void constructMST(QuickFind forest, Edge currentEdge) {
+        // #3-1 从排序后的数组中，获取到 当前边 & 当前边的两个端点
+        int oneVertex = currentEdge.eitherVertex();
+        int theOtherVertex = currentEdge.theOtherVertexAgainst(oneVertex);
+
+        // #3-2 如果 边的两个端点 不在同一个连通分量中，说明 这条边 能够把两棵树连接成一棵更大的树（这是一个横切边?），则：
+        // 原理：连接同一个连通分量中的两个顶点 会形成一个环
+        if (notInSameComponent(forest, oneVertex, theOtherVertex)) {
+            // ① 把两个顶点 合并到 同一个连通分量中
+            forest.unionToSameComponent(oneVertex, theOtherVertex);     // merge oneVertex and theOtherVertex components
+            // ② 把这条边添加到MST中(因为它连接了两个连通分量，所以它一定是一条横切边 而最小横切边一定属于MST)
+            edgesQueueInMST.enqueue(currentEdge);     // add edge currentEdge to mst
+            // ③ 更新MST的权重值
+            weightOfMST += currentEdge.weight();
+        }
+    }
+
+    private Edge[] getEdgesIn(EdgeWeightedGraph weightedGraph) {
+        Edge[] edges = new Edge[weightedGraph.getEdgeAmount()];
+        int currentSpot = 0;
+        for (Edge currentEdge : weightedGraph.edges()) {
+            edges[currentSpot++] = currentEdge;
+        }
+        return edges;
+    }
+
     private boolean notInSameComponent(QuickFind forest, int oneVertex, int theOtherVertex) {
         return forest.findGroupIdOf(oneVertex) != forest.findGroupIdOf(theOtherVertex);
     }
 
-    private boolean meetEdgeCursorConditionAndMSTEdgeAmountCondition(EdgeWeightedGraph weightedGraph, int currentEdgeCursor) {
-        return cursorLessThanGraphsEdgeAmount(weightedGraph, currentEdgeCursor) && edgesAmountInMSTLessThanGraphsVertexAmount(weightedGraph);
+    private boolean withinLegitRange(EdgeWeightedGraph weightedGraph, int currentEdgeCursor) {
+        return withinLegitAmount(weightedGraph, currentEdgeCursor) && withinLegitSize(weightedGraph);
     }
 
-    private boolean edgesAmountInMSTLessThanGraphsVertexAmount(EdgeWeightedGraph weightedGraph) {
+    private boolean withinLegitSize(EdgeWeightedGraph weightedGraph) {
         return edgesQueueInMST.size() < weightedGraph.getVertexAmount() - 1;
     }
 
-    private boolean cursorLessThanGraphsEdgeAmount(EdgeWeightedGraph weightedGraph, int currentEdgeCursor) {
+    private boolean withinLegitAmount(EdgeWeightedGraph weightedGraph, int currentEdgeCursor) {
         return currentEdgeCursor < weightedGraph.getEdgeAmount();
     }
 
