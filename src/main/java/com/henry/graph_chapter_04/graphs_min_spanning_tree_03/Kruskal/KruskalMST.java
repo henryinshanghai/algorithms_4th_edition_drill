@@ -84,12 +84,12 @@ import java.util.Arrays;
 public class KruskalMST {
     private static final double FLOATING_POINT_EPSILON = 1.0E-12;
 
-    private double weightOfMST;                        // weight of MST
-    private Queue<Edge> edgesQueueInMST = new Queue<Edge>();  // edges in MST
+    private double weightOfMST;                        // 最小展开树的权重
+    private Queue<Edge> edgesInMSTQueue = new Queue<Edge>();  // MST中的边所构成的队列
 
     /**
      * Compute a minimum spanning tree (or forest) of an edge-weighted graph.
-     *
+     * 计算一个加权图的 最小展开树
      * @param weightedGraph the edge-weighted graph
      */
     public KruskalMST(EdgeWeightedGraph weightedGraph) {
@@ -100,10 +100,12 @@ public class KruskalMST {
         // #2 根据 Edge对象compareTo()方法的定义，来 对数组中的Edge对象 进行排序
         Arrays.sort(edges);
 
-        // #3 执行贪心算法
+        // #3 执行贪心算法 遍历边集合中的每一条边
         QuickFind forest = new QuickFind(weightedGraph.getVertexAmount());
         for (int currentEdgeCursor = 0; withinLegitRange(weightedGraph, currentEdgeCursor); currentEdgeCursor++) {
+            // 对于当前边
             Edge currentEdge = edges[currentEdgeCursor];
+            // 使用它来构建出MST
             constructMST(forest, currentEdge);
         }
 
@@ -112,20 +114,25 @@ public class KruskalMST {
     }
 
     private void constructMST(QuickFind forest, Edge currentEdge) {
-        // #3-1 从排序后的数组中，获取到 当前边 & 当前边的两个端点
+        // #1 从排序后的数组中，获取到 当前边 & 当前边的两个端点
         int oneVertex = currentEdge.eitherVertex();
         int theOtherVertex = currentEdge.theOtherVertexAgainst(oneVertex);
 
-        // #3-2 如果 边的两个端点 不在同一个连通分量中，说明 这条边 能够把两棵树连接成一棵更大的树（这是一个横切边?），则：
+        // #2 如果 边的两个端点 不在同一个连通分量中，说明 这条边 能够把两棵树连接成一棵更大的树（这是一个横切边?），则：
         // 原理：连接同一个连通分量中的两个顶点 会形成一个环
         if (notInSameComponent(forest, oneVertex, theOtherVertex)) {
-            // ① 把两个顶点 合并到 同一个连通分量中
+            // ① 把两个顶点 合并到 同一个连通分量中,得到一个更大的连通分量
             forest.unionToSameComponent(oneVertex, theOtherVertex);     // merge oneVertex and theOtherVertex components
-            // ② 把这条边添加到MST中(因为它连接了两个连通分量，所以它一定是一条横切边 而最小横切边一定属于MST)
-            edgesQueueInMST.enqueue(currentEdge);     // add edge currentEdge to mst
-            // ③ 更新MST的权重值
-            weightOfMST += currentEdge.weight();
+            // ② 使用当前边来更新MST
+            updateMSTVia(currentEdge);
         }
+    }
+
+    private void updateMSTVia(Edge currentEdge) {
+        // ① 把这条边添加到“MST边队列”中(因为它连接了两个连通分量，所以它一定是一条横切边 而最小横切边一定属于MST)
+        edgesInMSTQueue.enqueue(currentEdge);     // add edge currentEdge to mst
+        // ② 更新MST的权重值
+        weightOfMST += currentEdge.weight();
     }
 
     private Edge[] getEdgesIn(EdgeWeightedGraph weightedGraph) {
@@ -146,7 +153,7 @@ public class KruskalMST {
     }
 
     private boolean withinLegitSize(EdgeWeightedGraph weightedGraph) {
-        return edgesQueueInMST.size() < weightedGraph.getVertexAmount() - 1;
+        return edgesInMSTQueue.size() < weightedGraph.getVertexAmount() - 1;
     }
 
     private boolean withinLegitAmount(EdgeWeightedGraph weightedGraph, int currentEdgeCursor) {
@@ -155,17 +162,17 @@ public class KruskalMST {
 
     /**
      * Returns the edges in a minimum spanning tree (or forest).
-     *
+     * 以可迭代集合的方式 来 返回最小展开树中的边
      * @return the edges in a minimum spanning tree (or forest) as
      * an iterable of edges
      */
     public Iterable<Edge> edges() {
-        return edgesQueueInMST;
+        return edgesInMSTQueue;
     }
 
     /**
      * Returns the sum of the edge weights in a minimum spanning tree (or forest).
-     *
+     * 返回最小展开树中所有边的权重之和
      * @return the sum of the edge weights in a minimum spanning tree (or forest)
      */
     public double weight() {
@@ -176,58 +183,35 @@ public class KruskalMST {
     private boolean check(EdgeWeightedGraph weightedGraph) {
 
         // 检查MST的总权重值 - 边的权重之和 是不是 与MST的权重值相等
-        double totalWeight = 0.0;
-        for (Edge currentEdge : edges()) {
-            totalWeight += currentEdge.weight();
-        }
-        if (Math.abs(totalWeight - weight()) > FLOATING_POINT_EPSILON) {
-            System.err.printf("Weight of edges does not equal weight(): %f vs. %f\n", totalWeight, weight());
-            return false;
-        }
+        if (MSTWeightNotRight()) return false;
 
-        // check that it is acyclic
-        QuickFind forest = new QuickFind(weightedGraph.getVertexAmount());
-        for (Edge currentEdge : edges()) {
-            int oneVertex = currentEdge.eitherVertex(),
-                theOtherVertex = currentEdge.theOtherVertexAgainst(oneVertex);
+        // 检查MST是否满足无环图的约束 - MST中不应该存在有环
+        QuickFind unionedForest = getUnionedForestOfMSTVertexesIn(weightedGraph);
+        if (unionedForest == null) return false;
 
-            // 如果边的两个顶点 属于同一个连通分量，则：图就不是一个森林???
-            if (forest.findGroupIdOf(oneVertex) == forest.findGroupIdOf(theOtherVertex)) {
-                System.err.println("Not a forest");
-                return false;
-            }
-            forest.unionToSameComponent(oneVertex, theOtherVertex);
-        }
+        // 检查MST是否满足“展开树”的约束 - 原始树中的任意边的结点，都应该出现在MST中
+        if (anyEdgeBreachSpanningTree(weightedGraph, unionedForest)) return false;
 
-        // 是不是一个“生成树”（spanning tree）
-        for (Edge currentEdge : weightedGraph.edges()) {
-            int oneVertex = currentEdge.eitherVertex(), theOtherVertex = currentEdge.theOtherVertexAgainst(oneVertex);
-            if (notInSameComponent(forest, oneVertex, theOtherVertex)) {
-                System.err.println("Not a spanning forest");
-                return false;
-            }
-        }
-
-        // check that it is a minimal spanning forest (cut optimality conditions)
-        // 检查是不是一个 最小生成树
+        // check that it is a minimal spanning unionedForestOfMSTVertexesIn (cut optimality conditions)
+        // 检查是不是一个 最小生成树  todo extract method
         for (Edge currentMSTEdge : edges()) {
 
             // all edges in MST except currentMSTEdge
-            forest = new QuickFind(weightedGraph.getVertexAmount());
-            for (Edge currentEdgeInMST : edgesQueueInMST) {
+            unionedForest = new QuickFind(weightedGraph.getVertexAmount());
+            for (Edge currentEdgeInMST : edgesInMSTQueue) {
                 int oneVertex = currentEdgeInMST.eitherVertex(),
-                        theOtherVertex = currentEdgeInMST.theOtherVertexAgainst(oneVertex);
+                    theOtherVertex = currentEdgeInMST.theOtherVertexAgainst(oneVertex);
 
                 if (currentEdgeInMST != currentMSTEdge)
-                    forest.unionToSameComponent(oneVertex, theOtherVertex);
+                    unionedForest.unionToSameComponent(oneVertex, theOtherVertex);
             }
 
             // check that currentMSTEdge is min weight edge in crossing cut
             for (Edge graphsCurrentEdge : weightedGraph.edges()) {
                 int oneVertex = graphsCurrentEdge.eitherVertex(),
-                        theOtherVertex = graphsCurrentEdge.theOtherVertexAgainst(oneVertex);
+                    theOtherVertex = graphsCurrentEdge.theOtherVertexAgainst(oneVertex);
 
-                if (notInSameComponent(forest, oneVertex, theOtherVertex)) {
+                if (notInSameComponent(unionedForest, oneVertex, theOtherVertex)) {
                     if (graphsCurrentEdge.weight() < currentMSTEdge.weight()) {
                         System.err.println("Edge " + graphsCurrentEdge + " violates cut optimality conditions");
                         return false;
@@ -238,6 +222,47 @@ public class KruskalMST {
         }
 
         return true;
+    }
+
+    private boolean anyEdgeBreachSpanningTree(EdgeWeightedGraph weightedGraph, QuickFind unionedForest) {
+        for (Edge currentEdge : weightedGraph.edges()) {
+            int oneVertex = currentEdge.eitherVertex(),
+                theOtherVertex = currentEdge.theOtherVertexAgainst(oneVertex);
+
+            if (notInSameComponent(unionedForest, oneVertex, theOtherVertex)) {
+                System.err.println("Not a spanning unionedForestOfMSTVertexesIn");
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private QuickFind getUnionedForestOfMSTVertexesIn(EdgeWeightedGraph weightedGraph) {
+        QuickFind forest = new QuickFind(weightedGraph.getVertexAmount());
+        for (Edge currentEdge : edges()) {
+            int oneVertex = currentEdge.eitherVertex(),
+                theOtherVertex = currentEdge.theOtherVertexAgainst(oneVertex);
+
+            // 如果边的两个顶点 属于同一个连通分量，则：图就不是一个森林???
+            if (forest.findGroupIdOf(oneVertex) == forest.findGroupIdOf(theOtherVertex)) {
+                System.err.println("Not a forest");
+                return null;
+            }
+            forest.unionToSameComponent(oneVertex, theOtherVertex);
+        }
+        return forest;
+    }
+
+    private boolean MSTWeightNotRight() {
+        double totalWeight = 0.0;
+        for (Edge currentEdge : edges()) {
+            totalWeight += currentEdge.weight();
+        }
+        if (Math.abs(totalWeight - weight()) > FLOATING_POINT_EPSILON) {
+            System.err.printf("Weight of edges does not equal weight(): %f vs. %f\n", totalWeight, weight());
+            return true;
+        }
+        return false;
     }
 
 
