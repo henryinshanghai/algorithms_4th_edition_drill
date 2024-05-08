@@ -12,6 +12,35 @@ public class KruskalMSTDrill {
     private Queue<Edge> edgesInMST;
 
     public KruskalMSTDrill(EdgeWeightedGraph weightedGraph) {
+        // #0
+        Edge[] edgeArr = initEdgeArrWith(weightedGraph);
+
+        // #1
+        Arrays.sort(edgeArr);
+
+        // #2
+        QuickFind forest = new QuickFind(weightedGraph.getVertexAmount());
+        for (int currentEdgeCursor = 0; edgeAmountConditions(currentEdgeCursor, weightedGraph); currentEdgeCursor++) {
+            // ①
+            Edge currentEdge = edgeArr[currentEdgeCursor];
+            constructMST(forest, currentEdge);
+        }
+    }
+
+    private void constructMST(QuickFind forest, Edge currentEdge) {
+        // ②
+        int oneVertex = currentEdge.eitherVertex();
+        int theOtherVertex = currentEdge.theOtherVertexAgainst(oneVertex);
+        // ③ 如果边的两个顶点在不同的连通分量中，说明这条边是一个横切边，则：
+        if (isNotSameComponent(forest, oneVertex, theOtherVertex)) {
+            // Ⅰ 连接两个不同的连通分量
+            forest.unionToSameComponent(oneVertex, theOtherVertex);
+            // Ⅱ 把这个最小横切边，添加到 MST边的队列中
+            edgesInMST.enqueue(currentEdge);
+        }
+    }
+
+    private Edge[] initEdgeArrWith(EdgeWeightedGraph weightedGraph) {
         int vertexAmount = weightedGraph.getVertexAmount();
 
         Edge[] edgeArr = new Edge[vertexAmount];
@@ -19,22 +48,7 @@ public class KruskalMSTDrill {
         for (Edge currentEdge : weightedGraph.edges()) {
             edgeArr[currentSpot++] = currentEdge;
         }
-
-        // #1
-        Arrays.sort(edgeArr);
-
-        QuickFind forest = new QuickFind(weightedGraph.getVertexAmount());
-        for (int currentEdgeCursor = 0; edgeAmountConditions(currentEdgeCursor, weightedGraph); currentEdgeCursor++) {
-            Edge currentEdge = edgeArr[currentEdgeCursor];
-
-            int oneVertex = currentEdge.eitherVertex();
-            int theOtherVertex = currentEdge.theOtherVertexAgainst(oneVertex);
-
-            if (isNotSameComponent(forest, oneVertex, theOtherVertex)) {
-                forest.unionToSameComponent(oneVertex, theOtherVertex);
-                edgesInMST.enqueue(currentEdge);
-            }
-        }
+        return edgeArr;
     }
 
     private boolean edgeAmountConditions(int currentEdgeCursor, EdgeWeightedGraph weightedGraph) {

@@ -93,7 +93,6 @@ public class KruskalMST {
      * @param weightedGraph the edge-weighted graph
      */
     public KruskalMST(EdgeWeightedGraph weightedGraph) {
-
         // #1 获取 加权图的所有边（以可迭代集合的形式），然后 转换为数组形式
         Edge[] edges = getEdgesIn(weightedGraph);
 
@@ -193,35 +192,54 @@ public class KruskalMST {
         if (anyEdgeBreachSpanningTree(weightedGraph, unionedForest)) return false;
 
         // check that it is a minimal spanning unionedForestOfMSTVertexesIn (cut optimality conditions)
-        // 检查是不是一个 最小生成树  todo extract method
-        for (Edge currentMSTEdge : edges()) {
-
-            // all edges in MST except currentMSTEdge
-            unionedForest = new QuickFind(weightedGraph.getVertexAmount());
-            for (Edge currentEdgeInMST : edgesInMSTQueue) {
-                int oneVertex = currentEdgeInMST.eitherVertex(),
-                    theOtherVertex = currentEdgeInMST.theOtherVertexAgainst(oneVertex);
-
-                if (currentEdgeInMST != currentMSTEdge)
-                    unionedForest.unionToSameComponent(oneVertex, theOtherVertex);
-            }
-
-            // check that currentMSTEdge is min weight edge in crossing cut
-            for (Edge graphsCurrentEdge : weightedGraph.edges()) {
-                int oneVertex = graphsCurrentEdge.eitherVertex(),
-                    theOtherVertex = graphsCurrentEdge.theOtherVertexAgainst(oneVertex);
-
-                if (notInSameComponent(unionedForest, oneVertex, theOtherVertex)) {
-                    if (graphsCurrentEdge.weight() < currentMSTEdge.weight()) {
-                        System.err.println("Edge " + graphsCurrentEdge + " violates cut optimality conditions");
-                        return false;
-                    }
-                }
-            }
-
-        }
+        // 检查是不是一个 最小生成树
+        if (breachMinRestriction(weightedGraph)) return false;
 
         return true;
+    }
+
+    private boolean breachMinRestriction(EdgeWeightedGraph weightedGraph) {
+        for (Edge currentMSTEdge : edges()) {
+            if (breachMinCrossEdge(weightedGraph, currentMSTEdge))
+                return true;
+        }
+        return false;
+    }
+
+    private boolean breachMinCrossEdge(EdgeWeightedGraph weightedGraph, Edge currentMSTEdge) {
+        // #1 新建一个森林，并使用 除了当前MST边以外的其他MST边来连接它
+        QuickFind unionedForest = new QuickFind(weightedGraph.getVertexAmount());
+        unionAllMSTEdgesBut(unionedForest, currentMSTEdge);
+
+        // #2 检查 currentMSTEdge 是不是 横切边中的最小权重边
+        for (Edge graphsCurrentEdge : weightedGraph.edges()) {
+            if (lighterThan(currentMSTEdge, graphsCurrentEdge, unionedForest))
+                return true;
+        }
+        return false;
+    }
+
+    private boolean lighterThan(Edge currentMSTEdge, Edge graphsCurrentEdge, QuickFind unionedForest) {
+        int oneVertex = graphsCurrentEdge.eitherVertex(),
+            theOtherVertex = graphsCurrentEdge.theOtherVertexAgainst(oneVertex);
+
+        if (notInSameComponent(unionedForest, oneVertex, theOtherVertex)) {
+            if (graphsCurrentEdge.weight() < currentMSTEdge.weight()) {
+                System.err.println("Edge " + graphsCurrentEdge + " violates cut optimality conditions");
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void unionAllMSTEdgesBut(QuickFind unionedForest, Edge currentMSTEdge) {
+        for (Edge currentEdgeInMST : edgesInMSTQueue) {
+            int oneVertex = currentEdgeInMST.eitherVertex(),
+                theOtherVertex = currentEdgeInMST.theOtherVertexAgainst(oneVertex);
+
+            if (currentEdgeInMST != currentMSTEdge)
+                unionedForest.unionToSameComponent(oneVertex, theOtherVertex);
+        }
     }
 
     private boolean anyEdgeBreachSpanningTree(EdgeWeightedGraph weightedGraph, QuickFind unionedForest) {
