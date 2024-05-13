@@ -80,6 +80,7 @@ import java.util.Arrays;
 
 // 目标：获取到图的最小生成树MST
 // 原理：最小横切边一定属于MST
+// 思想：向MST中添加边，MST被完全构建
 // 步骤：#1 对边按照权重排序； #2 创建一个forest对象（每个结点都是一棵树）； #3 判断当前边是否为横切边。如果是，则：添加到MST（队列）中，并合并边的两个顶点
 public class KruskalMST {
     private static final double FLOATING_POINT_EPSILON = 1.0E-12;
