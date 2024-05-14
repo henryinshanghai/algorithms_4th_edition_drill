@@ -1,4 +1,6 @@
-package com.henry.graph_chapter_04.graphs_min_spanning_tree_03.Prim.lazy_implementation; /******************************************************************************
+package com.henry.graph_chapter_04.graphs_min_spanning_tree_03.Prim.lazy_implementation;
+
+/******************************************************************************
  *  Compilation:  javac LazyPrimMST.java
  *  Execution:    java LazyPrimMST filename.txt
  *  Dependencies: EdgeWeightedGraph.java Edge.java Queue.java
@@ -42,8 +44,11 @@ package com.henry.graph_chapter_04.graphs_min_spanning_tree_03.Prim.lazy_impleme
 import com.henry.basic_chapter_01.specific_application.implementation.primary.QuickFind;
 import com.henry.graph_chapter_04.graphs_min_spanning_tree_03.Edge;
 import com.henry.graph_chapter_04.graphs_min_spanning_tree_03.EdgeWeightedGraph;
+import edu.princeton.cs.algs4.BoruvkaMST;
 import edu.princeton.cs.algs4.In;
+import edu.princeton.cs.algs4.KruskalMST;
 import edu.princeton.cs.algs4.MinPQ;
+import edu.princeton.cs.algs4.PrimMST;
 import edu.princeton.cs.algs4.Queue;
 import edu.princeton.cs.algs4.StdOut;
 
@@ -78,13 +83,13 @@ import edu.princeton.cs.algs4.StdOut;
 // 目标：计算 图的最小生成树；
 // 原理：对于任意切分结果中，最小横切边 总是属于MST；
 // 思想：对于一个连通图，在对图结点进行BFS的过程中，标记结点为MST顶点&&向MST中添加其所关联的有效横切边
-// 步骤：#1 向MST中添加结点 & 向优先队列中添加横切边； #2 获取最小横切边，并添加到MST中； #3 对于横切边的“非树节点”，继续#1的操作。
+// 步骤：#1 把结点标记为”MST结点“ && 向”横切边优先队列“中添加横切边； #2 获取最小横切边，并添加到MST中； #3 对于横切边的“非树节点”，继续#1的操作。
 public class LazyPrimMST {
     private static final double FLOATING_POINT_EPSILON = 1.0E-12;
 
     private double weightOfMST;       // 最小展开树的权重
     private Queue<Edge> edgesInMSTQueue;     // MST中的边所构成的队列    用于表示MST
-    private boolean[] vertexToIsInMST;    // 顶点 -> 顶点是否属于MST的映射 用于记录 顶点是否已经被添加到MST中
+    private boolean[] vertexToIsMSTVertex;    // 顶点 -> 顶点是否属于MST的映射 用于记录 顶点是否已经被添加到MST中
     private MinPQ<Edge> crossEdgesPQ;      // 由横切边(边的一个端点在MST中)组成的优先队列  用于记录BFS中出现的横切边
 
     /**
@@ -95,7 +100,7 @@ public class LazyPrimMST {
     public LazyPrimMST(EdgeWeightedGraph weightedGraph) {
         edgesInMSTQueue = new Queue<Edge>();
         crossEdgesPQ = new MinPQ<Edge>();
-        vertexToIsInMST = new boolean[weightedGraph.getVertexAmount()];
+        vertexToIsMSTVertex = new boolean[weightedGraph.getVertexAmount()];
 
         // option01 - 直接从结点0开始在加权图中进行BFS（因为BFS的方式能够遍历 连通图中的每一个结点）
         prim(weightedGraph, 0);
@@ -110,24 +115,24 @@ public class LazyPrimMST {
     }
 
     private boolean isNotMSTVertex(int currentVertex) {
-        return !vertexToIsInMST[currentVertex];
+        return !vertexToIsMSTVertex[currentVertex];
     }
 
     // run Prim's algorithm
     private void prim(EdgeWeightedGraph weightedGraph, int startVertex) {
-        // #0 把当前顶点 添加到MST中 && 把当前顶点相关联的横切边 添加到优先队列中
-        addVertexInMSTAndAddItsCrossEdgesInPQ(weightedGraph, startVertex);
+        // #0 把当前顶点 标记为”MST结点“ && 把当前顶点相关联的横切边 添加到优先队列中
+        markVertexAsMSTAndAddItsCrossEdgesIntoPQ(weightedGraph, startVertex);
 
         while (!crossEdgesPQ.isEmpty()) {
-            // #1 从优先队列中，获取到 当前最小的横切边
+            // #1 从”横切边优先队列“中，获取到 当前最小的横切边
             Edge minWeightEdge = crossEdgesPQ.delMin();
-            // 如果此最小横切边已经是MST边了(因为先前添加的边导致后继横切边的两个顶点都已经变成MST顶点了)，则 跳过此横切边
+            // 如果”此最小横切边“已经是”MST边“了(因为先前添加的边导致后继横切边的两个顶点都已经变成MST顶点了)，则 跳过此横切边
             if (isMSTEdge(minWeightEdge)) continue;
 
             // #2 把 “最小的横切边” 添加到 MST中（切分定理：最小横切边总是会属于MST）
             addEdgeInMST(minWeightEdge);
 
-            // #3 把 最小横切边中所有的“非MST结点” 都添加到树中，成为树节点
+            // #3 把 最小横切边中所有的“非MST结点/图结点” 都添加到树中，成为”MST结点“
             addNonMSTVertexToMST(weightedGraph, minWeightEdge);
         }
     }
@@ -138,44 +143,45 @@ public class LazyPrimMST {
 
         // 如果顶点不是MST结点，说明它还没有被BFS处理过，则：#1 把它添加为MST顶点； #2 把它所有的横切边添加到优先队列中
         if (isNotMSTVertex(oneVertex)) {
-            addVertexInMSTAndAddItsCrossEdgesInPQ(weightedGraph, oneVertex);
+            markVertexAsMSTAndAddItsCrossEdgesIntoPQ(weightedGraph, oneVertex);
         }
 
         if (isNotMSTVertex(theOtherVertex)) {
-            addVertexInMSTAndAddItsCrossEdgesInPQ(weightedGraph, theOtherVertex);               // theOtherVertex becomes part of tree
+            markVertexAsMSTAndAddItsCrossEdgesIntoPQ(weightedGraph, theOtherVertex);               // theOtherVertex becomes part of tree
         }
     }
 
     private void addEdgeInMST(Edge minWeightEdge) {
+        // #1 把横切边添加到表示MST的edge队列中
         // 切分定理：把 当前权值最小的横切边 作为 最小生成树中的边。
-        edgesInMSTQueue.enqueue(minWeightEdge);                            // add minWeightEdge to MST
+        edgesInMSTQueue.enqueue(minWeightEdge);
 
-        // 累计权值
+        // #2 为新添加的边 累计其权值
         weightOfMST += minWeightEdge.weight();
     }
 
     private boolean isMSTEdge(Edge minWeightEdge) {
         int oneVertex = minWeightEdge.eitherVertex(),
                 theOtherVertex = minWeightEdge.theOtherVertexAgainst(oneVertex);        // two endpoints
-        assert vertexToIsInMST[oneVertex] || vertexToIsInMST[theOtherVertex];
+        assert vertexToIsMSTVertex[oneVertex] || vertexToIsMSTVertex[theOtherVertex];
 
-        return vertexToIsInMST[oneVertex] && vertexToIsInMST[theOtherVertex];
+        return vertexToIsMSTVertex[oneVertex] && vertexToIsMSTVertex[theOtherVertex];
     }
 
     // add all edges e incident to v onto pq if the other endpoint has not yet been scanned
-    private void addVertexInMSTAndAddItsCrossEdgesInPQ(EdgeWeightedGraph weightedGraph, int currentVertex) { // scan?? visit??
-        // #1 把 当前顶点 添加到MST中，成为一个 MST顶点
-        assert !vertexToIsInMST[currentVertex];
-        vertexToIsInMST[currentVertex] = true;
+    private void markVertexAsMSTAndAddItsCrossEdgesIntoPQ(EdgeWeightedGraph weightedGraph, int currentVertex) { // scan?? visit??
+        // #1 把 当前顶点 标记为 “MST顶点”
+        assert !vertexToIsMSTVertex[currentVertex];
+        vertexToIsMSTVertex[currentVertex] = true;
 
-        // #2 把 与当前节点相关联的所有边中的“横切边” 添加到 横切边队列中
-        // 横切边的概念：连接 分属于两个集合(MST顶点 & 图顶点)的顶点的边
-        for (Edge currentAssociatedEdge : weightedGraph.getAssociatedEdgesOf(currentVertex)) {
-            int theOtherVertex = currentAssociatedEdge.theOtherVertexAgainst(currentVertex);
+        // #2 把 与当前节点相关联的所有graphEdge中的“横切边” 添加到 “横切边队列 crossEdgeQueue”中
+        // 横切边的概念：连接 分属于两个集合(MSTVertex & graphVertex)的顶点的边
+        for (Edge currentAssociatedGraphEdge : weightedGraph.getAssociatedEdgesOf(currentVertex)) {
+            int theOtherVertex = currentAssociatedGraphEdge.theOtherVertexAgainst(currentVertex);
 
-            // 如果graphEdge的另一个顶点 不是“MST顶点”，说明 找到了一个横切边，则：把它添加到 优先队列中
+            // 如果当前graphEdge是一个横切边(手段：它的另一个顶点 不是“MST顶点”)，则：把它添加到 ”横切边优先队列“中
             if (isNotMSTVertex(theOtherVertex)) {
-                crossEdgesPQ.insert(currentAssociatedEdge);
+                crossEdgesPQ.insert(currentAssociatedGraphEdge);
             }
         }
     }
