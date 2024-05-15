@@ -18,9 +18,7 @@ public class PrimMSTDrill {
     public PrimMSTDrill(EdgeWeightedGraph weightedGraph) {
         int graphVertexAmount = weightedGraph.getVertexAmount();
 
-        for (int currentVertex = 0; currentVertex < graphVertexAmount; currentVertex++) {
-            vertexToItsMinEdgeWeightPQ.insert(currentVertex, Double.POSITIVE_INFINITY);
-        }
+        initVertexToMinEdgeWeightArr(graphVertexAmount);
 
         for (int currentVertex = 0; currentVertex < graphVertexAmount; currentVertex++) {
             if (isNotMSTVertex(currentVertex)) {
@@ -29,33 +27,52 @@ public class PrimMSTDrill {
         }
     }
 
-    private void prim(EdgeWeightedGraph weightedGraph, int currentVertex) {
-        vertexToItsMinEdgeWeightPQ.insert(currentVertex, 0.0);
+    private void initVertexToMinEdgeWeightArr(int graphVertexAmount) {
+        for (int currentVertex = 0; currentVertex < graphVertexAmount; currentVertex++) {
+            vertexToItsMinEdgeWeightPQ.insert(currentVertex, Double.POSITIVE_INFINITY);
+        }
+    }
+
+    private void prim(EdgeWeightedGraph weightedGraph, int startVertex) {
+        vertexToItsMinEdgeWeightPQ.insert(startVertex, 0.0);
 
         while (!vertexToItsMinEdgeWeightPQ.isEmpty()) {
             int vertexWithMinWeight = vertexToItsMinEdgeWeightPQ.delMin();
 
-            addVertexInMSTAndUpdateTheOtherVertex(weightedGraph, vertexWithMinWeight);
+            markVertexAsMSTAndUpdateNeighborGraphVertex(weightedGraph, vertexWithMinWeight);
         }
     }
 
-    private void addVertexInMSTAndUpdateTheOtherVertex(EdgeWeightedGraph weightedGraph, int currentVertex) {
+    private void markVertexAsMSTAndUpdateNeighborGraphVertex(EdgeWeightedGraph weightedGraph, int currentVertex) {
         vertexToIsMSTVertex[currentVertex] = true;
 
         // 获取到 当前结点的所有关联的边 - 这里需要使用图对象
-        for (Edge currentAssociatedEdge : weightedGraph.getAssociatedEdgesOf(currentVertex)) {
-            int theOtherVertex = currentAssociatedEdge.theOtherVertexAgainst(currentVertex);
+        for (Edge currentAssociatedGraphEdge : weightedGraph.getAssociatedEdgesOf(currentVertex)) {
+            int neighborGraphVertex = currentAssociatedGraphEdge.theOtherVertexAgainst(currentVertex);
 
-            if (currentAssociatedEdge.weight() < vertexToItsMinEdgeWeightPQ.keyOf(theOtherVertex)) {
-                vertexToItsMinEdgeToMST[theOtherVertex] = currentAssociatedEdge;
-
-                if (vertexToItsMinEdgeWeightPQ.contains(theOtherVertex)) {
-                    vertexToItsMinEdgeWeightPQ.decreaseKey(theOtherVertex, currentAssociatedEdge.weight());
-                } else {
-                    vertexToItsMinEdgeWeightPQ.insert(theOtherVertex, currentAssociatedEdge.weight());
-                }
+            if (isASmallerEdge(currentAssociatedGraphEdge, neighborGraphVertex)) {
+                updateGraphVertexProperties(currentAssociatedGraphEdge, neighborGraphVertex);
             }
         }
+    }
+
+    private void updateGraphVertexProperties(Edge currentAssociatedGraphEdge, int neighborGraphVertex) {
+        // Ⅰ 树结点 到MST的最小边
+        vertexToItsMinEdgeToMST[neighborGraphVertex] = currentAssociatedGraphEdge;
+
+        updatePQEntryFor(currentAssociatedGraphEdge, neighborGraphVertex);
+    }
+
+    private void updatePQEntryFor(Edge currentAssociatedGraphEdge, int neighborGraphVertex) {
+        if (vertexToItsMinEdgeWeightPQ.contains(neighborGraphVertex)) {
+            vertexToItsMinEdgeWeightPQ.decreaseKey(neighborGraphVertex, currentAssociatedGraphEdge.weight());
+        } else {
+            vertexToItsMinEdgeWeightPQ.insert(neighborGraphVertex, currentAssociatedGraphEdge.weight());
+        }
+    }
+
+    private boolean isASmallerEdge(Edge currentAssociatedGraphEdge, int neighborGraphVertex) {
+        return currentAssociatedGraphEdge.weight() < vertexToItsMinEdgeWeightPQ.keyOf(neighborGraphVertex);
     }
 
     private boolean isNotMSTVertex(int currentVertex) {
