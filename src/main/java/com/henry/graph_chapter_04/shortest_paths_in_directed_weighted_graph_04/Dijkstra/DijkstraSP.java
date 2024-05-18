@@ -93,9 +93,7 @@ public class DijkstraSP {
         validateVertex(startVertex);
 
         // 初始化 “从起始节点到图的各个节点”的“最短路径”的权重
-        for (int currentVertex = 0; currentVertex < graphVertexAmount; currentVertex++)
-            vertexToItsPathWeight[currentVertex] = Double.POSITIVE_INFINITY; // 起始结点 到 其他结点的路径权重为 无穷大
-        vertexToItsPathWeight[startVertex] = 0.0; // 起始结点 到 起始结点的路径权重为0
+        initPathWeight(startVertex, graphVertexAmount);
 
         // relax vertices in order of distance from s
         // 根据 当前节点到起始结点的距离，由近到远地 放松结点
@@ -115,23 +113,36 @@ public class DijkstraSP {
         assert check(weightedDigraph, startVertex);
     }
 
-    // relax edge e and update pq if changed
+    private void initPathWeight(int startVertex, int graphVertexAmount) {
+        for (int currentVertex = 0; currentVertex < graphVertexAmount; currentVertex++)
+            vertexToItsPathWeight[currentVertex] = Double.POSITIVE_INFINITY; // 起始结点 到 其他结点的路径权重为 无穷大
+        vertexToItsPathWeight[startVertex] = 0.0; // 起始结点 到 起始结点的路径权重为0
+    }
+
     // 放松指定的边，并更新 底层的三个数据
     private void relax(DirectedEdge passedEdge) {
         int departVertex = passedEdge.departVertex(),
             terminalVertex = passedEdge.terminalVertex();
 
-        if (vertexToItsPathWeight[terminalVertex] > vertexToItsPathWeight[departVertex] + passedEdge.weight()) {
+        if (existALighterPath(passedEdge, departVertex, terminalVertex)) {
             // 更新 “从起始结点到当前结点的最短路径”的权重
             vertexToItsPathWeight[terminalVertex] = vertexToItsPathWeight[departVertex] + passedEdge.weight();
             // 更新 “从起始结点到当前结点的最短路径”的最后一条边
             vertexToItsTowardsEdge[terminalVertex] = passedEdge;
 
             // 更新PQ中，该结点所关联的“最短路径的权重”
-            if (vertexToItsPathWeightPQ.contains(terminalVertex))
-                vertexToItsPathWeightPQ.decreaseKey(terminalVertex, vertexToItsPathWeight[terminalVertex]);
-            else vertexToItsPathWeightPQ.insert(terminalVertex, vertexToItsPathWeight[terminalVertex]);
+            updatePQEntryTo(terminalVertex);
         }
+    }
+
+    private void updatePQEntryTo(int terminalVertex) {
+        if (vertexToItsPathWeightPQ.contains(terminalVertex))
+            vertexToItsPathWeightPQ.decreaseKey(terminalVertex, vertexToItsPathWeight[terminalVertex]);
+        else vertexToItsPathWeightPQ.insert(terminalVertex, vertexToItsPathWeight[terminalVertex]);
+    }
+
+    private boolean existALighterPath(DirectedEdge passedEdge, int departVertex, int terminalVertex) {
+        return vertexToItsPathWeight[terminalVertex] > vertexToItsPathWeight[departVertex] + passedEdge.weight();
     }
 
     /**
