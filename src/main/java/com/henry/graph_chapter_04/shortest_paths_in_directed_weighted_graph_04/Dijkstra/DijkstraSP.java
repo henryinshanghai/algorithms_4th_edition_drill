@@ -67,50 +67,54 @@ import edu.princeton.cs.algs4.StdOut;
  * @author Kevin Wayne
  */
 public class DijkstraSP {
-    private double[] vertexToItsPathWeight;          // distTo[v] = distance  of shortest s->v path
-    private DirectedEdge[] vertexToItsTowardsEdge;    // edgeTo[v] = last edge on shortest s->v path
-    private IndexMinPQ<Double> vertexToItsPathWeightPQ;    // priority queue of vertices
 
-    /**
-     * Computes a shortest-paths tree from the source vertex {@code s} to every other
-     * vertex in the edge-weighted digraph {@code G}.
-     *
-     * @param weightedDigraph the edge-weighted digraph
-     * @param startVertex     the source vertex
-     * @throws IllegalArgumentException if an edge weight is negative
-     * @throws IllegalArgumentException unless {@code 0 <= s < V}
-     */
+    private double[] vertexToItsPathWeight; // 用于记录 从起始顶点->当前顶点的最短路径的 距离/路径权重
+    private DirectedEdge[] vertexToItsTowardsEdge; // 用于记录 从起始顶点->当前顶点的最短路径的 最后一条边
+    private IndexMinPQ<Double> vertexToItsPathWeightPQ; // 用于记录 当前顶点->由起始顶点到它的最短路径的路径权重 的映射关系
+
+    // 计算出 在 加权有向图G中，从起始顶点s到其可达的所有其他结点的一个 最短路径树
     public DijkstraSP(EdgeWeightedDigraph weightedDigraph, int startVertex) {
-        for (DirectedEdge currentEdge : weightedDigraph.edges()) {
-            if (currentEdge.weight() < 0)
-                throw new IllegalArgumentException("edge " + currentEdge + " has negative weight");
-        }
+        validateEdgeWeightIn(weightedDigraph);
 
         int graphVertexAmount = weightedDigraph.getVertexAmount();
-        vertexToItsPathWeight = new double[graphVertexAmount];
-        vertexToItsTowardsEdge = new DirectedEdge[graphVertexAmount];
+        instantiateVertexProperties(graphVertexAmount);
 
         validateVertex(startVertex);
 
         // 初始化 “从起始节点到图的各个节点”的“最短路径”的权重
         initPathWeight(startVertex, graphVertexAmount);
 
-        // relax vertices in order of distance from s
-        // 根据 当前节点到起始结点的距离，由近到远地 放松结点
-        vertexToItsPathWeightPQ = new IndexMinPQ<Double>(graphVertexAmount);
-        vertexToItsPathWeightPQ.insert(startVertex, vertexToItsPathWeight[startVertex]);
+        // 根据 当前顶点距离起始顶点的远近(到起始顶点的距离)，由近到远地来 放松结点
+        initPQEntryFor(startVertex, graphVertexAmount);
 
         while (!vertexToItsPathWeightPQ.isEmpty()) {
-            // 获取到 “当前距离起始节点的路径权重最小的结点”
+            // 获取到 “当前 距离起始顶点的路径权重最小的结点”
             int vertexWithMinPathWeight = vertexToItsPathWeightPQ.delMin();
             // 获取到 图中该结点所有相关联的边
-            for (DirectedEdge currentAssociatedEdge : weightedDigraph.associatedEdgesOf(vertexWithMinPathWeight))
+            for (DirectedEdge currentAssociatedGraphEdge : weightedDigraph.associatedEdgesOf(vertexWithMinPathWeight))
                 // 对边进行放松...
-                relax(currentAssociatedEdge);
+                relax(currentAssociatedGraphEdge);
         }
 
-        // check optimality conditions
+        // 检查 最优性条件
         assert check(weightedDigraph, startVertex);
+    }
+
+    private void initPQEntryFor(int startVertex, int graphVertexAmount) {
+        vertexToItsPathWeightPQ = new IndexMinPQ<Double>(graphVertexAmount);
+        vertexToItsPathWeightPQ.insert(startVertex, vertexToItsPathWeight[startVertex]);
+    }
+
+    private void instantiateVertexProperties(int graphVertexAmount) {
+        vertexToItsPathWeight = new double[graphVertexAmount];
+        vertexToItsTowardsEdge = new DirectedEdge[graphVertexAmount];
+    }
+
+    private void validateEdgeWeightIn(EdgeWeightedDigraph weightedDigraph) {
+        for (DirectedEdge currentEdge : weightedDigraph.edges()) {
+            if (currentEdge.weight() < 0)
+                throw new IllegalArgumentException("edge " + currentEdge + " has negative weight");
+        }
     }
 
     private void initPathWeight(int startVertex, int graphVertexAmount) {
@@ -124,24 +128,26 @@ public class DijkstraSP {
         int departVertex = passedEdge.departVertex(),
             terminalVertex = passedEdge.terminalVertex();
 
-        if (existALighterPath(passedEdge, departVertex, terminalVertex)) {
-            // 更新 “从起始结点到当前结点的最短路径”的权重
+        if (makePathWeightLighter(passedEdge)) {
+            // 更新 “从起始结点s 到 当前结束结点的最短路径”的权重
             vertexToItsPathWeight[terminalVertex] = vertexToItsPathWeight[departVertex] + passedEdge.weight();
-            // 更新 “从起始结点到当前结点的最短路径”的最后一条边
+            // 更新 “从起始结点s 到 当前结点的最短路径”的最后一条边
             vertexToItsTowardsEdge[terminalVertex] = passedEdge;
 
-            // 更新PQ中，该结点所关联的“最短路径的权重”
-            updatePQEntryTo(terminalVertex);
+            // 更新PQ中，该结点相关的entry中的“最短路径的权重”值
+            updatePQEntryFor(terminalVertex);
         }
     }
 
-    private void updatePQEntryTo(int terminalVertex) {
+    private void updatePQEntryFor(int terminalVertex) {
         if (vertexToItsPathWeightPQ.contains(terminalVertex))
             vertexToItsPathWeightPQ.decreaseKey(terminalVertex, vertexToItsPathWeight[terminalVertex]);
         else vertexToItsPathWeightPQ.insert(terminalVertex, vertexToItsPathWeight[terminalVertex]);
     }
 
-    private boolean existALighterPath(DirectedEdge passedEdge, int departVertex, int terminalVertex) {
+    private boolean makePathWeightLighter(DirectedEdge passedEdge) {
+        int departVertex = passedEdge.departVertex();
+        int terminalVertex = passedEdge.terminalVertex();
         return vertexToItsPathWeight[terminalVertex] > vertexToItsPathWeight[departVertex] + passedEdge.weight();
     }
 
