@@ -1,4 +1,4 @@
-package com.henry.graph_chapter_04.shortest_paths_in_directed_weighted_graph_04.Dijkstra;
+package com.henry.graph_chapter_04.shortest_paths_in_directed_weighted_graph_04.Dijkstra.code_execution;
 /******************************************************************************
  *  Compilation:  javac DijkstraSP.java
  *  Execution:    java DijkstraSP input.txt s
@@ -74,6 +74,7 @@ public class DijkstraSP {
 
     // 计算出 在 加权有向图G中，从起始顶点s到其可达的所有其他结点的一个 最短路径树
     public DijkstraSP(EdgeWeightedDigraph weightedDigraph, int startVertex) {
+        // #0 对参数的合法性进行校验
         validateEdgeWeightIn(weightedDigraph);
 
         int graphVertexAmount = weightedDigraph.getVertexAmount();
@@ -81,16 +82,14 @@ public class DijkstraSP {
 
         validateVertex(startVertex);
 
-        // 初始化 “从起始节点到图的各个节点”的“最短路径”的权重
+        // #1 初始化 各个结点的“从起始节点到它”的“最短路径”的权重属性
         initPathWeight(startVertex, graphVertexAmount);
 
-        // 根据 当前顶点距离起始顶点的远近(到起始顶点的距离)，由近到远地来 放松结点
-        initPQEntryFor(startVertex, graphVertexAmount);
-
+        // #2 根据 当前顶点距离起始顶点的远近(到起始顶点的距离) 来 由近到远地 放松结点
         while (!vertexToItsPathWeightPQ.isEmpty()) {
-            // 获取到 “当前 距离起始顶点的路径权重最小的结点”
+            // ① 获取到 当前“距离起始顶点的路径权重最小的”结点
             int vertexWithMinPathWeight = vertexToItsPathWeightPQ.delMin();
-            // 获取到 图中该结点所有相关联的边
+            // ② 获取到 图中该结点所关联的所有边
             for (DirectedEdge currentAssociatedGraphEdge : weightedDigraph.associatedEdgesOf(vertexWithMinPathWeight))
                 // 对边进行放松...
                 relax(currentAssociatedGraphEdge);
@@ -98,6 +97,11 @@ public class DijkstraSP {
 
         // 检查 最优性条件
         assert check(weightedDigraph, startVertex);
+    }
+
+    private void initPathWeight(int startVertex, int graphVertexAmount) {
+        initArrPathWeight(startVertex, graphVertexAmount);
+        initPQEntryFor(startVertex, graphVertexAmount);
     }
 
     private void initPQEntryFor(int startVertex, int graphVertexAmount) {
@@ -117,24 +121,25 @@ public class DijkstraSP {
         }
     }
 
-    private void initPathWeight(int startVertex, int graphVertexAmount) {
+    private void initArrPathWeight(int startVertex, int graphVertexAmount) {
         for (int currentVertex = 0; currentVertex < graphVertexAmount; currentVertex++)
             vertexToItsPathWeight[currentVertex] = Double.POSITIVE_INFINITY; // 起始结点 到 其他结点的路径权重为 无穷大
         vertexToItsPathWeight[startVertex] = 0.0; // 起始结点 到 起始结点的路径权重为0
     }
 
-    // 放松指定的边，并更新 底层的三个数据
+    // 放松指定的边
     private void relax(DirectedEdge passedEdge) {
-        int departVertex = passedEdge.departVertex(),
-            terminalVertex = passedEdge.terminalVertex();
-
+        // #1 如果 “由起始顶点s到终止顶点terminalVertex”取用“当前边” 能够得到更小的 路径权重，说明 经由当前边来到达终止顶点是更优的，则...
         if (makePathWeightLighter(passedEdge)) {
-            // 更新 “从起始结点s 到 当前结束结点的最短路径”的权重
-            vertexToItsPathWeight[terminalVertex] = vertexToItsPathWeight[departVertex] + passedEdge.weight();
-            // 更新 “从起始结点s 到 当前结点的最短路径”的最后一条边
-            vertexToItsTowardsEdge[terminalVertex] = passedEdge;
+            // 〇 获取到边的 出发顶点 与 终止顶点
+            int departVertex = passedEdge.departVertex(),
+                terminalVertex = passedEdge.terminalVertex();
 
-            // 更新PQ中，该结点相关的entry中的“最短路径的权重”值
+            // ① 更新 终止顶点的 “路径权重”属性
+            vertexToItsPathWeight[terminalVertex] = vertexToItsPathWeight[departVertex] + passedEdge.weight();
+            // ② 更新 终止顶点的 “路径的最后一条边”属性
+            vertexToItsTowardsEdge[terminalVertex] = passedEdge;
+            // ③ 更新 终止顶点 在PQ中的相关entry
             updatePQEntryFor(terminalVertex);
         }
     }
@@ -142,7 +147,9 @@ public class DijkstraSP {
     private void updatePQEntryFor(int terminalVertex) {
         if (vertexToItsPathWeightPQ.contains(terminalVertex))
             vertexToItsPathWeightPQ.decreaseKey(terminalVertex, vertexToItsPathWeight[terminalVertex]);
-        else vertexToItsPathWeightPQ.insert(terminalVertex, vertexToItsPathWeight[terminalVertex]);
+        else {
+            vertexToItsPathWeightPQ.insert(terminalVertex, vertexToItsPathWeight[terminalVertex]);
+        }
     }
 
     private boolean makePathWeightLighter(DirectedEdge passedEdge) {
@@ -151,41 +158,20 @@ public class DijkstraSP {
         return vertexToItsPathWeight[terminalVertex] > vertexToItsPathWeight[departVertex] + passedEdge.weight();
     }
 
-    /**
-     * Returns the length of a shortest path from the source vertex {@code s} to vertex {@code v}.
-     *
-     * @param passedVertex the destination vertex
-     * @return the length of a shortest path from the source vertex {@code s} to vertex {@code v};
-     * {@code Double.POSITIVE_INFINITY} if no such path
-     * @throws IllegalArgumentException unless {@code 0 <= v < V}
-     */
+    // 返回 从起始顶点s 到指定顶点v的 一条最短路径的权重/长度
     public double minWeightOfPathTo(int passedVertex) {
         validateVertex(passedVertex);
         return vertexToItsPathWeight[passedVertex];
     }
 
-    /**
-     * Returns true if there is a path from the source vertex {@code s} to vertex {@code v}.
-     *
-     * @param passedVertex the destination vertex
-     * @return {@code true} if there is a path from the source vertex
-     * {@code s} to vertex {@code v}; {@code false} otherwise
-     * @throws IllegalArgumentException unless {@code 0 <= v < V}
-     */
+    // 如果 从起始顶点s 到 指定顶点v之间存在有一个path，则 返回true 否则返回false
     public boolean hasPathFromStartVertexTo(int passedVertex) {
         validateVertex(passedVertex);
         return vertexToItsPathWeight[passedVertex] < Double.POSITIVE_INFINITY;
     }
 
-    /**
-     * Returns a shortest path from the source vertex {@code s} to vertex {@code v}.
-     *
-     * @param passedVertex the destination vertex
-     * @return a shortest path from the source vertex {@code s} to vertex {@code v}
-     * as an iterable of edges, and {@code null} if no such path
-     * @throws IllegalArgumentException unless {@code 0 <= v < V}
-     */
-    public Iterable<DirectedEdge> edgesOfPathTo(int passedVertex) {
+    // 返回 从起始顶点s 到指定顶点v的一条 最短路径
+    public Iterable<DirectedEdge> edgesOfShortestPathTo(int passedVertex) {
         validateVertex(passedVertex);
 
         if (!hasPathFromStartVertexTo(passedVertex)) return null;
@@ -273,7 +259,7 @@ public class DijkstraSP {
         for (int currentVertex = 0; currentVertex < weightedDigraph.getVertexAmount(); currentVertex++) {
             if (evaluatedGraph.hasPathFromStartVertexTo(currentVertex)) {
                 StdOut.printf("%d to %d (%.2f)  ", startVertex, currentVertex, evaluatedGraph.minWeightOfPathTo(currentVertex));
-                for (DirectedEdge currentEdgeInPath : evaluatedGraph.edgesOfPathTo(currentVertex)) {
+                for (DirectedEdge currentEdgeInPath : evaluatedGraph.edgesOfShortestPathTo(currentVertex)) {
                     StdOut.print(currentEdgeInPath + "   ");
                 }
                 StdOut.println();
