@@ -142,6 +142,7 @@ public class DijkstraSP {
             // ③ 更新 终止顶点 在PQ中的相关entry
             updatePQEntryFor(terminalVertex);
         }
+        // 在边被relax之后，有 vertexToItsPathWeight[terminalVertex] = vertexToItsPathWeight[departVertex] + passedEdge.weight()
     }
 
     private void updatePQEntryFor(int terminalVertex) {
@@ -187,52 +188,99 @@ public class DijkstraSP {
     // check optimality conditions:
     // (i) for all edges e:            distTo[e.to()] <= distTo[e.from()] + e.weight()
     // (ii) for all edge e on the SPT: distTo[e.to()] == distTo[e.from()] + e.weight()
-    private boolean check(EdgeWeightedDigraph G, int s) {
+    private boolean check(EdgeWeightedDigraph weightedDigraph, int startVertex) {
 
         // check that edge weights are non-negative
-        for (DirectedEdge e : G.edges()) {
-            if (e.weight() < 0) {
-                System.err.println("negative edge weight detected");
-                return false;
-            }
-        }
+        if (validateEdgeWeight(weightedDigraph)) return false;
 
         // check that distTo[v] and edgeTo[v] are consistent
-        if (vertexToItsPathWeight[s] != 0.0 || vertexToItsTowardsEdge[s] != null) {
-            System.err.println("distTo[s] and edgeTo[s] inconsistent");
-            return false;
-        }
-        for (int v = 0; v < G.getVertexAmount(); v++) {
-            if (v == s) continue;
-            if (vertexToItsTowardsEdge[v] == null && vertexToItsPathWeight[v] != Double.POSITIVE_INFINITY) {
-                System.err.println("distTo[] and edgeTo[] inconsistent");
-                return false;
-            }
-        }
+        if (hasWrongProperties(startVertex)) return false;
+
+        if (vertexesPropertiesNotConsistent(weightedDigraph, startVertex)) return false;
 
         // check that all edges e = v->w satisfy distTo[w] <= distTo[v] + e.weight()
-        for (int v = 0; v < G.getVertexAmount(); v++) {
-            for (DirectedEdge e : G.associatedEdgesOf(v)) {
-                int w = e.terminalVertex();
-                if (vertexToItsPathWeight[v] + e.weight() < vertexToItsPathWeight[w]) {
-                    System.err.println("edge " + e + " not relaxed");
-                    return false;
-                }
-            }
+        for (int currentVertex = 0; currentVertex < weightedDigraph.getVertexAmount(); currentVertex++) {
+            if (isNotRelaxed(weightedDigraph, currentVertex))
+                return false;
         }
 
-        // check that all edges e = v->w on SPT satisfy distTo[w] == distTo[v] + e.weight()
-        for (int w = 0; w < G.getVertexAmount(); w++) {
-            if (vertexToItsTowardsEdge[w] == null) continue;
-            DirectedEdge e = vertexToItsTowardsEdge[w];
-            int v = e.departVertex();
-            if (w != e.terminalVertex()) return false;
-            if (vertexToItsPathWeight[v] + e.weight() != vertexToItsPathWeight[w]) {
-                System.err.println("edge " + e + " on shortest path not tight");
+        // check that all edges e = v->w on SPT（最短路径树） satisfy distTo[w] == distTo[v] + e.weight()
+        for (int currentVertex = 0; currentVertex < weightedDigraph.getVertexAmount(); currentVertex++) {
+            if (notAccessibleFromStartVertex(currentVertex)) continue;
+
+            DirectedEdge towardsEdgeInPath = vertexToItsTowardsEdge[currentVertex];
+
+            // 按照设计：当前顶点 一定是 路径的终点
+            if (isNotFinalVertexOf(currentVertex, towardsEdgeInPath))
                 return false;
-            }
+
+            // 按照设计：当前边 一定是 紧张的
+            if (isNotTight(towardsEdgeInPath, currentVertex)) return false;
         }
         return true;
+    }
+
+    private boolean isNotTight(DirectedEdge towardsEdgeInPath, int currentVertex) {
+        int departVertex = towardsEdgeInPath.departVertex();
+        if (vertexToItsPathWeight[departVertex] + towardsEdgeInPath.weight() != vertexToItsPathWeight[currentVertex]) {
+            System.err.println("edge " + towardsEdgeInPath + " on shortest path not tight");
+            return true;
+        }
+        return false;
+    }
+
+    private boolean isNotFinalVertexOf(int currentVertex, DirectedEdge towardsEdgeInPath) {
+        return currentVertex != towardsEdgeInPath.terminalVertex();
+    }
+
+    private boolean notAccessibleFromStartVertex(int currentVertex) {
+        return vertexToItsTowardsEdge[currentVertex] == null;
+    }
+
+    private boolean isNotRelaxed(EdgeWeightedDigraph weightedDigraph, int currentVertex) {
+        for (DirectedEdge currentDigraphEdge : weightedDigraph.associatedEdgesOf(currentVertex)) {
+            if (isNotRelaxed(currentDigraphEdge, currentVertex))
+                return true;
+        }
+        return false;
+    }
+
+    private boolean isNotRelaxed(DirectedEdge currentDigraphEdge, int departVertex) {
+        int terminalVertex = currentDigraphEdge.terminalVertex();
+        if (vertexToItsPathWeight[departVertex] + currentDigraphEdge.weight() < vertexToItsPathWeight[terminalVertex]) {
+            System.err.println("edge " + currentDigraphEdge + " not relaxed");
+            return true;
+        }
+        return false;
+    }
+
+    private boolean vertexesPropertiesNotConsistent(EdgeWeightedDigraph weightedDigraph, int startVertex) {
+        for (int currentDigraphVertex = 0; currentDigraphVertex < weightedDigraph.getVertexAmount(); currentDigraphVertex++) {
+            if (currentDigraphVertex == startVertex) continue;
+            if (vertexToItsTowardsEdge[currentDigraphVertex] == null && vertexToItsPathWeight[currentDigraphVertex] != Double.POSITIVE_INFINITY) {
+                System.err.println("distTo[] and edgeTo[] inconsistent");
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean hasWrongProperties(int startVertex) {
+        if (vertexToItsPathWeight[startVertex] != 0.0 || vertexToItsTowardsEdge[startVertex] != null) {
+            System.err.println("distTo[s] and edgeTo[s] inconsistent");
+            return true;
+        }
+        return false;
+    }
+
+    private boolean validateEdgeWeight(EdgeWeightedDigraph weightedDigraph) {
+        for (DirectedEdge currentDigraphEdge : weightedDigraph.edges()) {
+            if (currentDigraphEdge.weight() < 0) {
+                System.err.println("negative edge weight detected");
+                return true;
+            }
+        }
+        return false;
     }
 
     // throw an IllegalArgumentException unless {@code 0 <= v < V}
