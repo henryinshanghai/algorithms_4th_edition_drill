@@ -9,6 +9,7 @@ import edu.princeton.cs.algs4.StdOut;
 // 验证：可以使用在图中从指定起点开始进行BFS（广度优先搜索）的方式 来 得到图中“指定起始结点” 到 “其所有可达结点” 对应的“最短路径”
 // 广度优先搜索的应用：找到 图中，由 起始顶点 到 指定目的顶点结束的最短路径；
 // 原理/BFS的特征：在图中搜索边时，BFS会按照距离 起始顶点的远近 来 递进地遍历顶点。
+// 核心步骤：#1 标记结点； #2 入队结点；
 public class ShortestPathToConnectedVertexesInGraph {
     private boolean[] vertexToIsMarked; // 顶点->顶点是否已经被标记的映射关系
     private int[] terminalVertexToDepartVertex; // 结束顶点->出发顶点的映射关系（用于描述一条边的术语）

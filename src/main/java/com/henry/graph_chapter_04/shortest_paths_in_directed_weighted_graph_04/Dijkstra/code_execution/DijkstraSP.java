@@ -66,6 +66,12 @@ import edu.princeton.cs.algs4.StdOut;
  * @author Robert Sedgewick
  * @author Kevin Wayne
  */
+// 作用：计算出 加权有向图中，从指定起点到其所有可达顶点的最短路径，所构成的树(SPT - shortest path tree)
+// 原理：最短路径的最优性条件
+// 思路：对于 由起始顶点可达的每一个图结点，为它维护一个 路径权重的属性。
+// 步骤：#1 初始化起始结点的属性&&把它添加到PQ中；#2 弹出PQ的最小结点; #3 对于结点所关联的边，尝试更新边的terminalVertex的属性，并把terminalVertex添加到PQ中；
+// 一句话描述算法：在BFS的过程中，对于当前图结点所关联的所有边，按需更新其terminalVertex的属性(路径权重、路径的最后一条边)，并更新PQ中其所对应的entry。
+// 当PQ为空时，每个图结点 都已经记录下了 到达自己的最短路径的最后一条边。这时使用回溯的手段 就能够得到完整的路径
 public class DijkstraSP {
 
     private double[] vertexToItsPathWeight; // 用于记录 从起始顶点->当前顶点的最短路径的 距离/路径权重
@@ -128,6 +134,7 @@ public class DijkstraSP {
     }
 
     // 放松指定的边
+    // 更新 以边的terminalVertex作为endVertex的路径的相关属性(结点属性)
     private void relax(DirectedEdge passedEdge) {
         // #1 如果 “由起始顶点s到终止顶点terminalVertex”取用“当前边” 能够得到更小的 路径权重，说明 经由当前边来到达终止顶点是更优的，则...
         if (makePathWeightLighter(passedEdge)) {

@@ -57,6 +57,7 @@ import edu.princeton.cs.algs4.StdOut;
 // 手段：#1 使用一个名叫  terminalVertexToDepartVertex的数组 来 记录下 路径中所经历的各个结点；
 // #2 使用一个名叫 vertexToPathLength 来 记录 当前结点距离起始结点（作为方法参数传入）的最短距离
 // 具体用法：在获取路径的API（pathFromStartVertexTo）中，使用一个for循环 来 从后往前读取数组中的结点，并添加到一个栈集合中
+// 核心步骤：#1 标记结点； #2 入队结点；
 public class ShortestPathToAccessibleVertexesInDiGraph {
     private static final int INFINITY = Integer.MAX_VALUE;
     private boolean[] vertexToIsMarked;  // marked[v] = is there an s->v path?
