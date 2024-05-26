@@ -89,6 +89,7 @@ import edu.princeton.cs.algs4.StdOut;
 // 步骤：#1 把某一个结点的“距离MST的最小边”设置为0 & 把vertex -> itsMinEdge添加到优先队列中；#2 从队列中获取“最小的”结点；
 // #3 把结点更新为“树结点” & 更新“theOtherVertex结点“ 它”距离MST的最小边”。
 // 一句话描述算法：在BFS的过程中，对于MST结点所关联的所有边中的所有图结点，按需更新结点的属性(结点到MST的最短边&权重)，并把图结点添加到PQ中。当PQ为空时，就得到了图的MST
+// 即时实现：在把结点添加到 结点PQ前，先验证结点的有效性
 public class PrimMST {
     private static final double FLOATING_POINT_EPSILON = 1.0E-12;
 
@@ -142,6 +143,7 @@ public class PrimMST {
 
         while (!vertexToItsMinEdgeWeightPQ.isEmpty()) {
             // #3 从优先队列中，获取到拥有最小的“距离MST最小边的权重值”权重值的 那个结点
+            // 这里从PQ中出队 “最小权重的结点”后，不需要进行校验 aka 即时实现 - 因为在添加到PQ之前，已经校验了结点的有效性
             int vertexWithMinEdgeWeight = vertexToItsMinEdgeWeightPQ.delMin();
 
             // #4 对于此结点：① 标记为“树结点”； ② 对于其所有相邻的“图结点”，更新其 属性值，并将之添加/更新到优先队列中
@@ -160,6 +162,7 @@ public class PrimMST {
             int theGraphVertex = currentAssociatedGraphEdge.theOtherVertexAgainst(passedVertex);
 
             // ① 如果 另一个顶点 也是 MSTVertex，说明 当前graphEdge已经是一个MSTEdge，则：
+            // 即时实现 - 校验图结点的有效性
             if (isMSTVertex(theGraphVertex)) {
                 // 直接跳过它
                 continue;

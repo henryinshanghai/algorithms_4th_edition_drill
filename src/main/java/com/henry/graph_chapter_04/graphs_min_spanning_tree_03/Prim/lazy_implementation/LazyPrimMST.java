@@ -84,6 +84,8 @@ import edu.princeton.cs.algs4.StdOut;
 // 原理：对于任意切分结果中，最小横切边 总是属于MST；
 // 思想：对于一个连通图，在对图结点进行BFS的过程中，标记结点为MST顶点&&向MST中添加其所关联的有效横切边
 // 步骤：#1 把结点标记为”MST结点“ && 向”横切边优先队列“中添加横切边； #2 获取最小横切边，并添加到MST中； #3 对于横切边的“非树节点”，继续#1的操作。
+// 一句话描述：在BFS的过程中，把图结点标记成为MST结点&&把它所关联的所有横切边添加到PQ中。然后把PQ中的最小横切边添加到MST中。当PQ为空时，算法就得到了图的MST
+// 为什么叫做 延迟实现? 因为 有些无效的边(连接两个MST结点的边)会被添加到PQ中，需要等到(that's why)要删除它们的时候，才会检查边的有效性 - 对边的有效性进行延迟检查?!
 public class LazyPrimMST {
     private static final double FLOATING_POINT_EPSILON = 1.0E-12;
 
@@ -127,6 +129,7 @@ public class LazyPrimMST {
             // #1 从”横切边优先队列“中，获取到 当前最小的横切边
             Edge minWeightEdge = crossEdgesPQ.delMin();
             // 如果”此最小横切边“已经是”MST边“了(因为先前添加的边导致后继横切边的两个顶点都已经变成MST顶点了)，则 跳过此横切边
+            // 🐖 这里就是进行 延迟检查的地方 - 在从PQ中弹出最小边后，需要检查 这个边是不是一个有效的横切边
             if (isMSTEdge(minWeightEdge)) continue;
 
             // #2 把 “最小的横切边” 添加到 MST中（切分定理：最小横切边总是会属于MST）
@@ -180,6 +183,7 @@ public class LazyPrimMST {
             int theOtherVertex = currentAssociatedGraphEdge.theOtherVertexAgainst(currentVertex);
 
             // 如果当前graphEdge是一个横切边(手段：它的另一个顶点 不是“MST顶点”)，则：把它添加到 ”横切边优先队列“中
+            // 🐖 这里为 currentVertex所添加的横切边，并不一定最终用来构造MST。因为有些边已经不再是有效的横切边
             if (isNotMSTVertex(theOtherVertex)) {
                 crossEdgesPQ.insert(currentAssociatedGraphEdge);
             }
