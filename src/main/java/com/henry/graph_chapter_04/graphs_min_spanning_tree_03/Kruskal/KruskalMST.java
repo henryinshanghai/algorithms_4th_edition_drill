@@ -39,7 +39,10 @@ package com.henry.graph_chapter_04.graphs_min_spanning_tree_03.Kruskal;
 import com.henry.basic_chapter_01.specific_application.implementation.primary.QuickFind;
 import com.henry.graph_chapter_04.graphs_min_spanning_tree_03.Edge;
 import com.henry.graph_chapter_04.graphs_min_spanning_tree_03.EdgeWeightedGraph;
+import edu.princeton.cs.algs4.BoruvkaMST;
 import edu.princeton.cs.algs4.In;
+import edu.princeton.cs.algs4.LazyPrimMST;
+import edu.princeton.cs.algs4.PrimMST;
 import edu.princeton.cs.algs4.Queue;
 import edu.princeton.cs.algs4.StdOut;
 
@@ -82,6 +85,8 @@ import java.util.Arrays;
 // 原理：最小横切边一定属于MST
 // 思想：向MST中添加边，MST被完全构建
 // 步骤：#1 对边按照权重排序； #2 创建一个forest对象（每个结点都是一棵树）； #3 判断当前边是否为横切边。如果是，则：添加到MST（队列）中，并合并边的两个顶点
+// 一句话描述：对于排序后的图中的边序列，如果当前边是一个横切边，则 #1 合并由横切边连接的两个分量； #2 把横切边添加到MST中 - 直到MST中的结点数量 = 图中的结点数量
+// 特征：算法其实依赖于一个forest对象，以及它的 unionToSameComponent()的操作
 public class KruskalMST {
     private static final double FLOATING_POINT_EPSILON = 1.0E-12;
 
