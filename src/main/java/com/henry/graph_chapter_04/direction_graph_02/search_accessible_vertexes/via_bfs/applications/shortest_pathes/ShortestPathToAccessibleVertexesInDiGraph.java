@@ -60,7 +60,7 @@ import edu.princeton.cs.algs4.StdOut;
 // 核心步骤：#1 标记结点； #2 入队结点；
 public class ShortestPathToAccessibleVertexesInDiGraph {
     private static final int INFINITY = Integer.MAX_VALUE;
-    private boolean[] vertexToIsMarked;  // marked[v] = is there an s->v path?
+    private boolean[] vertexToHasMarked;  // marked[v] = is there an s->v path?
     private int[] terminalVertexToDepartVertex;      // edgeTo[v] = last edge on shortest s->v path
     private int[] vertexToItsMinPathLength;      // distTo[v] = length of shortest s->v path
 
@@ -72,7 +72,7 @@ public class ShortestPathToAccessibleVertexesInDiGraph {
      * @throws IllegalArgumentException unless {@code 0 <= v < V}
      */
     public ShortestPathToAccessibleVertexesInDiGraph(Digraph digraph, int startVertex) {
-        vertexToIsMarked = new boolean[digraph.getVertexAmount()];
+        vertexToHasMarked = new boolean[digraph.getVertexAmount()];
         vertexToItsMinPathLength = new int[digraph.getVertexAmount()];
         terminalVertexToDepartVertex = new int[digraph.getVertexAmount()];
 
@@ -94,7 +94,7 @@ public class ShortestPathToAccessibleVertexesInDiGraph {
      *                                  {@code sources} satisfies {@code 0 <= v < V}
      */
     public ShortestPathToAccessibleVertexesInDiGraph(Digraph digraph, Iterable<Integer> startVertexes) {
-        vertexToIsMarked = new boolean[digraph.getVertexAmount()];
+        vertexToHasMarked = new boolean[digraph.getVertexAmount()];
         vertexToItsMinPathLength = new int[digraph.getVertexAmount()];
         terminalVertexToDepartVertex = new int[digraph.getVertexAmount()];
 
@@ -109,7 +109,7 @@ public class ShortestPathToAccessibleVertexesInDiGraph {
     // BFS from single source
     private void markAdjacentVertexesViaBFS(Digraph digraph, int startVertex) {
         Queue<Integer> vertexQueue = new Queue<Integer>();
-        vertexToIsMarked[startVertex] = true;
+        vertexToHasMarked[startVertex] = true;
         vertexToItsMinPathLength[startVertex] = 0;
 
         vertexQueue.enqueue(startVertex);
@@ -118,9 +118,9 @@ public class ShortestPathToAccessibleVertexesInDiGraph {
             int currentVertex = vertexQueue.dequeue();
 
             for (int currentAdjacentVertex : digraph.adjacentVertexesOf(currentVertex)) {
-                if (!vertexToIsMarked[currentAdjacentVertex]) {
+                if (!vertexToHasMarked[currentAdjacentVertex]) {
                     // #1 标记结点
-                    vertexToIsMarked[currentAdjacentVertex] = true;
+                    vertexToHasMarked[currentAdjacentVertex] = true;
                     // #2 更新结点对应的底层成员变量
                     terminalVertexToDepartVertex[currentAdjacentVertex] = currentVertex;
                     vertexToItsMinPathLength[currentAdjacentVertex] = vertexToItsMinPathLength[currentVertex] + 1;
@@ -137,7 +137,7 @@ public class ShortestPathToAccessibleVertexesInDiGraph {
         Queue<Integer> vertexSequence = new Queue<Integer>();
 
         for (int startVertex : startVertexes) {
-            vertexToIsMarked[startVertex] = true;
+            vertexToHasMarked[startVertex] = true;
             vertexToItsMinPathLength[startVertex] = 0;
             vertexSequence.enqueue(startVertex);
         }
@@ -145,10 +145,10 @@ public class ShortestPathToAccessibleVertexesInDiGraph {
         while (!vertexSequence.isEmpty()) {
             int currentVertex = vertexSequence.dequeue();
             for (int currentAdjacentVertex : digraph.adjacentVertexesOf(currentVertex)) {
-                if (!vertexToIsMarked[currentAdjacentVertex]) {
+                if (!vertexToHasMarked[currentAdjacentVertex]) {
                     terminalVertexToDepartVertex[currentAdjacentVertex] = currentVertex;
                     vertexToItsMinPathLength[currentAdjacentVertex] = vertexToItsMinPathLength[currentVertex] + 1;
-                    vertexToIsMarked[currentAdjacentVertex] = true;
+                    vertexToHasMarked[currentAdjacentVertex] = true;
 
                     vertexSequence.enqueue(currentAdjacentVertex);
                 }
@@ -165,7 +165,7 @@ public class ShortestPathToAccessibleVertexesInDiGraph {
      */
     public boolean doesStartVertexHasPathTo(int passedVertex) {
         validateVertex(passedVertex);
-        return vertexToIsMarked[passedVertex];
+        return vertexToHasMarked[passedVertex];
     }
 
     /**
@@ -207,7 +207,7 @@ public class ShortestPathToAccessibleVertexesInDiGraph {
 
     // throw an IllegalArgumentException unless {@code 0 <= v < V}
     private void validateVertex(int passedVertex) {
-        int V = vertexToIsMarked.length;
+        int V = vertexToHasMarked.length;
         if (passedVertex < 0 || passedVertex >= V)
             throw new IllegalArgumentException("vertex " + passedVertex + " is not between 0 and " + (V - 1));
     }
