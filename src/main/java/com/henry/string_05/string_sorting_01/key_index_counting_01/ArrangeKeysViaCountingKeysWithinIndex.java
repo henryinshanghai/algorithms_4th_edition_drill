@@ -6,7 +6,7 @@ package com.henry.string_05.string_sorting_01.key_index_counting_01;
 // 特征：最终排序结果中，#1 索引按序排列（组间有序）； #2 键之间的相对顺序 与 在原始序列中相同（组内未必有序）
 // 键：学生的名字； 索引：学生的组号； 对“索引相同的键”（组号相同的学生）进行计数 来 得到“任意键”（学生）在最终序列中的位置
 // 一句话描述：为了从无序元素序列，得到“组间有序、组内相对顺序与原始序列相同”的结果序列，可以通过对组中元素计数，并据此累加出“组内第一个元素”的排定位置
-public class KeysStartIndexSort {
+public class ArrangeKeysViaCountingKeysWithinIndex {
     public static void main(String[] args) {
         Student[] studentArr = prepareOriginalSequence();
 
