@@ -35,7 +35,7 @@ public class MSDLite {
 
         // Ⅰ 以当前位置上的字符作为索引 来 对字符串序列执行 键索引计数操作 - 得到 组间有序、组内元素相对顺序同原始序列的结果序列
         // 🐖 每次 以“指定的index”对“指定区间”中的字符串序列 来 执行键索引计数的操作，都会产生一个新的 indexToItsStartSpotInResultSequence[]数组
-        int[] indexToItsStartSpotInResultSequence = performKeyIndexOperation(originalWordArr, wordLeftBar, wordRightBar, currentStartCharacterCursor);
+        int[] indexToItsStartSpotInResultSequence = performKeyIndexCountingOperation(originalWordArr, wordLeftBar, wordRightBar, currentStartCharacterCursor);
 
         // Ⅱ 对于”使用首字符进行键索引计数操作后“所得到的 多个 索引不同的子集合/子组，对各个子组中的字符串序列 以下一个位置的字符作为索引 来 执行键索引计数的操作
         // 特征：结果序列中，index存在有多个，且不确定具体是哪些index（字符）；
@@ -56,41 +56,68 @@ public class MSDLite {
     // 键索引计数操作：pick the item in original sequence, and arrange it into correct spot.
     // originalWordArr, 原始的字符串序列    wordLeftBar, 待操作的字符串序列区间的左边界
     // wordRightBar, 待操作字符串序列区间的右边界     currentStartCharacterCursor, 作为索引的字符的位置
-    private static int[] performKeyIndexOperation(String[] originalWordArr, int wordLeftBar, int wordRightBar, int currentStartCharacterCursor) {
+    private static int[] performKeyIndexCountingOperation(String[] originalWordArr, int wordLeftBar, int wordRightBar, int currentStartCharacterCursor) {
         // Ⅰ 准备 indexToItsStartSpotInResultSequence[] - #1 index = 字符的数字表示 + 1; 用于避免出现值为-1的index  #2 多预留出一个位置，用于 累加得到 startSpot
-        int[] indexToItsStartSpotInResultSequence = new int[biggestIndexPlus1 + 2];
-        for (int currentWordCursor = wordLeftBar; currentWordCursor <= wordRightBar; currentWordCursor++) {
-            // #1 构造出 keyPlus1ToItsSize[] indexOfCurrentWord = 字符的数字表示 + 1; KeyPlus1 = indexOfCurrentWord + 1 👇
-            int indexOfCurrentWord = charAt(originalWordArr[currentWordCursor], currentStartCharacterCursor) + 2;
-            // 累计
-            indexToItsStartSpotInResultSequence[indexOfCurrentWord]++;
-        }
+        int[] indexToItsStartSpotInResultSequence = initIndexesStartSpotArr(originalWordArr, wordLeftBar, wordRightBar, currentStartCharacterCursor);
 
         // Ⅱ 把index->itsSize 转换为 index->itsStartSpot
-        for (int currentIndex = 0; currentIndex < biggestIndexPlus1 + 1; currentIndex++) {
-            // 递推公式：当前元素的值 = 当前元素的“当前值” + “其前一个元素”的值
-            indexToItsStartSpotInResultSequence[currentIndex + 1] += indexToItsStartSpotInResultSequence[currentIndex];
-        }
+        updateIndexesStartSpotArr(indexToItsStartSpotInResultSequence);
 
         // Ⅲ 从[a[wordLeftBar], a[wordRightBar]]区间中的所有字符串中，构造出 第currentCharacterCursor个字符有序的 aux[]
         for (int currentWordCursor = wordLeftBar; currentWordCursor <= wordRightBar; currentWordCursor++) {
-            // 获取当前单词在当前位置上的字符的数字表示
-            int characterInInt = charAt(originalWordArr[currentWordCursor], currentStartCharacterCursor);
-            // 由数字表示 得到 对应的key
-            int indexOfCurrentWord = characterInInt + 1;
-            // 得到该字符 在最终结果中的起始索引
-            int currentWordCorrectSpot = indexToItsStartSpotInResultSequence[indexOfCurrentWord];
-            // 把当前单词 排定到 预期的索引位置上
-            aux[currentWordCorrectSpot] = originalWordArr[currentWordCursor];
+            String currentWord = originalWordArr[currentWordCursor];
+            int indexOfCurrentWord = arrangeWordToCorrectSpot(currentWord, currentStartCharacterCursor, indexToItsStartSpotInResultSequence);
 
-            // 把当前key -> 起始索引位置+1，来 把此index所对应的下一个字符串 排定到正确的位置上
+            // 把startSpot的位置+1，来 为排定组中的下一个单词做准备
             indexToItsStartSpotInResultSequence[indexOfCurrentWord]++;
         }
 
         // Ⅳ 把aux[]中的字符串，逐个写回到 原始数组wordArr[]中
-        // 示例aux[]： 0 1 2 2 2 ... 14 14 .. 14
+        writeItemBackTo(originalWordArr, wordLeftBar, wordRightBar);
+
+        return indexToItsStartSpotInResultSequence;
+    }
+
+    private static void writeItemBackTo(String[] originalWordArr, int wordLeftBar, int wordRightBar) {
+        // 把辅助数组中的元素 拷贝到 原始数组的相同位置
         for (int currentWordCursor = wordLeftBar; currentWordCursor <= wordRightBar; currentWordCursor++) {
             originalWordArr[currentWordCursor] = aux[currentWordCursor - wordLeftBar];
+        }
+    }
+
+    private static int arrangeWordToCorrectSpot(String currentWord, int currentStartCharacterCursor, int[] indexToItsStartSpotInResultSequence) {
+        // #1 获取当前单词 在当前位置上的字符 的整数表示
+        int characterInInt = charAt(currentWord, currentStartCharacterCursor);
+        // #2 由整数表示 来得到 对应的index
+        int indexOfCurrentWord = characterInInt + 1;
+        // #3 建立 index -> its startSpot 的映射关系
+        int currentWordCorrectSpot = indexToItsStartSpotInResultSequence[indexOfCurrentWord];
+        // #4 最后，把当前单词 排定到 预期的索引位置上
+        aux[currentWordCorrectSpot] = currentWord;
+
+        return indexOfCurrentWord;
+    }
+
+    private static void updateIndexesStartSpotArr(int[] indexToItsStartSpotInResultSequence) {
+        // 更新 index -> itsStartSpot 为正确的值   原理：index对应的size 累加后的结果 就是 startSpot的值
+        for (int currentIndex = 0; currentIndex < biggestIndexPlus1 + 1; currentIndex++) {
+            // 递推公式：当前元素的值 = 当前元素的“当前值” + “其前一个元素”的值
+            indexToItsStartSpotInResultSequence[currentIndex + 1] += indexToItsStartSpotInResultSequence[currentIndex];
+        }
+    }
+
+    private static int[] initIndexesStartSpotArr(String[] originalWordArr, int wordLeftBar, int wordRightBar, int currentStartCharacterCursor) {
+        int[] indexToItsStartSpotInResultSequence = new int[biggestIndexPlus1 + 2];
+
+        // 对于每一个index索引，使用 index中的元素数量 来 初始化 itsStartSpot的值
+        for (int currentWordCursor = wordLeftBar; currentWordCursor <= wordRightBar; currentWordCursor++) {
+            // #1 获取到 字符的整数表示
+            String currentWord = originalWordArr[currentWordCursor];
+            int currentStartCharacter = charAt(currentWord, currentStartCharacterCursor);
+            // #2 计算出单词的索引值     🐖 单词的索引值 与 当前字符 之间的关系: index = currentCharacter + 1（避免出现负数） + 1（方便运算）
+            int indexOfCurrentWord = currentStartCharacter + 2;
+            // #3 把 当前单词(计数为1) 累计到 它的索引值 对应的startSpot中
+            indexToItsStartSpotInResultSequence[indexOfCurrentWord]++;
         }
         return indexToItsStartSpotInResultSequence;
     }
