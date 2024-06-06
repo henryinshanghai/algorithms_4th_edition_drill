@@ -80,7 +80,7 @@ public class ArrangeKeysViaCountingKeysWithinIndex {
     private static void updateGroupStartSpot(int[] groupNoToItsStartSpotInResultSequence) {
         int biggestGroupNo = groupNoToItsStartSpotInResultSequence.length - 1;
         for (int currentGroupNo = 0; currentGroupNo < biggestGroupNo; currentGroupNo++) { // biggestGroupNo
-            // 当前元素的值 = “当前元素”的当前值 + “其前一个元素”的值
+            // 计算当前元素值的递推公式：当前元素的值 = “当前元素”的当前值 + “其前一个元素”的值
             groupNoToItsStartSpotInResultSequence[currentGroupNo + 1] += groupNoToItsStartSpotInResultSequence[currentGroupNo];
         }
     }

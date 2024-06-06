@@ -38,7 +38,7 @@ public class MSDLite {
         int[] indexToItsStartSpotInResultSequence = performKeyIndexCountingOperation(originalWordArr, wordLeftBar, wordRightBar, currentStartCharacterCursor);
 
         // Ⅱ 对于”使用首字符进行键索引计数操作后“所得到的 多个 索引不同的子集合/子组，对各个子组中的字符串序列 以下一个位置的字符作为索引 来 执行键索引计数的操作
-        // 特征：结果序列中，index存在有多个，且不确定具体是哪些index（字符）；
+        // 特征：结果序列中，存在有多个index，且不确定具体是哪些index（字符）；
         // 手段：对所有可能的字符index 进行遍历，找到那些个 能够产生有效子集合的index
         // 🐖 原始数组根据”首字符“产生了几个分组/子集合，这里就会对应的 有多少次循环（需要排序的次数）
         for (int currentIndex = 0; currentIndex < biggestIndexPlus1; currentIndex++) {
