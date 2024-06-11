@@ -24,24 +24,26 @@ public class Quick3WayStringLite {
         // 获取当前位置上的字符 来 作为“基准字符”
         int pivotCharacter = charAt(wordArr[wordLeftBar], currentCharacterSlot);
 
+        // #0 通过 待比较字符 与 基准字符的比较操作 来 初步排定等于区的元素(仅实现首字符相同)
         while (cursorOfItemToCompare <= greaterZoneLeftBoundary) {
             int characterToCompare = charAt(wordArr[cursorOfItemToCompare], currentCharacterSlot);
 
             if(characterToCompare < pivotCharacter) exch(wordArr, lessZoneRightBoundary++, cursorOfItemToCompare++);
             else if(characterToCompare > pivotCharacter) exch(wordArr, cursorOfItemToCompare, greaterZoneLeftBoundary--);
             else cursorOfItemToCompare++;
-        } // while循环结束后，有👇 其实只是 排定了与pivot相等的元素首字符
+        } // while循环结束后，有👇 其实没有排定任何元素 只是把首字符与基准字符相同的字符串 排定到了一个区间中
         // a[wordLeftBar..lessZoneRightBoundary-1] < pivotCharacter = a[lessZoneRightBoundary..greaterZoneLeftBoundary] < a[greaterZoneLeftBoundary+1..hi]
 
         /* 在此基础上，使用递归(假定功能已经实现) 来 完成整个数组的排序 */
-        // 把 a[wordLeftBar..lessZoneRightBoundary-1]区间中的所有字符串，从 currentCharacterSlot个字符开始 完全排序
+        // #1 待排序的区间之 小于区 a[wordLeftBar..lessZoneRightBoundary-1] - 把 区间中的所有字符串，从第currentCharacterSlot个字符开始 完全排序
         sortRangeFrom(wordArr, wordLeftBar, lessZoneRightBoundary-1, currentCharacterSlot);
 
-        // 如果“当前字符”还不是末尾字符，则：把首字母排定的字符串集合的 剩余部分 继续排序
+        // #2 待排序区间之 等于区 - 等于区中的字符串并没有被完全排定（#0 只保证首字符是相同的）
+        // 如果“当前字符”还不是末尾字符，说明等于区中的字符串 还没有被完全排定，则：把首字母排定的字符串集合的 剩余部分 继续排序
         // 🐖 如果不添加判断条件，则：横向地调用永远不会结束（会一直获取到-1的值），直到StackOverFlow
         if (pivotCharacter >= 0) sortRangeFrom(wordArr, lessZoneRightBoundary, greaterZoneLeftBoundary, currentCharacterSlot + 1);
 
-        // 对 未排定的区间，进行三向快速排序 -
+        // #3 待排序区间之 大于区 a[greaterZoneLeftBoundary+1, wordRightBar] - 把 区间中的所有字符串，从第currentCharacterSlot个字符开始 完全排序
         sortRangeFrom(wordArr, greaterZoneLeftBoundary+1, wordRightBar, currentCharacterSlot);
     }
 
