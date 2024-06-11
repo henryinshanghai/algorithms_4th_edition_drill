@@ -18,10 +18,10 @@ public class Quick3WayStringLite {
         if (wordRightBar <= wordLeftBar) return;
 
         int lessZoneRightBoundary = wordLeftBar,
-                greaterZoneLeftBoundary = wordRightBar;
+            greaterZoneLeftBoundary = wordRightBar;
         int cursorOfItemToCompare = wordLeftBar + 1;
 
-        // 获取当前位置上的字符 来 作为基准字符
+        // 获取当前位置上的字符 来 作为“基准字符”
         int pivotCharacter = charAt(wordArr[wordLeftBar], currentCharacterSlot);
 
         while (cursorOfItemToCompare <= greaterZoneLeftBoundary) {
@@ -41,7 +41,7 @@ public class Quick3WayStringLite {
         // 🐖 如果不添加判断条件，则：横向地调用永远不会结束（会一直获取到-1的值），直到StackOverFlow
         if (pivotCharacter >= 0) sortRangeFrom(wordArr, lessZoneRightBoundary, greaterZoneLeftBoundary, currentCharacterSlot + 1);
 
-        // 对 未排定的区间，进行三向快速排序 - 实现组内有序
+        // 对 未排定的区间，进行三向快速排序 -
         sortRangeFrom(wordArr, greaterZoneLeftBoundary+1, wordRightBar, currentCharacterSlot);
     }
 

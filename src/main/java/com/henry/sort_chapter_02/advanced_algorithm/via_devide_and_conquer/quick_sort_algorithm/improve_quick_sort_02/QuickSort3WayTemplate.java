@@ -46,7 +46,8 @@ public class QuickSort3WayTemplate {
         // 手段：比较当前元素 与 基准元素，根据比较结果 来 移动各个边界的指针 与 当前元素的指针
         while (cursorOfItemToCompare <= greaterZoneLeftBoundary) { // #3-③ 当currentItemCursor = greaterZone时，所有元素就已经都排定结束
             // #3-① 比较“当前待比较元素”与基准元素,得到比较结果（整数）
-            int compareResult = originalArr[cursorOfItemToCompare].compareTo(pivotItem);
+            Comparable itemToCompare = originalArr[cursorOfItemToCompare];
+            int compareResult = itemToCompare.compareTo(pivotItem);
 
             // #3-② 根据比较结果，交换指针指向的元素&移动各个边界的指针 - a[lessZone, currentItem]的区间 都是值等于pivot的元素
             if (compareResult < 0) // 如果“当前元素”更小，说明需要把它交换到“小于区的右边界”，则：①进行交换；②交换后，把小于区的右边界向后移动一个位置
