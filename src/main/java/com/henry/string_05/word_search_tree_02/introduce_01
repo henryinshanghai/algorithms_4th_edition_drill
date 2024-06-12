@@ -16,7 +16,7 @@
 
 为 字符串键的符号表 所添加的新的API：
 #1 把泛型的Key类型 换成了 具体类型String;
-#2 添加了3个新的方法：longestPrefixOf(), keysWithPrefix(), keysThatMatch();
+#2 添加了3个新的方法：keyWhoIsLongestPrefixOf(given_string), keysWithPrefix(given_prefix), keysThatMatch(given_pattern);
 
 遵守的约定：
 #1 不接受重复的键、空键；

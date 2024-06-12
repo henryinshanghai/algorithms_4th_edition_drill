@@ -84,6 +84,7 @@ public class TrieSymbolTableLite {
         // #1-② 把在子树上递归调用的结果（添加了key->value所需要的结点的子树），绑定回 当前节点的后继子树 上
         currentRootNode.characterToSuccessorNodes[currentCharacter] = putInNodesOfPathThatStartFrom(successorNodeForCharacter, passedKey, associatedValue, currentStartCharacterSpot + 1);
 
+        // 最终返回 添加了key所需要的路径的单词查找树(的根结点)
         return currentRootNode;
     }
 }

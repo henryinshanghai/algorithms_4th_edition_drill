@@ -1,18 +1,18 @@
 键的序列（符号表中所有的键）： she sells sea shells by the shore.
 
-#1 longestPrefixOf():
+#1 keyWhoIsTheLongestPrefixOf(given_string):
 作用：接受一个字符串作为参数，并 返回 符号表中存在的 能够匹配该字符串前缀的 最长的键；
 比如 对于以上符号表，
     longestPrefixOf("shell") = "she";
     longestPrefixOf("shellsort") = "shells";
 
-#2 keysWithPrefix()
+#2 keysWithPrefix(given_prefix)
 作用：接受一个字符串作为参数，并 返回 符号表中所有 以该字符串作为前缀的键。
 比如 对于以上符号表，
     keysWithPrefix("she") = {she, shells}
     keysWithPrefix("se") = {sells, sea}
 
-#3 keysThatMatch()
+#3 keysThatMatch(given_pattern)
 作用：接受一个字符串作为参数，并 返回 符号表中所有 与该字符串相匹配的键；
 特征：参数字符串中的.字符 能够用于匹配任何字符。
 比如 对于以上符号表，
