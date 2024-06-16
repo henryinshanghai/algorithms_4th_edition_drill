@@ -3,6 +3,8 @@ package com.henry.string_05.word_search_tree_02.word_search_tree_03;
 import jdk.internal.org.objectweb.asm.tree.analysis.Value;
 
 // 验证：可以使用 Trie数据结构 来 实现key为字符串的符号表
+// 获取符号表中，指定的key所对应的value值：在trie树中，查找 key字符串所对应的路径，并返回路径的最后一个结点上所绑定的value值；
+// 向符号表中，添加 key->value的键值对：在trie树中，查找 key字符串所对应的路径，如果没找到，则创建路径。如果找到了，则：更新路径的最后一个结点所关联的value值
 public class TrieSymbolTableLite {
 
     private static int characterOptionsAmount = 256; // 所有可能的字符的数量
@@ -27,12 +29,12 @@ public class TrieSymbolTableLite {
     // 特征：树中是否存在“字符对应的结点” <-> 字符在树中“逻辑上”是否存在
     /* 原始问题：在树中，查询 字符串键所对应的路径 */
     // 🐖 currentCharacterStartSpot参数 是实现 “更小的字符串”的一种手段
-    private Node getLastNodeOfPathThatStartFrom(Node currentRootNode, String passedKey, int currentStartCharacterSpot) {
+    private Node  getLastNodeOfPathThatStartFrom(Node currentRootNode, String passedKey, int currentStartCharacterSpot) {
         /* #2 递归终结条件：① 对路径的查询 终结于null； ② 对路径的查询终结于“字符串的尾字符”所对应的结点 */
         // ① 对路径的查询 终结于null，说明 “当前字符预期在树中对应的结点”不存在，这是一次未命中的查找，则：返回null
         if (currentRootNode == null) return null;
 
-        // ② 对路径的查询 终结于 字符串键的最后一个字符，说明“预期的查询路径”在单词查找树中存在，这可能是一次命中的查找，则：返回当前结点
+        // ② 如果 对路径的查询 终结于 字符串键的最后一个字符，说明“预期的查询路径”在单词查找树中存在，这可能是一次命中的查找，则：返回当前结点
         // 🐖 我们总是 先找到“字符对应的结点”(本次调用)，然后再 “判断路径是否已经到达字符串的尾字符”(下一次调用)，所以这里比较的是  length()
         if(currentStartCharacterSpot == passedKey.length()) return currentRootNode;
 
@@ -68,7 +70,7 @@ public class TrieSymbolTableLite {
         // 手段：直接return新创建的结点
         if (currentRootNode == null) currentRootNode = new Node();
 
-        // ② 对路径的查询 终结于 字符串键的最后一个字符，说明“预期的查询路径”在单词查找树中存在，这是一次命中的查找，则：更新键所对应的值，并 返回当前结点
+        // ② 如果 对路径的查询 终结于 字符串键的最后一个字符，说明“预期的查询路径”在单词查找树中存在，这是一次命中的查找，则：更新键所对应的值，并 返回当前结点
         // 🐖 我们总是 先找到“字符对应的结点”(本次调用)，然后再 Ⅰ “判断路径是否已经到达字符串的尾字符”(下一次调用)、Ⅱ 获取结点的值、Ⅲ 更新结点的值...
         // 所以这里比较的是  length()
         if(currentStartCharacterSpot == passedKey.length()) {
