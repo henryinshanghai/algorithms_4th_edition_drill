@@ -5,4 +5,4 @@
 
 查找操作 会 在 被查找的字符串结束 或是 遇到空链接 时终止。
 
-代码：longestKeyThatPrefixOf(passedStr)
+代码：keyWhoIsLongestPrefixOf(passedStr)

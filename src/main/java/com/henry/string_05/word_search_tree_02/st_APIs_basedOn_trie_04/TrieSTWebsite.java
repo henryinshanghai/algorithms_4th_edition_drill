@@ -50,16 +50,16 @@ import edu.princeton.cs.algs4.StdOut;
  * <i>Algorithms, 4th Edition</i> by Robert Sedgewick and Kevin Wayne.
  */
 public class TrieSTWebsite<Value> {
-    private static final int characterOptionsAmount = 256;        // extended ASCII
+    private static final int characterOptionsAmount = 256;        // 扩展后的ASCII码表 的可选字符大小
 
 
-    private Node rootNode;      // root of trie
-    private int keysAmount;          // number of keys in trie
+    private Node rootNode;      // trie树的根结点
+    private int keysAmount;          // trie树中存储的key的数量
 
-    // R-way trie node
+    // R向单词查找树的结点
     private static class Node {
-        private Object value;
-        private Node[] characterToSuccessorNode = new Node[characterOptionsAmount]; // successorNodes
+        private Object value; // 结点所绑定的value(optional)
+        private Node[] characterToSuccessorNode = new Node[characterOptionsAmount]; // 结点所链接到的后继结点集合
     }
 
     /**
@@ -100,17 +100,19 @@ public class TrieSTWebsite<Value> {
     }
 
     private Node getLastNodeOfPathThatStartFrom(Node currentRootNode, String passedKey, int currentStartCharacterSpot) {
+        // 当前字符对应的trie结点为null，说明 trie树中不存在有对应的字符，则：返回null 表示trie中不存在有预期的路径
         if (currentRootNode == null) return null;
-        // 查询到了 键字符串的最后一个字符
+        // 如果“对路径的查询”进行到了 键字符串的最后一个字符，说明 trie树中存在有 预期的路径，则：直接返回 当前结点（aka 路径中的最后一个结点）
         if (currentStartCharacterSpot == passedKey.length())
             return currentRootNode;
 
-        // 键字符串”当前起始位置上的字符“
+        /* 如果trie中存在有 当前字符的话，继续在trie子树中查找剩余的路径 👇 */
+        // 获取 键字符串”在当前起始位置上的字符“
         char currentCharacter = passedKey.charAt(currentStartCharacterSpot);
-        // 字符所链接到的”后继结点“
+        // 获取到 该字符所链接到的”后继结点“
         Node successorNodeForCharacter = currentRootNode.characterToSuccessorNode[currentCharacter];
 
-        // 在子树中，查询”新的子字符串“所对应的路径
+        // 在子树中，继续查询”新的子字符串“所对应的路径
         return getLastNodeOfPathThatStartFrom(successorNodeForCharacter, passedKey, currentStartCharacterSpot + 1);
     }
 
@@ -131,27 +133,35 @@ public class TrieSTWebsite<Value> {
     }
 
     private Node putInNodesOfPathThatStartFrom(Node currentRootNode, String passedKey, Value associatedValue, int currentStartCharacterSpot) {
+        // 对路径的查询 终止于null，说明 trie树中不存在有 预期的路径
         if (currentRootNode == null)
             currentRootNode = new Node();
 
+        // 对路径的查询 进行到了 keyStr的最后一个字符，说明 在trie树中找到了 预期的路径，即 符号表中存在有对应的keyStr...
         if (currentStartCharacterSpot == passedKey.length()) {
+            // 添加的操作
             if (currentRootNode.value == null)
-                keysAmount++;
+                keysAmount++; // 把key的计数器+1
 
+            // 添加 OR 更新
             currentRootNode.value = associatedValue;
+            // 返回 当前结点（路径中的最后一个结点）
             return currentRootNode;
         }
 
+        /* 如果trie中存在有 当前字符的话，继续在trie子树中查找剩余的路径 👇 */
         char currentCharacter = passedKey.charAt(currentStartCharacterSpot);
         Node successorNodeForCharacter = currentRootNode.characterToSuccessorNode[currentCharacter];
 
+        // 把更新后的trie子树 绑定回到 原始的trie树上
         currentRootNode.characterToSuccessorNode[currentCharacter] = putInNodesOfPathThatStartFrom(successorNodeForCharacter, passedKey, associatedValue, currentStartCharacterSpot + 1);
+        // 返回原始trie树的引用
         return currentRootNode;
     }
 
     /**
      * Returns the number of key-value pairs in this symbol table.
-     *
+     * 符号表中键值对的数量
      * @return the number of key-value pairs in this symbol table
      */
     public int size() {
@@ -160,7 +170,7 @@ public class TrieSTWebsite<Value> {
 
     /**
      * Is this symbol table empty?
-     *
+     * 符号表是否为空??
      * @return {@code true} if this symbol table is empty and {@code false} otherwise
      */
     public boolean isEmpty() {
@@ -171,44 +181,51 @@ public class TrieSTWebsite<Value> {
      * Returns all keys in the symbol table as an {@code Iterable}.
      * To iterate over all of the keys in the symbol table named {@code st},
      * use the foreach notation: {@code for (Key key : st.keys())}.
-     *
+     * 以 可迭代对象的方式 来 返回 符号表中的所有key
+     * 用法：客户端如果想要 遍历 st符号表中所有的key，可以使用foreach语法 Key key : st.keys()
      * @return all keys in the symbol table as an {@code Iterable}
      */
     public Iterable<String> getIterableKeys() {
+        // 获取到符号表中存在的 所有 以空字符串作为前缀的 key - 也就是 符号表中存在的所有key
         return keysWithPrefixOf("");
     }
 
     /**
      * Returns all of the keys in the set that start with {@code prefix}.
-     *
+     * 返回 符号表中存在的 所有 以指定字符串作为前缀的key的集合
      * @param passedPrefix the prefix
      * @return all of the keys in the set that start with {@code prefix},
      * as an iterable
      */
     public Iterable<String> keysWithPrefixOf(String passedPrefix) {
         Queue<String> keysCollection = new Queue<String>();
+        // 获取到 在trie树中，“前缀字符串”所对应的路径中的 最后一个结点
         Node lastNodeOfPrefixStr = getLastNodeOfPathThatStartFrom(rootNode, passedPrefix, 0);
+        // 在 以前缀字符串的最后一个字符对应的结点为根结点 的trie子树中，查询有效的key，并把它们添加到 keysCollection中去
         collectKeysStartWithPrefixInto(lastNodeOfPrefixStr, new StringBuilder(passedPrefix), keysCollection);
         return keysCollection;
     }
 
     private void collectKeysStartWithPrefixInto(Node currentRootNode, StringBuilder currentPrefix, Queue<String> keysCollection) {
+        // 如果查询路径结束于null，说明 trie树中不存在有 预期的路径(符号表中有效的key)，则：直接返回 表示此路无果
         if (currentRootNode == null) return;
 
+        // 如果查询路径结束于一个 value不为null的结点，说明 trie树中存在有 预期的路径，则：把路径对应的key 添加到 key的集合中
         if (currentRootNode.value != null) {
             String currentKey = currentPrefix.toString();
             keysCollection.enqueue(currentKey);
         }
 
+        // 在trie树中继续尝试各种可能的R种路径...
         for (char currentAlphabetCharacter = 0; currentAlphabetCharacter < characterOptionsAmount; currentAlphabetCharacter++) {
-            // 使用当前字符(option) 来 结合prefix进一步构造 potential key
+            // #1 使用当前字符(option) 来 拼接当前prefix进一步构造 potential key
             currentPrefix.append(currentAlphabetCharacter);
 
-            // 查询 当前构造出的 potential key 是不是一个 valid key，如果是的话，则：添加到集合中
+            // #2 查询 “当前拼接出的potential key” 是不是一个 “valid key”，如果是的话，则：把它添加到keys集合中
             Node successorNodeForCharacter = currentRootNode.characterToSuccessorNode[currentAlphabetCharacter];
             collectKeysStartWithPrefixInto(successorNodeForCharacter, currentPrefix, keysCollection);
 
-            // 删除"当前所选择的字符" - 这样才能够在 原始的prefix的基础上，使用新的字符 来 构造出新的potential key
+            // #3 删除"当前所选择的字符" - 这样才能够在 原始的prefix的基础上，使用新的字符 来 构造出新的potential key
             // 🐖 这个过程有点像 尝试不同的路径：anchorNode + dynamicNode
             currentPrefix.deleteCharAt(currentPrefix.length() - 1);
         }
