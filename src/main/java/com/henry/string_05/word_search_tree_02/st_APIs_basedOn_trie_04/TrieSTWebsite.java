@@ -187,7 +187,7 @@ public class TrieSTWebsite<Value> {
      */
     public Iterable<String> getIterableKeys() {
         // 获取到符号表中存在的 所有 以空字符串作为前缀的 key - 也就是 符号表中存在的所有key
-        return keysWithPrefixOf("");
+        return keysWithPrefixEqualsTo("");
     }
 
     /**
@@ -197,7 +197,7 @@ public class TrieSTWebsite<Value> {
      * @return all of the keys in the set that start with {@code prefix},
      * as an iterable
      */
-    public Iterable<String> keysWithPrefixOf(String passedPrefix) {
+    public Iterable<String> keysWithPrefixEqualsTo(String passedPrefix) {
         Queue<String> keysCollection = new Queue<String>();
         // 获取到 在trie树中，“前缀字符串”所对应的路径中的 最后一个结点
         Node lastNodeOfPrefixStr = getLastNodeOfPathThatStartFrom(rootNode, passedPrefix, 0);
@@ -207,26 +207,27 @@ public class TrieSTWebsite<Value> {
     }
 
     private void collectKeysStartWithPrefixInto(Node currentRootNode, StringBuilder currentPrefix, Queue<String> keysCollection) {
-        // 如果查询路径结束于null，说明 trie树中不存在有 预期的路径(符号表中有效的key)，则：直接返回 表示此路无果
+        // 如果路径上的当前字符不存在其对应的结点 / 对路径的查询结束于null，说明 trie树中不存在有 预期的路径(符号表中有效的key)，则：直接返回 表示此路无果
         if (currentRootNode == null) return;
 
-        // 如果查询路径结束于一个 value不为null的结点，说明 trie树中存在有 预期的路径，则：把路径对应的key 添加到 key的集合中
+        // 如果对路径的查询结束于一个 value不为null的结点，说明 trie树中存在有 预期的路径，则：把路径对应的key 添加到 key的集合中
         if (currentRootNode.value != null) {
             String currentKey = currentPrefix.toString();
             keysCollection.enqueue(currentKey);
+            /* 🐖 这里不会return，因为后继的路径中仍旧可能存在有 有效的key。只有查找到null时，才会return */
         }
 
-        // 在trie树中继续尝试各种可能的R种路径...
+        // 如果“路径上的当前字符” 存在有 其对应的结点，则：在trie树中继续尝试各种可能的R种路径...
         for (char currentAlphabetCharacter = 0; currentAlphabetCharacter < characterOptionsAmount; currentAlphabetCharacter++) {
-            // #1 使用当前字符(option) 来 拼接当前prefix进一步构造 potential key
+            // #1 选择(pick)当前字符选项(option) 来 与当前prefix进行拼接，从而进一步构造 potential key/预期路径
             currentPrefix.append(currentAlphabetCharacter);
 
             // #2 查询 “当前拼接出的potential key” 是不是一个 “valid key”，如果是的话，则：把它添加到keys集合中
             Node successorNodeForCharacter = currentRootNode.characterToSuccessorNode[currentAlphabetCharacter];
             collectKeysStartWithPrefixInto(successorNodeForCharacter, currentPrefix, keysCollection);
 
-            // #3 删除"当前所选择的字符" - 这样才能够在 原始的prefix的基础上，使用新的字符 来 构造出新的potential key
-            // 🐖 这个过程有点像 尝试不同的路径：anchorNode + dynamicNode
+            // #3 移除(remove) 路径中的"当前所选择的字符" - 这样才能够在 原始的prefix的基础上，重新选择新的字符 来 构造出新的potential key/预期路径
+            // 🐖 这个过程有点像 尝试不同的路径：anchorNode/anchorPrefix + dynamicNode
             currentPrefix.deleteCharAt(currentPrefix.length() - 1);
         }
     }
@@ -234,6 +235,7 @@ public class TrieSTWebsite<Value> {
     /**
      * Returns all of the keys in the symbol table that match {@code pattern},
      * where the character '.' is interpreted as a wildcard character.
+     * 返回 符号表中 与模式字符串相匹配的所有的key，模式字符串中的.会被解释成为一个通配符
      *
      * @param patternStr the pattern
      * @return all of the keys in the symbol table that match {@code pattern},
@@ -247,14 +249,16 @@ public class TrieSTWebsite<Value> {
 
     // 原始任务：在单词查找树中，收集所有以 “指定的前缀字符串”(生成自“指定的模式字符串”) 作为前缀 而与“模式字符串”长度相等（匹配）的键
     // 匹配“指定模式字符串” 的键 <->
-    private void collectKeysStartWithPrefixThatMatchingPatternInto(Node currentNode, StringBuilder currentPrefixStr, String patternStr, Queue<String> validKeysCollection) {
-        // #1 如果已经到达叶子结点，说明 没有找到匹配条件的key，则：直接返回
-        if (currentNode == null) return;
+    private void collectKeysStartWithPrefixThatMatchingPatternInto(Node currentRootNode, StringBuilder currentPrefixStr, String patternStr, Queue<String> validKeysCollection) {
+        // #1 如果路径上的当前字符不存在其对应的结点 / 对路径的查询结束于null，说明 没有找到匹配条件的key，则：直接返回 表示此路无果
+        if (currentRootNode == null) return;
+
+        // #2 如果对路径的查询已经进行到 patternStr的最后一个字符，并且 这个字符对应的结点上有值，说明 找到了满足条件的key，则：把key添加到集合中
         int prefixStrLength = currentPrefixStr.length();
-        // #2 如果已经查找到 patternStr的最后一个字符，并且 这个字符对应的结点上有值，说明 找到了满足条件的key，则：把key添加到集合中
-        if (prefixStrLength == patternStr.length() && currentNode.value != null)
+        if (prefixStrLength == patternStr.length() && currentRootNode.value != null)
             validKeysCollection.enqueue(currentPrefixStr.toString());
-        // #3 如果已经查找到了 patternStr的最后一个字符，但 字符对应的结点上没有值，说明 单词查找树中虽然存在所有字符，但没有满足条件的key，则：直接返回
+
+        // #3 如果对路径的查询已经进行到 patternStr的最后一个字符，但 字符对应的结点上没有值，说明 单词查找树中虽然存在所有字符，但没有满足条件的key，则：直接返回
         if (prefixStrLength == patternStr.length())
             return;
 
@@ -262,13 +266,13 @@ public class TrieSTWebsite<Value> {
         char currentCharacterOfPatternStr = patternStr.charAt(prefixStrLength);
 
         // 与书上提供的代码不一样 👇
-        // 如果当前字符是 一个通配字符, 说明 当前字符在单词查找树中匹配成功，则：
+        // 如果当前模式字符是 一个通配字符, 说明 当前字符在单词查找树中能够与任意字符匹配成功，则：
         if (currentCharacterOfPatternStr == '.') {
             for (char currentCharacterOfAlphabet = 0; currentCharacterOfAlphabet < characterOptionsAmount; currentCharacterOfAlphabet++) {
                 // 把字母表中的当前字符，追加到 prefixStr上 来 构造potential key
                 currentPrefixStr.append(currentCharacterOfAlphabet);
                 // 子问题：在（每一个）子树中，收集匹配模式字符串的key
-                Node successorNodeForCharacter = currentNode.characterToSuccessorNode[currentCharacterOfAlphabet];
+                Node successorNodeForCharacter = currentRootNode.characterToSuccessorNode[currentCharacterOfAlphabet];
                 collectKeysStartWithPrefixThatMatchingPatternInto(successorNodeForCharacter, currentPrefixStr, patternStr, validKeysCollection);
                 // 从当前前缀字符串中移除”当前选择的字符“ - 这样才能够在 原始的prefix的基础上，使用新的字符 来 构造出新的potential key
                 currentPrefixStr.deleteCharAt(currentPrefixStr.length() - 1);
@@ -277,7 +281,7 @@ public class TrieSTWebsite<Value> {
             // 把 patternStr的当前字符 直接追加到 prefixStr的后面 来 构造出一个potential key
             currentPrefixStr.append(currentCharacterOfPatternStr);
             // 子问题：在（特定的）子树中，收集匹配模式字符串的key
-            Node successorNodeForCharacter = currentNode.characterToSuccessorNode[currentCharacterOfPatternStr];
+            Node successorNodeForCharacter = currentRootNode.characterToSuccessorNode[currentCharacterOfPatternStr];
             collectKeysStartWithPrefixThatMatchingPatternInto(successorNodeForCharacter, currentPrefixStr, patternStr, validKeysCollection);
 
             // 移除”当前选择的字符“ 来 尝试其他的 potential key
@@ -288,15 +292,17 @@ public class TrieSTWebsite<Value> {
     /**
      * Returns the string in the symbol table that is the longest prefix of {@code query},
      * or {@code null}, if no such string.
+     * 返回符号表中存在的、能够作为 查询字符串的前缀的 最长的key
+     * 如果不存在这样的key，则 返回null
      *
-     * @param passedStr the query string
+     * @param passedStr the query string 查询字符串
      * @return the string in the symbol table that is the longest prefix of {@code query},
      * or {@code null} if no such string
      * @throws IllegalArgumentException if {@code query} is {@code null}
      */
-    public String longestKeyThatPrefixOf(String passedStr) {
+    public String longestKeyThatIsPrefixOf(String passedStr) {
         if (passedStr == null) throw new IllegalArgumentException("argument to longestPrefixOf() is null");
-        int keyStrLength = longestKeysLengthThatPrefixOf(rootNode, passedStr, 0, -1);
+        int keyStrLength = longestKeysLengthThatIsPrefixOf(rootNode, passedStr, 0, -1);
 
         // 返回-1，表示 不存在 满足条件的键字符串
         if (keyStrLength == -1) return null;
@@ -306,19 +312,21 @@ public class TrieSTWebsite<Value> {
 
     // 返回 以x（x是一个查询字符串的前缀）作为根结点的子树中的 最长字符串键的长度
     // 假设前d个字符匹配，并且我们已经 找到了与给定长度相匹配的前缀（如果没有匹配的前缀，返回-1）
-    private int longestKeysLengthThatPrefixOf(Node currentNode, String passedStr, int currentCharacterSpot, int keysLength) {
-        // 原理：指定字符在单词查找树中是否存在 <-> 该字符对应的子查找树是否为null
-        if (currentNode == null) return keysLength;
+    private int longestKeysLengthThatIsPrefixOf(Node currentRootNode, String passedStr, int currentCharacterSpot, int keysLength) {
+        // 路径中的当前结点 如果结点为null，说明xxx，则：ooo
+        if (currentRootNode == null) return keysLength;
 
-        // 当遇到键结点时，初始化/更新 length的值 - 在路径上找到的最后一个key结点 会用来更新length的值
-        if (currentNode.value != null) keysLength = currentCharacterSpot;
+        // 如果 路径中的当前结点 是一个键结点，说明 路径对应于一个key，则：初始化/更新 length的值 - 在路径上找到的最后一个key结点 会用来更新length的值
+        if (currentRootNode.value != null) keysLength = currentCharacterSpot;
+        // 如果 字符位置 == 传入字符串的长度，说明 路径已经探索结束，则：当前的keysLength 就是此路径能够找到的最大前缀key的长度
         if (currentCharacterSpot == passedStr.length()) return keysLength;
 
-        // 获取字符
+        // 获取路径中的下一个结点/字符
         char currentCharacterInPassedStr = passedStr.charAt(currentCharacterSpot);
-        // 字符对应的子查找树
-        Node charactersSubTree = currentNode.characterToSuccessorNode[currentCharacterInPassedStr];
-        return longestKeysLengthThatPrefixOf(charactersSubTree, passedStr, currentCharacterSpot + 1, keysLength);
+        // 获取到 字符所对应的trie子树
+        Node charactersSubTree = currentRootNode.characterToSuccessorNode[currentCharacterInPassedStr];
+        // 在trie子树中，递归地继续 获取最长前缀key的长度
+        return longestKeysLengthThatIsPrefixOf(charactersSubTree, passedStr, currentCharacterSpot + 1, keysLength);
     }
 
     /**
@@ -384,15 +392,15 @@ public class TrieSTWebsite<Value> {
         }
 
         StdOut.println("longestPrefixOf(\"shellsort\"):");
-        StdOut.println(st.longestKeyThatPrefixOf("shellsort"));
+        StdOut.println(st.longestKeyThatIsPrefixOf("shellsort"));
         StdOut.println();
 
         StdOut.println("longestPrefixOf(\"quicksort\"):");
-        StdOut.println(st.longestKeyThatPrefixOf("quicksort"));
+        StdOut.println(st.longestKeyThatIsPrefixOf("quicksort"));
         StdOut.println();
 
         StdOut.println("keysWithPrefix(\"shor\"):");
-        for (String s : st.keysWithPrefixOf("shor"))
+        for (String s : st.keysWithPrefixEqualsTo("shor"))
             StdOut.println(s);
         StdOut.println();
 
