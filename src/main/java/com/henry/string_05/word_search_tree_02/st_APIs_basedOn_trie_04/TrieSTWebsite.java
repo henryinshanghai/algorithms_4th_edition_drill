@@ -312,21 +312,21 @@ public class TrieSTWebsite<Value> {
 
     // 返回 以x（x是一个查询字符串的前缀）作为根结点的子树中的 最长字符串键的长度
     // 假设前d个字符匹配，并且我们已经 找到了与给定长度相匹配的前缀（如果没有匹配的前缀，返回-1）
-    private int longestKeysLengthThatIsPrefixOf(Node currentRootNode, String passedStr, int currentCharacterSpot, int keysLength) {
-        // 路径中的当前结点 如果结点为null，说明xxx，则：ooo
-        if (currentRootNode == null) return keysLength;
+    private int longestKeysLengthThatIsPrefixOf(Node currentRootNode, String passedStr, int currentCharacterSpot, int currentLongestKeysLength) {
+        // 路径中的当前结点 如果结点为null，说明 trie树中不存在有当前结点/字符，则：对路径的探索结束，直接返回当前的 最长键的长度
+        if (currentRootNode == null) return currentLongestKeysLength;
 
         // 如果 路径中的当前结点 是一个键结点，说明 路径对应于一个key，则：初始化/更新 length的值 - 在路径上找到的最后一个key结点 会用来更新length的值
-        if (currentRootNode.value != null) keysLength = currentCharacterSpot;
-        // 如果 字符位置 == 传入字符串的长度，说明 路径已经探索结束，则：当前的keysLength 就是此路径能够找到的最大前缀key的长度
-        if (currentCharacterSpot == passedStr.length()) return keysLength;
+        if (currentRootNode.value != null) currentLongestKeysLength = currentCharacterSpot;
+        // 如果 当前字符在路径中的位置 == 传入字符串的长度，说明 对路径已经探索结束，则：当前的keysLength 就是此路径能够找到的最长前缀key的长度
+        if (currentCharacterSpot == passedStr.length()) return currentLongestKeysLength;
 
         // 获取路径中的下一个结点/字符
         char currentCharacterInPassedStr = passedStr.charAt(currentCharacterSpot);
         // 获取到 字符所对应的trie子树
         Node charactersSubTree = currentRootNode.characterToSuccessorNode[currentCharacterInPassedStr];
         // 在trie子树中，递归地继续 获取最长前缀key的长度
-        return longestKeysLengthThatIsPrefixOf(charactersSubTree, passedStr, currentCharacterSpot + 1, keysLength);
+        return longestKeysLengthThatIsPrefixOf(charactersSubTree, passedStr, currentCharacterSpot + 1, currentLongestKeysLength);
     }
 
     /**
