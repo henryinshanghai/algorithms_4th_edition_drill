@@ -341,30 +341,31 @@ public class TrieSTWebsite<Value> {
     }
 
     private Node deleteNodesOfPathThatStartFrom(Node currentRootNode, String passedKey, int currentStartCharacterSpot) {
+        // 如果路径中的当前结点为null,说明 trie树中不存在此结点/字符 | 已经到达了路径的终点，则：返回null??
         if (currentRootNode == null) return null;
 
-        /* #1 把“键字符串的尾字符”所对应的结点的value 设置为null */
-        // 如果当前结点 是 键字符串尾字符所对应的结点，则：把结点的value 设置为null
+        /* 删除路径中的尾结点 */
+        // 如果当前结点 是 路径中的最后一个结点，则：把结点的value设置为null 来 物理删除pair中的value
         if (currentStartCharacterSpot == passedKey.length()) {
             if (currentRootNode.value != null)
                 keysAmount--;
             currentRootNode.value = null;
-        } else { // 如果还不是“尾字符结点”的话，则：递归地在树中查找下一个字符所对应的结点
+        } else { // 如果当前结点 不是 路径中的最后一个结点，则：继续在trie子树中递归地删除key
             char currentCharacter = passedKey.charAt(currentStartCharacterSpot);
             Node successorNodeForCharacter = currentRootNode.characterToSuccessorNode[currentCharacter];
 
+            // 把 删除了key->value之后的trie子树，绑定回去 原始子树的引用上
             currentRootNode.characterToSuccessorNode[currentCharacter] = deleteNodesOfPathThatStartFrom(successorNodeForCharacter, passedKey, currentStartCharacterSpot + 1);
         }
 
-        /* #2 如果当前节点 既没有value，又没有子链接，则：物理删除当前结点（返回null） */
+        /* 在删除了路径的尾结点之后，处理路径中的其他结点 👇 */
         // 如果当前节点 “非空值”，则：保留当前结点
         if (currentRootNode.value != null) return currentRootNode;
-        // 如果当前节点 存在“非空链接”，则：保留当前结点
+        // 如果当前节点 存在有“非空链接”，则：保留当前结点
         for (int currentCharacterOfAlphabet = 0; currentCharacterOfAlphabet < characterOptionsAmount; currentCharacterOfAlphabet++)
             if (currentRootNode.characterToSuccessorNode[currentCharacterOfAlphabet] != null)
                 return currentRootNode;
-
-        // 对于其他情况，返回null 来 从单词查找树中物理删除当前结点
+        // 如果当前节点 既没有value，又没有子链接，则，返回null 来 从单词查找树中物理删除当前结点
         return null;
     }
 
