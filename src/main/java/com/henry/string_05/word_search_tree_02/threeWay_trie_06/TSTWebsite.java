@@ -176,34 +176,40 @@ public class TSTWebsite<Value> {
         return currentRootNode;
     }
 
-    /**
-     * Returns the string in the symbol table that is the longest prefix of {@code query},
-     * or {@code null}, if no such string.
-     *
-     * @param query the query string
-     * @return the string in the symbol table that is the longest prefix of {@code query},
-     * or {@code null} if no such string
-     * @throws IllegalArgumentException if {@code query} is {@code null}
-     */
-    public String longestPrefixOf(String query) {
-        if (query == null) {
+    // 返回符号表中存在的、作为指定 字符串的最长前缀的键。如果不存在，则返回null
+    public String keyThatIsLongestPrefixOf(String passedStr) {
+        // 传入的字符串对象是 null
+        if (passedStr == null) {
             throw new IllegalArgumentException("calls longestPrefixOf() with null argument");
         }
-        if (query.length() == 0) return null;
-        int length = 0;
-        Node<Value> x = root;
-        int i = 0;
-        while (x != null && i < query.length()) {
-            char c = query.charAt(i);
-            if (c < x.character) x = x.leftSubtree;
-            else if (c > x.character) x = x.rightSubtree;
-            else {
-                i++;
-                if (x.value != null) length = i;
-                x = x.midSubtree;
+        // 传入的字符串是 空字符串
+        if (passedStr.length() == 0) return null;
+
+        int longestPrefixLength = 0;
+        Node<Value> currentNode = root;
+        int currentCharacterSpot = 0;
+
+        // 在trie树中，逐步深入地查找 前缀key，并最终得到 最长前缀key
+        // 循环结束条件：#1 到达trie树的叶子结点; #2 字符位置到达结束位置
+        while (currentNode != null && currentCharacterSpot < passedStr.length()) {
+            // 获取到 当前字符
+            char currentCharacter = passedStr.charAt(currentCharacterSpot);
+            // 比较 当前字符 与 当前结点中的字符...
+            if (currentCharacter < currentNode.character)
+                currentNode = currentNode.leftSubtree;
+            else if (currentCharacter > currentNode.character)
+                currentNode = currentNode.rightSubtree;
+            else { // 如果两个字符相等, 说明在trie树中匹配到了当前字符，则：继续匹配 字符串中的下一个字符
+                currentCharacterSpot++;
+                // 如果 当前结点的value不为null，说明 找到了一个有效的key，则：使用 当前字符位置 来 更新“最长前缀长度”
+                if (currentNode.value != null) longestPrefixLength = currentCharacterSpot;
+                // 找到有效的key之后，更新当前结点 以便 继续在trie树中找到 更长的前缀key
+                currentNode = currentNode.midSubtree;
             }
         }
-        return query.substring(0, length);
+
+        // 使用得到的“最长前缀长度” 来 从字符串中截取得到 最长前缀键
+        return passedStr.substring(0, longestPrefixLength);
     }
 
     /**
@@ -303,11 +309,11 @@ public class TSTWebsite<Value> {
         }
 
         StdOut.println("longestPrefixOf(\"shellsort\"):");
-        StdOut.println(st.longestPrefixOf("shellsort"));
+        StdOut.println(st.keyThatIsLongestPrefixOf("shellsort"));
         StdOut.println();
 
         StdOut.println("longestPrefixOf(\"shell\"):");
-        StdOut.println(st.longestPrefixOf("shell"));
+        StdOut.println(st.keyThatIsLongestPrefixOf("shell"));
         StdOut.println();
 
         StdOut.println("keysWithPrefix(\"shor\"):");
