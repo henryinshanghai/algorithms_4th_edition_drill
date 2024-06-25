@@ -212,16 +212,11 @@ public class TSTWebsite<Value> {
         return passedStr.substring(0, longestPrefixLength);
     }
 
-    /**
-     * Returns all keys in the symbol table as an {@code Iterable}.
-     * To iterate over all of the keys in the symbol table named {@code st},
-     * use the foreach notation: {@code for (Key key : st.keys())}.
-     *
-     * @return all keys in the symbol table as an {@code Iterable}
-     */
+    // 以一个可迭代的对象 来 返回符号表中所有的keys
+    // 迭代符号表st中所有key的方式 - 使用foreach语法： for (Key key : st.keys())
     public Iterable<String> keys() {
         Queue<String> queue = new Queue<String>();
-        collect(root, new StringBuilder(), queue);
+        collectKeysTo(root, new StringBuilder(), queue);
         return queue;
     }
 
@@ -241,18 +236,36 @@ public class TSTWebsite<Value> {
         Node<Value> x = getNodeForLastCharacterOf(root, prefix, 0);
         if (x == null) return queue;
         if (x.value != null) queue.enqueue(prefix);
-        collect(x.midSubtree, new StringBuilder(prefix), queue);
+        collectKeysTo(x.midSubtree, new StringBuilder(prefix), queue);
         return queue;
     }
 
     // all keys in subtrie rooted at x with given prefix
-    private void collect(Node<Value> x, StringBuilder prefix, Queue<String> queue) {
-        if (x == null) return;
-        collect(x.leftSubtree, prefix, queue);
-        if (x.value != null) queue.enqueue(prefix.toString() + x.character);
-        collect(x.midSubtree, prefix.append(x.character), queue);
-        prefix.deleteCharAt(prefix.length() - 1);
-        collect(x.rightSubtree, prefix, queue);
+    // 以x作为根结点的子树中存在的、以指定字符串作为前缀的所有key
+    private void collectKeysTo(Node<Value> currentRootNode, StringBuilder currentPrefix, Queue<String> keysQueue) {
+        // 如果 当前结点为null，说明 #1 已经到达了trie树的叶子结点; || #2 trie中没有当前前缀字符串对应的结点，则：返回null 表示不存在
+        if (currentRootNode == null) return;
+
+        // 尝试在left sub-trie中，收集 以currentPrefix 作为前缀的key
+        // 说明：如果使用左子树，说明 当前结点 与 前缀字符串的当前字符 没有匹配，因此：前缀字符串保持不变
+        collectKeysTo(currentRootNode.leftSubtree, currentPrefix, keysQueue);
+
+        // 如果 当前结点的value不为null，说明找到了一个对应于key的结点，则：拼接出key的字符串，并添加到队列集合中
+        if (currentRootNode.value != null) {
+            // key字符串 = 当前前缀字符串 + 当前结点中的字符
+            String keyStr = currentPrefix.toString() + currentRootNode.character;
+            keysQueue.enqueue(keyStr);
+        }
+
+        // 尝试在middle sub-trie中，收集 以currentPrefix 作为前缀的key???
+        // 说明：如果使用中子树，说明 当前结点 与 前缀字符串的当前字符 成功匹配，因此：把当前结点中的字符 追加到 前缀字符串中 - 用于最终拼凑出key字符串
+        collectKeysTo(currentRootNode.midSubtree, currentPrefix.append(currentRootNode.character), keysQueue);
+
+        // 在继续尝试在right sub-trie中查找之前，移除上一步中添加的字符
+        currentPrefix.deleteCharAt(currentPrefix.length() - 1);
+        // 尝试在right sub-trie中，收集 以currentPrefix 作为前缀的key
+        // 说明：如果使用右子树，说明 当前结点 与 前缀字符串的当前字符 没有匹配，因此：前缀字符串保持不变
+        collectKeysTo(currentRootNode.rightSubtree, currentPrefix, keysQueue);
     }
 
 
