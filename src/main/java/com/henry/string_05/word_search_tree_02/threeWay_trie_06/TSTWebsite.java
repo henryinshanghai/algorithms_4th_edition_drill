@@ -223,20 +223,23 @@ public class TSTWebsite<Value> {
     /**
      * Returns all of the keys in the set that start with {@code prefix}.
      *
-     * @param prefix the prefix
+     * @param passedStr the prefix
      * @return all of the keys in the set that start with {@code prefix},
      * as an iterable
      * @throws IllegalArgumentException if {@code prefix} is {@code null}
      */
-    public Iterable<String> keysWithPrefix(String prefix) {
-        if (prefix == null) {
+    public Iterable<String> keysWithPrefix(String passedStr) {
+        if (passedStr == null) {
             throw new IllegalArgumentException("calls keysWithPrefix() with null argument");
         }
         Queue<String> queue = new Queue<String>();
-        Node<Value> x = getNodeForLastCharacterOf(root, prefix, 0);
-        if (x == null) return queue;
-        if (x.value != null) queue.enqueue(prefix);
-        collectKeysTo(x.midSubtree, new StringBuilder(prefix), queue);
+        Node<Value> nodeForLastCharacter = getNodeForLastCharacterOf(root, passedStr, 0);
+        // 如果 传入的字符串的最后一个字符对应的结点是null，说明 前缀字符串在3-way trie中不存在，则：直接返回空的queue
+        if (nodeForLastCharacter == null) return queue;
+        // 如果 传入的前缀字符串的最后一个字符所对应的结点 是一个key结点，说明 前缀字符串本身就是一个key，则：把前缀字符串添加到queue中
+        if (nodeForLastCharacter.value != null) queue.enqueue(passedStr);
+        // 查找并收集 中子树中的key 到keysQueue中
+        collectKeysTo(nodeForLastCharacter.midSubtree, new StringBuilder(passedStr), queue);
         return queue;
     }
 
@@ -273,28 +276,38 @@ public class TSTWebsite<Value> {
      * Returns all of the keys in the symbol table that match {@code pattern},
      * where the character '.' is interpreted as a wildcard character.
      *
-     * @param pattern the pattern
+     * @param patternStr the pattern
      * @return all of the keys in the symbol table that match {@code pattern},
      * as an iterable, where . is treated as a wildcard character.
      */
-    public Iterable<String> keysThatMatch(String pattern) {
-        Queue<String> queue = new Queue<String>();
-        collect(root, new StringBuilder(), 0, pattern, queue);
-        return queue;
+    public Iterable<String> keysThatMatch(String patternStr) {
+        Queue<String> keysQueue = new Queue<String>();
+        collectKeysTo(root, new StringBuilder(), 0, patternStr, keysQueue);
+        return keysQueue;
     }
 
-    private void collect(Node<Value> x, StringBuilder prefix, int i, String pattern, Queue<String> queue) {
-        if (x == null) return;
-        char c = pattern.charAt(i);
-        if (c == '.' || c < x.character) collect(x.leftSubtree, prefix, i, pattern, queue);
-        if (c == '.' || c == x.character) {
-            if (i == pattern.length() - 1 && x.value != null) queue.enqueue(prefix.toString() + x.character);
-            if (i < pattern.length() - 1) {
-                collect(x.midSubtree, prefix.append(x.character), i + 1, pattern, queue);
-                prefix.deleteCharAt(prefix.length() - 1);
+    private void collectKeysTo(Node<Value> currentRootNode, StringBuilder currentPrefix, int currentCharacterSpot, String patternStr, Queue<String> keysQueue) {
+        if (currentRootNode == null) return;
+        char currentPatternCharacter = patternStr.charAt(currentCharacterSpot);
+
+        if (currentPatternCharacter == '.' || currentPatternCharacter < currentRootNode.character)
+            collectKeysTo(currentRootNode.leftSubtree, currentPrefix, currentCharacterSpot, patternStr, keysQueue);
+
+        if (currentPatternCharacter == '.' || currentPatternCharacter == currentRootNode.character) {
+            // 找到了key结点
+            if (currentCharacterSpot == patternStr.length() - 1 && currentRootNode.value != null)
+                keysQueue.enqueue(currentPrefix.toString() + currentRootNode.character);
+
+            // 当前结点 匹配到了 当前模式字符
+            if (currentCharacterSpot < patternStr.length() - 1) {
+                // 在中子树中继续进行匹配与收集
+                collectKeysTo(currentRootNode.midSubtree, currentPrefix.append(currentRootNode.character), currentCharacterSpot + 1, patternStr, keysQueue);
+                currentPrefix.deleteCharAt(currentPrefix.length() - 1);
             }
         }
-        if (c == '.' || c > x.character) collect(x.rightSubtree, prefix, i, pattern, queue);
+
+        if (currentPatternCharacter == '.' || currentPatternCharacter > currentRootNode.character)
+            collectKeysTo(currentRootNode.rightSubtree, currentPrefix, currentCharacterSpot, patternStr, keysQueue);
     }
 
 
@@ -306,36 +319,37 @@ public class TSTWebsite<Value> {
     public static void main(String[] args) {
 
         // build symbol table from standard input
-        TSTWebsite<Integer> st = new TSTWebsite<Integer>();
-        for (int i = 0; !StdIn.isEmpty(); i++) {
-            String key = StdIn.readString();
-            st.put(key, i);
+        TSTWebsite<Integer> symbolTable = new TSTWebsite<Integer>();
+
+        for (int currentSpot = 0; !StdIn.isEmpty(); currentSpot++) {
+            String currentKey = StdIn.readString();
+            symbolTable.put(currentKey, currentSpot);
         }
 
         // print results
-        if (st.size() < 100) {
+        if (symbolTable.size() < 100) {
             StdOut.println("keys(\"\"):");
-            for (String key : st.keys()) {
-                StdOut.println(key + " " + st.get(key));
+            for (String key : symbolTable.keys()) {
+                StdOut.println(key + " " + symbolTable.get(key));
             }
             StdOut.println();
         }
 
         StdOut.println("longestPrefixOf(\"shellsort\"):");
-        StdOut.println(st.keyThatIsLongestPrefixOf("shellsort"));
+        StdOut.println(symbolTable.keyThatIsLongestPrefixOf("shellsort"));
         StdOut.println();
 
         StdOut.println("longestPrefixOf(\"shell\"):");
-        StdOut.println(st.keyThatIsLongestPrefixOf("shell"));
+        StdOut.println(symbolTable.keyThatIsLongestPrefixOf("shell"));
         StdOut.println();
 
         StdOut.println("keysWithPrefix(\"shor\"):");
-        for (String s : st.keysWithPrefix("shor"))
+        for (String s : symbolTable.keysWithPrefix("shor"))
             StdOut.println(s);
         StdOut.println();
 
         StdOut.println("keysThatMatch(\".he.l.\"):");
-        for (String s : st.keysThatMatch(".he.l."))
+        for (String s : symbolTable.keysThatMatch(".he.l."))
             StdOut.println(s);
     }
 }
