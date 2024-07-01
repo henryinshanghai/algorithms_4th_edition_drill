@@ -215,9 +215,9 @@ public class TSTWebsite<Value> {
     // 以一个可迭代的对象 来 返回符号表中所有的keys
     // 迭代符号表st中所有key的方式 - 使用foreach语法： for (Key key : st.keys())
     public Iterable<String> keys() {
-        Queue<String> queue = new Queue<String>();
-        collectKeysTo(root, new StringBuilder(), queue);
-        return queue;
+        Queue<String> keysQueue = new Queue<String>();
+        collectKeysStartWithPrefixInto(root, new StringBuilder(), keysQueue);
+        return keysQueue;
     }
 
     /**
@@ -232,66 +232,78 @@ public class TSTWebsite<Value> {
         if (passedStr == null) {
             throw new IllegalArgumentException("calls keysWithPrefix() with null argument");
         }
-        Queue<String> queue = new Queue<String>();
+        Queue<String> keysQueue = new Queue<String>();
+        // 获取到 传入的字符串的最后一个字符 在3-way trie树中所对应的结点
         Node<Value> nodeForLastCharacter = getNodeForLastCharacterOf(root, passedStr, 0);
-        // 如果 传入的字符串的最后一个字符对应的结点是null，说明 前缀字符串在3-way trie中不存在，则：直接返回空的queue
-        if (nodeForLastCharacter == null) return queue;
-        // 如果 传入的前缀字符串的最后一个字符所对应的结点 是一个key结点，说明 前缀字符串本身就是一个key，则：把前缀字符串添加到queue中
-        if (nodeForLastCharacter.value != null) queue.enqueue(passedStr);
-        // 查找并收集 中子树中的key 到keysQueue中
-        collectKeysTo(nodeForLastCharacter.midSubtree, new StringBuilder(passedStr), queue);
-        return queue;
+
+        // 如果 传入的字符串的最后一个字符 在3-way trie中所对应的结点是null，说明 前缀字符串在3-way trie中不存在，则：
+        if (nodeForLastCharacter == null) {
+            // 直接返回空的queue
+            return keysQueue;
+        }
+
+        // 如果 传入的字符串的最后一个字符 在3-way trie树中所对应的结点 是一个key结点，说明 传入的字符串本身就是一个key，则：
+        if (nodeForLastCharacter.value != null) {
+            // 把前缀字符串添加到 keysQueue中...
+            keysQueue.enqueue(passedStr);
+        }
+
+        // 获取到 前缀字符串的最后一个字符 在trie中对应的结点 的中子树 - 作为前缀，字符串必然是匹配的。所以key中剩下的字符 需要在中子树中继续匹配
+        Node<Value> subTreeToKeepMatching = nodeForLastCharacter.midSubtree;
+        StringBuilder givenPrefixSB = new StringBuilder(passedStr);
+
+        // 在subTrie中，查找以指定字符串作为前缀的key，并收集到keysQueue集合中
+        collectKeysStartWithPrefixInto(subTreeToKeepMatching, givenPrefixSB, keysQueue);
+
+        // 最终返回收集到的所有key
+        return keysQueue;
     }
 
     // all keys in subtrie rooted at x with given prefix
     // 以x作为根结点的子树中存在的、以指定字符串作为前缀的所有key
-    private void collectKeysTo(Node<Value> currentRootNode, StringBuilder currentPrefix, Queue<String> keysQueue) {
-        // 如果 当前结点为null，说明 #1 已经到达了trie树的叶子结点; || #2 trie中没有当前前缀字符串对应的结点，则：返回null 表示不存在
+    private void collectKeysStartWithPrefixInto(Node<Value> currentRootNode, StringBuilder currentPrefix, Queue<String> keysQueue) {
+        // 如果路径上的当前字符不存在其对应的结点 / 对路径的查询结束于null，说明 trie树中不存在有 预期的路径(符号表中有效的key)，则：直接返回 表示此路无果
         if (currentRootNode == null) return;
 
         // 尝试在left sub-trie中，收集 以currentPrefix 作为前缀的key
         // 说明：如果使用左子树，说明 当前结点 与 前缀字符串的当前字符 没有匹配，因此：前缀字符串保持不变
-        collectKeysTo(currentRootNode.leftSubtree, currentPrefix, keysQueue);
+        collectKeysStartWithPrefixInto(currentRootNode.leftSubtree, currentPrefix, keysQueue);
 
-        // 如果 当前结点的value不为null，说明找到了一个对应于key的结点，则：拼接出key的字符串，并添加到队列集合中
+        // 如果对路径的查询结束于一个 value不为null的结点，说明 trie树中存在有 预期的路径，则：把路径对应的key 添加到 key的集合中
         if (currentRootNode.value != null) {
             // key字符串 = 当前前缀字符串 + 当前结点中的字符
             String keyStr = currentPrefix.toString() + currentRootNode.character;
             keysQueue.enqueue(keyStr);
+            /* 🐖 这里不会return，因为后继的路径中仍旧可能存在有 有效的key。只有查找到null时，才会return */
         }
 
-        // 尝试在middle sub-trie中，收集 以currentPrefix 作为前缀的key???
+        // 尝试在middle sub-trie中，收集 以currentPrefix 作为前缀的key
         // 说明：如果使用中子树，说明 当前结点 与 前缀字符串的当前字符 成功匹配，因此：把当前结点中的字符 追加到 前缀字符串中 - 用于最终拼凑出key字符串
-        collectKeysTo(currentRootNode.midSubtree, currentPrefix.append(currentRootNode.character), keysQueue);
+        collectKeysStartWithPrefixInto(currentRootNode.midSubtree, currentPrefix.append(currentRootNode.character), keysQueue);
 
         // 在继续尝试在right sub-trie中查找之前，移除上一步中添加的字符
         currentPrefix.deleteCharAt(currentPrefix.length() - 1);
+
         // 尝试在right sub-trie中，收集 以currentPrefix 作为前缀的key
         // 说明：如果使用右子树，说明 当前结点 与 前缀字符串的当前字符 没有匹配，因此：前缀字符串保持不变
-        collectKeysTo(currentRootNode.rightSubtree, currentPrefix, keysQueue);
+        collectKeysStartWithPrefixInto(currentRootNode.rightSubtree, currentPrefix, keysQueue);
     }
 
 
-    /**
-     * Returns all of the keys in the symbol table that match {@code pattern},
-     * where the character '.' is interpreted as a wildcard character.
-     *
-     * @param patternStr the pattern
-     * @return all of the keys in the symbol table that match {@code pattern},
-     * as an iterable, where . is treated as a wildcard character.
-     */
+    // 返回符号表中 匹配模式字符串的所有key，其中字符.会被解释成为一个 通配字符
     public Iterable<String> keysThatMatch(String patternStr) {
         Queue<String> keysQueue = new Queue<String>();
-        collectKeysTo(root, new StringBuilder(), 0, patternStr, keysQueue);
+        collectKeysStartWithPrefixInto(root, new StringBuilder(), patternStr, 0, keysQueue);
         return keysQueue;
     }
 
-    private void collectKeysTo(Node<Value> currentRootNode, StringBuilder currentPrefix, int currentCharacterSpot, String patternStr, Queue<String> keysQueue) {
+    // TBD
+    private void collectKeysStartWithPrefixInto(Node<Value> currentRootNode, StringBuilder currentPrefix, String patternStr, int currentCharacterSpot, Queue<String> keysQueue) {
         if (currentRootNode == null) return;
         char currentPatternCharacter = patternStr.charAt(currentCharacterSpot);
 
         if (currentPatternCharacter == '.' || currentPatternCharacter < currentRootNode.character)
-            collectKeysTo(currentRootNode.leftSubtree, currentPrefix, currentCharacterSpot, patternStr, keysQueue);
+            collectKeysStartWithPrefixInto(currentRootNode.leftSubtree, currentPrefix, patternStr, currentCharacterSpot, keysQueue);
 
         if (currentPatternCharacter == '.' || currentPatternCharacter == currentRootNode.character) {
             // 找到了key结点
@@ -301,13 +313,13 @@ public class TSTWebsite<Value> {
             // 当前结点 匹配到了 当前模式字符
             if (currentCharacterSpot < patternStr.length() - 1) {
                 // 在中子树中继续进行匹配与收集
-                collectKeysTo(currentRootNode.midSubtree, currentPrefix.append(currentRootNode.character), currentCharacterSpot + 1, patternStr, keysQueue);
+                collectKeysStartWithPrefixInto(currentRootNode.midSubtree, currentPrefix.append(currentRootNode.character), patternStr, currentCharacterSpot + 1, keysQueue);
                 currentPrefix.deleteCharAt(currentPrefix.length() - 1);
             }
         }
 
         if (currentPatternCharacter == '.' || currentPatternCharacter > currentRootNode.character)
-            collectKeysTo(currentRootNode.rightSubtree, currentPrefix, currentCharacterSpot, patternStr, keysQueue);
+            collectKeysStartWithPrefixInto(currentRootNode.rightSubtree, currentPrefix, patternStr, currentCharacterSpot, keysQueue);
     }
 
 
