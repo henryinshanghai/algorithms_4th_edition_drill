@@ -1,4 +1,4 @@
-package com.henry.string_05.word_search_tree_02.threeWay_trie_06; /******************************************************************************
+package com.henry.string_05.word_search_tree_02.threeWay_trie_06.execution; /******************************************************************************
  *  Compilation:  javac TST.java
  *  Execution:    java TST < words.txt
  *  Dependencies: StdIn.java
@@ -202,7 +202,9 @@ public class TSTWebsite<Value> {
             else { // 如果两个字符相等, 说明在trie树中匹配到了当前字符，则：继续匹配 字符串中的下一个字符
                 currentCharacterSpot++;
                 // 如果 当前结点的value不为null，说明 找到了一个有效的key，则：使用 当前字符位置 来 更新“最长前缀长度”
-                if (currentNode.value != null) longestPrefixLength = currentCharacterSpot;
+                if (currentNode.value != null) {
+                    longestPrefixLength = currentCharacterSpot;
+                }
                 // 找到有效的key之后，更新当前结点 以便 继续在trie树中找到 更长的前缀key
                 currentNode = currentNode.midSubtree;
             }
@@ -216,7 +218,7 @@ public class TSTWebsite<Value> {
     // 迭代符号表st中所有key的方式 - 使用foreach语法： for (Key key : st.keys())
     public Iterable<String> keys() {
         Queue<String> keysQueue = new Queue<String>();
-        collectKeysStartWithPrefixInto(root, new StringBuilder(), keysQueue);
+        collectKeysInto(root, new StringBuilder(), keysQueue);
         return keysQueue;
     }
 
@@ -253,7 +255,7 @@ public class TSTWebsite<Value> {
         StringBuilder givenPrefixSB = new StringBuilder(passedStr);
 
         // 在subTrie中，查找以指定字符串作为前缀的key，并收集到keysQueue集合中
-        collectKeysStartWithPrefixInto(subTreeToKeepMatching, givenPrefixSB, keysQueue);
+        collectKeysInto(subTreeToKeepMatching, givenPrefixSB, keysQueue);
 
         // 最终返回收集到的所有key
         return keysQueue;
@@ -261,32 +263,33 @@ public class TSTWebsite<Value> {
 
     // all keys in subtrie rooted at x with given prefix
     // 以x作为根结点的子树中存在的、以指定字符串作为前缀的所有key
-    private void collectKeysStartWithPrefixInto(Node<Value> currentRootNode, StringBuilder currentPrefix, Queue<String> keysQueue) {
-        // 如果路径上的当前字符不存在其对应的结点 / 对路径的查询结束于null，说明 trie树中不存在有 预期的路径(符号表中有效的key)，则：直接返回 表示此路无果
+    private void collectKeysInto(Node<Value> currentRootNode, StringBuilder currentAttemptStr, Queue<String> keysQueue) {
+        // 递归遍历3-way trie结点的过程中，如果结点为null，说明此分支已经探索完毕，则：直接返回 以继续探索其他分支
         if (currentRootNode == null) return;
 
-        // 尝试在left sub-trie中，收集 以currentPrefix 作为前缀的key
-        // 说明：如果使用左子树，说明 当前结点 与 前缀字符串的当前字符 没有匹配，因此：前缀字符串保持不变
-        collectKeysStartWithPrefixInto(currentRootNode.leftSubtree, currentPrefix, keysQueue);
+        // #1 遍历左子树中的结点，来收集key
+        // 说明：如果使用左子树，说明 没有选用“当前结点的字符”来组成 attemptStr，因此：前缀字符串保持不变
+        collectKeysInto(currentRootNode.leftSubtree, currentAttemptStr, keysQueue);
 
-        // 如果对路径的查询结束于一个 value不为null的结点，说明 trie树中存在有 预期的路径，则：把路径对应的key 添加到 key的集合中
+        // 递归遍历3-way trie结点的过程中，如果结点的value不为null，说明找到了keyStr的尾字符对应的结点，则：
         if (currentRootNode.value != null) {
-            // key字符串 = 当前前缀字符串 + 当前结点中的字符
-            String keyStr = currentPrefix.toString() + currentRootNode.character;
+            // ① 组装出 key字符串
+            String keyStr = currentAttemptStr.toString() + currentRootNode.character;
+            // ② 把组装出的key字符串 添加到keysQueue中
             keysQueue.enqueue(keyStr);
             /* 🐖 这里不会return，因为后继的路径中仍旧可能存在有 有效的key。只有查找到null时，才会return */
         }
 
-        // 尝试在middle sub-trie中，收集 以currentPrefix 作为前缀的key
-        // 说明：如果使用中子树，说明 当前结点 与 前缀字符串的当前字符 成功匹配，因此：把当前结点中的字符 追加到 前缀字符串中 - 用于最终拼凑出key字符串
-        collectKeysStartWithPrefixInto(currentRootNode.midSubtree, currentPrefix.append(currentRootNode.character), keysQueue);
+        // #2 遍历中子树中的结点，来收集key
+        // 说明：如果使用中子树，说明 选用了“当前结点的字符”来组成 attemptStr，因此：把当前结点中的字符 追加到 attemptStr中 - 用于最终拼凑出key字符串
+        collectKeysInto(currentRootNode.midSubtree, currentAttemptStr.append(currentRootNode.character), keysQueue);
 
         // 在继续尝试在right sub-trie中查找之前，移除上一步中添加的字符
-        currentPrefix.deleteCharAt(currentPrefix.length() - 1);
+        currentAttemptStr.deleteCharAt(currentAttemptStr.length() - 1);
 
-        // 尝试在right sub-trie中，收集 以currentPrefix 作为前缀的key
-        // 说明：如果使用右子树，说明 当前结点 与 前缀字符串的当前字符 没有匹配，因此：前缀字符串保持不变
-        collectKeysStartWithPrefixInto(currentRootNode.rightSubtree, currentPrefix, keysQueue);
+        // #3 遍历右子树中的结点，来收集key
+        // 说明：如果使用右子树，说明 没有选用“当前结点的字符”来组成 attemptStr，因此：前缀字符串保持不变
+        collectKeysInto(currentRootNode.rightSubtree, currentAttemptStr, keysQueue);
     }
 
 
