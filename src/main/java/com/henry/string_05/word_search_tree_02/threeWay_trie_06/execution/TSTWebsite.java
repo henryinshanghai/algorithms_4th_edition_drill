@@ -115,7 +115,11 @@ public class TSTWebsite<Value> {
 
     // 返回 传入的字符串参数（的尾字符） 在trie中对应的结点
     private Node<Value> getNodeForLastCharacterOf(Node<Value> currentRootNode, String passedStr, int currentCharacterSpot) {
-        if (currentRootNode == null) return null;
+        // 如果当前结点为null，说明 #1 查询进行到了trie树的null结点，aka 查询结束 || #2 当前字符对应的结点在tire中不存在，则：
+        if (currentRootNode == null) {
+            // 返回null 来 表示trie中不存在 passedStr所对应的结点
+            return null;
+        }
         if (passedStr.length() == 0) throw new IllegalArgumentException("key must have length >= 1");
 
         // 获取“查询字符串”的当前字符
@@ -123,10 +127,8 @@ public class TSTWebsite<Value> {
 
         // 比较 当前字符 与 树的根结点中存储的字符
         if (currentCharacter < currentRootNode.character)
-            // 如果更小，说明 当前字符 只会出现在left sub trie中，则：在左子树中继续查找 该字符
             return getNodeForLastCharacterOf(currentRootNode.leftSubtree, passedStr, currentCharacterSpot);
         else if (currentCharacter > currentRootNode.character)
-            // 如果更大，说明 当前字符 只会出现在right sub trie中，则：在右子树中继续查找 该字符
             return getNodeForLastCharacterOf(currentRootNode.rightSubtree, passedStr, currentCharacterSpot);
         else if (currentCharacterSpot < passedStr.length() - 1)
             // 如果相等，说明 当前字符 与 当前结点匹配成功；&& 如果 当前字符 不是“待查询字符串的尾字符”，说明 还没有找到 想要找到的结点
@@ -142,8 +144,15 @@ public class TSTWebsite<Value> {
         if (passedKey == null) {
             throw new IllegalArgumentException("calls put() with null key");
         }
-        if (!contains(passedKey)) keysAmount++;
-        else if (associatedValue == null) keysAmount--;       // delete existing key
+
+        // 如果传入的key是一个新的key，则：把trie中的key计数+1
+        if (!contains(passedKey)) {
+            keysAmount++;
+        } else if (associatedValue == null) {
+            // 如果传入的value为null，说明使用方想要删除此键值对，则：把trie中的key计数器-1
+            keysAmount--; // delete existing key
+        }
+
         root = putNodesOfPathThatStartFrom(root, passedKey, associatedValue, 0);
     }
 
@@ -151,18 +160,18 @@ public class TSTWebsite<Value> {
         // 获取“待插入字符串”的当前字符
         char currentCharacterOfPassedKey = passedKey.charAt(currentCharacterSpot);
 
-        // 如果trie中的当前结点为null，说明trie中不存在有此字符，则：在trie树中，为当前字符创建新结点 and??
+        // #1 如果trie中的当前结点为null，说明trie中不存在有此字符，则：
         if (currentRootNode == null) {
+            // 在trie树中，为当前字符创建新结点 and
             currentRootNode = new Node<Value>();
+            // 为创建的结点 绑定当前字符
             currentRootNode.character = currentCharacterOfPassedKey;
         }
 
-        // 如果trie树中的当前结点不为null，说明结点中存在有一个字符，则：把结点中的字符 与 字符串中的当前字符 进行比较
+        // #2 根据待插入字符 与 当前结点中的字符的比较结果 来 选择正确的子树插入字符
         if (currentCharacterOfPassedKey < currentRootNode.character) {
-            // 如果“当前字符”比起“根结点中的字符”更小，说明应该在left sub trie中插入当前字符，则：在左子树中继续执行插入
             currentRootNode.leftSubtree = putNodesOfPathThatStartFrom(currentRootNode.leftSubtree, passedKey, associatedValue, currentCharacterSpot);
         } else if (currentCharacterOfPassedKey > currentRootNode.character)
-            // 如果“当前字符”比起“根结点中的字符”更大，说明应该在right sub trie中插入当前字符，则：在右子树中继续执行插入
             currentRootNode.rightSubtree = putNodesOfPathThatStartFrom(currentRootNode.rightSubtree, passedKey, associatedValue, currentCharacterSpot);
         else if (currentCharacterSpot < passedKey.length() - 1)
             // 如果“当前字符” 与 “根结点中的字符”相等，说明 当前字符在trie树中已经存在了
@@ -172,51 +181,59 @@ public class TSTWebsite<Value> {
             // 如果向trie树中添加到了 “尾字符”，说明 已经到达了 要绑定value的结点，则：为此结点绑定 associatedValue
             currentRootNode.value = associatedValue;
 
-        /* #3 在向trie树中插入“字符串的每个字符”之后，返回三向单词查找树的根结点 */
+        // #3 在向trie树中插入“字符串的每个字符”之后，返回三向单词查找树的根结点
         return currentRootNode;
     }
 
     // 返回符号表中存在的、作为指定 字符串的最长前缀的键。如果不存在，则返回null
-    public String keyThatIsLongestPrefixOf(String passedStr) {
-        // 传入的字符串对象是 null
+    public String keyWhoIsLongestPrefixOf(String passedStr) {
+        // #1-① 传入的字符串对象是 null
         if (passedStr == null) {
             throw new IllegalArgumentException("calls longestPrefixOf() with null argument");
         }
-        // 传入的字符串是 空字符串
+        // #1-② 传入的字符串是 空字符串
         if (passedStr.length() == 0) return null;
 
-        int longestPrefixLength = 0;
-        Node<Value> currentNode = root;
-        int currentCharacterSpot = 0;
+        // 准备一些 在查找过程中需要被动态更新的变量
+        int longestPrefixLength = 0; // 最长前缀的长度
+        Node<Value> currentNode = root; // trie树中的当前结点
+        int currentCharacterSpot = 0; // 用于遍历字符串中字符的指针
 
-        // 在trie树中，逐步深入地查找 前缀key，并最终得到 最长前缀key
-        // 循环结束条件：#1 到达trie树的叶子结点; #2 字符位置到达结束位置
+        // 在trie树中，逐步深入地查找 前缀key，并最终得到 最长前缀key(这意味着一个比较&&更新的过程)
+        // 循环结束条件：#1 到达trie树的叶子结点; || #2 字符位置到达结束位置
         while (currentNode != null && currentCharacterSpot < passedStr.length()) {
-            // 获取到 当前字符
-            char currentCharacter = passedStr.charAt(currentCharacterSpot);
-            // 比较 当前字符 与 当前结点中的字符...
-            if (currentCharacter < currentNode.character)
+            // 获取到 传入字符串中的当前字符
+            char currentCharacterInPassedStr = passedStr.charAt(currentCharacterSpot);
+
+            // 根据 当前字符 与 当前结点中的字符的比较结果 来 导航到正确的子树中 继续查找
+            if (currentCharacterInPassedStr < currentNode.character)
+                // 更新当前结点 以 在正确的子树中继续查找
                 currentNode = currentNode.leftSubtree;
-            else if (currentCharacter > currentNode.character)
+            else if (currentCharacterInPassedStr > currentNode.character)
+                // 更新当前结点 以 在正确的子树中继续查找
                 currentNode = currentNode.rightSubtree;
-            else { // 如果两个字符相等, 说明在trie树中匹配到了当前字符，则：继续匹配 字符串中的下一个字符
+            else { // 如果两个字符相等, 说明在trie树中匹配到了当前字符，则：在中子树中 继续查找 字符串中的下一个字符
+                // 字符串的下一个字符    手段：更新字符指针到下一个位置
                 currentCharacterSpot++;
-                // 如果 当前结点的value不为null，说明 找到了一个有效的key，则：使用 当前字符位置 来 更新“最长前缀长度”
+
+                // 如果 当前结点的value不为null，说明 找到了一个有效的key，则：
                 if (currentNode.value != null) {
+                    // 更新“最长前缀长度” - 手段：使用 当前字符位置
                     longestPrefixLength = currentCharacterSpot;
                 }
-                // 找到有效的key之后，更新当前结点 以便 继续在trie树中找到 更长的前缀key
+
+                // 更新当前结点 以便 继续在trie树中找到 更长的前缀key
                 currentNode = currentNode.midSubtree;
             }
         }
 
-        // 使用得到的“最长前缀长度” 来 从字符串中截取得到 最长前缀键
+        // 从字符串中截取得到 最长前缀键 - 手段：使用得到的“最长前缀长度”
         return passedStr.substring(0, longestPrefixLength);
     }
 
     // 以一个可迭代的对象 来 返回符号表中所有的keys
     // 迭代符号表st中所有key的方式 - 使用foreach语法： for (Key key : st.keys())
-    public Iterable<String> keys() {
+    public Iterable<String> getIterableKeys() {
         Queue<String> keysQueue = new Queue<String>();
         collectKeysInto(root, new StringBuilder(), keysQueue);
         return keysQueue;
@@ -261,7 +278,6 @@ public class TSTWebsite<Value> {
         return keysQueue;
     }
 
-    // all keys in subtrie rooted at x with given prefix
     // 以x作为根结点的子树中存在的、以指定字符串作为前缀的所有key
     private void collectKeysInto(Node<Value> currentRootNode, StringBuilder currentAttemptStr, Queue<String> keysQueue) {
         // 递归遍历3-way trie结点的过程中，如果结点为null，说明此分支已经探索完毕，则：直接返回 以继续探索其他分支
@@ -344,18 +360,18 @@ public class TSTWebsite<Value> {
         // print results
         if (symbolTable.size() < 100) {
             StdOut.println("keys(\"\"):");
-            for (String key : symbolTable.keys()) {
+            for (String key : symbolTable.getIterableKeys()) {
                 StdOut.println(key + " " + symbolTable.get(key));
             }
             StdOut.println();
         }
 
         StdOut.println("longestPrefixOf(\"shellsort\"):");
-        StdOut.println(symbolTable.keyThatIsLongestPrefixOf("shellsort"));
+        StdOut.println(symbolTable.keyWhoIsLongestPrefixOf("shellsort"));
         StdOut.println();
 
         StdOut.println("longestPrefixOf(\"shell\"):");
-        StdOut.println(symbolTable.keyThatIsLongestPrefixOf("shell"));
+        StdOut.println(symbolTable.keyWhoIsLongestPrefixOf("shell"));
         StdOut.println();
 
         StdOut.println("keysWithPrefix(\"shor\"):");
