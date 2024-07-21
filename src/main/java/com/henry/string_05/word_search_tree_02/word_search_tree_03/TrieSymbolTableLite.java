@@ -1,11 +1,10 @@
 package com.henry.string_05.word_search_tree_02.word_search_tree_03;
 
-import jdk.internal.org.objectweb.asm.tree.analysis.Value;
 
 // 验证：可以使用 Trie数据结构 来 实现key为字符串的符号表
 // 获取符号表中，指定的key所对应的value值：在trie树中，查找 key字符串所对应的路径，并返回路径的最后一个结点上所绑定的value值；
 // 向符号表中，添加 key->value的键值对：在trie树中，查找 key字符串所对应的路径，如果没找到，则创建路径。如果找到了，则：更新路径的最后一个结点所关联的value值
-public class TrieSymbolTableLite {
+public class TrieSymbolTableLite<Key, Value> {
 
     private static int characterOptionsAmount = 256; // 所有可能的字符的数量
     private Node rootNode;

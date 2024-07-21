@@ -1,4 +1,6 @@
-package com.henry.string_05.word_search_tree_02.threeWay_trie_06.execution; /******************************************************************************
+package com.henry.string_05.word_search_tree_02.threeWay_trie_06.execution;
+
+/******************************************************************************
  *  Compilation:  javac TST.java
  *  Execution:    java TST < words.txt
  *  Dependencies: StdIn.java
@@ -90,20 +92,20 @@ public class TSTWebsite<Value> {
     /**
      * Does this symbol table contain the given key?
      *
-     * @param key the key
+     * @param passedKeyStr the key
      * @return {@code true} if this symbol table contains {@code key} and
      * {@code false} otherwise
      * @throws IllegalArgumentException if {@code key} is {@code null}
      */
-    public boolean contains(String key) {
-        if (key == null) {
+    public boolean contains(String passedKeyStr) {
+        if (passedKeyStr == null) {
             throw new IllegalArgumentException("argument to contains() is null");
         }
-        return get(key) != null;
+        return getAssociatedValueOf(passedKeyStr) != null;
     }
 
     // 返回trie中，传入的字符串 所关联的值
-    public Value get(String passedStr) {
+    public Value getAssociatedValueOf(String passedStr) {
         // 对传入的字符串参数 进行校验
         if (passedStr == null) {
             throw new IllegalArgumentException("calls get() with null argument");
@@ -115,6 +117,7 @@ public class TSTWebsite<Value> {
         Node<Value> foundNode = getNodeForLastCharacterOf(root, passedStr, 0);
 
         if (foundNode == null) return null;
+        // 返回 node中所存储的value，即为 传入的keyStr所关联的value
         return foundNode.value;
     }
 
@@ -149,7 +152,7 @@ public class TSTWebsite<Value> {
 
     // 把键值对 插入到 符号表中，如果键已经存在于符号表中，则 覆盖旧的value
     // 如果传入的value是null，那么 这个操作就会 从符号表中把传入的key给删除掉
-    public void put(String passedKey, Value associatedValue) {
+    public void putPairIntoSymbolTable(String passedKey, Value associatedValue) {
         if (passedKey == null) {
             throw new IllegalArgumentException("calls put() with null key");
         }
@@ -209,7 +212,7 @@ public class TSTWebsite<Value> {
             return null; // 返回null来表示：trie中不存在满足条件的key
 
         // #2 在trie中，查找这个唯一存在的key
-        // ① 准备一些 在查找过程中需要被动态更新的变量
+        // ① 准备一些 在查找过程中，需要被动态更新的变量
         int currentKeysLength = 0; // 当前key的长度
         Node<Value> currentNode = root; // trie树中的当前结点
         int currentCharacterSpot = 0; // 指向字符串中当前字符的指针 - 用于遍历字符串中的字符
@@ -242,7 +245,7 @@ public class TSTWebsite<Value> {
             }
         }
 
-        // 从字符串中截取得到 最长前缀键 - 手段：使用得到的“最长前缀长度”
+        // 从字符串中，使用得到的”当前key的长度“ 来 截取得到 最长前缀键 - 手段：使用得到的“最长前缀长度”
         return passedStr.substring(0, currentKeysLength);
     }
 
@@ -360,19 +363,19 @@ public class TSTWebsite<Value> {
 
         // #2 如果模式字符为通配字符 或者 模式字符与当前结点中的字符相等（匹配），说明 需要在中子树中继续执行任务，则：
         if (currentPatternCharacter == '.' || currentPatternCharacter == currentRootNode.character) {
-            // [特殊情况] 如果 xxx，说明找到了key结点，则：[具体地执行任务]
+            // [特殊情况] 如果 当前结点的value不为null 并且 当前字符(位置)是模式字符的最后一个字符，说明找到了key结点，则：[具体地执行任务]
             if (currentCharacterSpot == patternStr.length() - 1 && currentRootNode.value != null) {
-                // 拼接出 key
+                // ① 拼接出 key
                 String keyStr = currentAttemptStr.toString() + currentRootNode.character;
-                // 把 拼接出的key 收集到 集合中
+                // ② 把 拼接出的key 收集到 集合中
                 keysQueue.enqueue(keyStr);
             }
 
             // [一般情况] 当前模式字符 匹配 当前结点，但是并没有到达模式字符串的末尾，说明 还需要继续匹配，则：
             if (currentCharacterSpot < patternStr.length() - 1) {
-                // 拼接上当前结点的字符，然后 在中子树中继续执行任务 - 识别、拼装与收集
+                // ① 拼接上 当前结点的字符，然后 在中子树中继续执行任务 - 识别、拼装与收集
                 findAndCollectKeysThatMatchInto(currentRootNode.midSubtree, currentAttemptStr.append(currentRootNode.character), patternStr, currentCharacterSpot + 1, keysQueue);
-                // 中子树调用完成后，把最后一个字符冲 currentAttemptStr中移除 - 以便继续从右子树中尝试新的key
+                // ② 中子树调用完成后，把最后一个字符 从currentAttemptStr中移除 - 以便继续从右子树中尝试新的key
                 currentAttemptStr.deleteCharAt(currentAttemptStr.length() - 1);
             }
         }
@@ -396,20 +399,20 @@ public class TSTWebsite<Value> {
 
         for (int currentSpot = 0; !StdIn.isEmpty(); currentSpot++) {
             String currentKey = StdIn.readString();
-            symbolTable.put(currentKey, currentSpot);
+            symbolTable.putPairIntoSymbolTable(currentKey, currentSpot);
         }
 
         // 打印符号表中的各个键值对
         if (symbolTable.size() < 100) {
             StdOut.println("keys(\"\"):");
             for (String key : symbolTable.getAllKeysInIterable()) { // 获取到符号表中所有键的可迭代形式
-                StdOut.println(key + " " + symbolTable.get(key));
+                StdOut.println(key + " " + symbolTable.getAssociatedValueOf(key));
             }
             StdOut.println();
         }
 
         /* 尝试几个公开的API */
-        // 能够作为指定字符串的前缀的最长key
+        // #1 符号表中存在的、能够作为指定字符串的前缀的最长key（单数）
         StdOut.println("longestPrefixOf(\"shellsort\"):");
         StdOut.println(symbolTable.keyWhoIsLongestPrefixOf("shellsort"));
         StdOut.println();
@@ -418,13 +421,13 @@ public class TSTWebsite<Value> {
         StdOut.println(symbolTable.keyWhoIsLongestPrefixOf("shell"));
         StdOut.println();
 
-        // 以指定字符串作为前缀的所有key
+        // #2 符号表中存在的、以指定字符串作为前缀的所有key（复数）
         StdOut.println("keysWithPrefix(\"shor\"):");
         for (String s : symbolTable.keysWhosePrefixIs("shor"))
             StdOut.println(s);
         StdOut.println();
 
-        // 匹配指定模式字符串的所有key
+        // #3 符号表中存在的、能够匹配指定模式字符串的所有key（复数）
         StdOut.println("keysThatMatch(\".he.l.\"):");
         for (String s : symbolTable.keysThatMatch(".he.l."))
             StdOut.println(s);
