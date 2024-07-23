@@ -312,10 +312,6 @@ public class TSTWebsite<Value> {
             // 直接返回 以继续探索其他分支
             return;
 
-        // #1 遍历左子树中的结点，来识别、拼装并收集key [递归地执行任务]
-        // 说明：如果使用左子树，说明 没有选用“当前结点的字符”来组成 attemptStr，因此：前缀字符串保持不变
-        collectKeysWhosePrefixIsInto(currentRootNode.leftSubtree, currentAttemptStr, keysQueue);
-
         // 递归遍历3-way trie结点的过程中，如果结点的value不为null，说明识别到了keyStr的尾字符对应的结点，则：[具体地执行任务]
         if (currentRootNode.value != null) { // [识别]
             // ① [组装出] key字符串
@@ -324,6 +320,10 @@ public class TSTWebsite<Value> {
             keysQueue.enqueue(keyStr);
             /* 🐖 这里不会return，因为后继的路径中仍旧可能存在有 有效的key。只有查找到null时，才会return */
         }
+
+        // #1 遍历左子树中的结点，来识别、拼装并收集key [递归地执行任务]
+        // 说明：如果使用左子树，说明 没有选用“当前结点的字符”来组成 attemptStr，因此：前缀字符串保持不变
+        collectKeysWhosePrefixIsInto(currentRootNode.leftSubtree, currentAttemptStr, keysQueue);
 
         // #2 遍历中子树中的结点，来收集key
         // 如果使用中子树，说明 选用了“当前结点的字符”来组成 attemptStr，则：
