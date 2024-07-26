@@ -48,7 +48,7 @@ import edu.princeton.cs.algs4.StdOut;
  * <i>Algorithms, 4th Edition</i> by Robert Sedgewick and Kevin Wayne.
  */
 
-// 验证：可以使用KMP算法(#1 根据模式字符串来创建出它的DFA；#2 使用文本字符串中的文本字符驱动DFA到模式指针的最终位置) 来 在给定的文本中查找该模式字符串
+// 验证：可以使用KMP算法(#1 根据模式字符串来创建出它的DFA；#2 使用文本字符串中的文本字符 来 驱动DFA运行到模式指针的最终位置) 来 在“给定的文本”中查找“该模式字符串”
 // DFA创建的关键词：current_cursor_spot、its_restart_spot、cursorNextSpotOnCondition[receiving_character][current_cursor_spot]
 // 关键判断：字符是不是“模式字符串”当前位置上的字符；
 // 关键性质：当字符不是“模式字符”时，当前位置的dfa[][]值就等于 当前位置的重启位置（X(i) < i）的dfa[][]值
@@ -88,10 +88,10 @@ public class KMP {
 
             // #2 填充当前位置的 cursorNextSpotOnCondition[][current_cursor_spot]的值
             // restartSpotOfCurrentSpot - 用于初始化 当前位置对应的所有dfa[character_on_spot][spot]元素
-            // currentPatternCharacter - 用于更新 当前位置得到“模式字符”时的dfa[pat_character][spot]元素值 为 下一个spot
+            // currentPatternCharacter - 用于更新 当前位置接收到“模式字符”时的dfa[pat_character][spot]元素值 aka 模式指针跳转到的位置
             fillDFAItemsFor(currentCursorSpot, restartSpotOfCurrentSpot, currentPatternCharacter);
 
-            // #3 “当前位置”的cursorNextSpotOnCondition[][]填充完成后，计算出“当前位置的下一个位置”的“重启位置” - 用于下一个spot的DFA[][]元素的初始化
+            // #3 “当前位置”的cursorNextSpotOnCondition[][]填充完成后，计算出“当前位置的下一个位置”的“重启位置” - 用于DFA[][next_spot]元素的初始化
             restartSpotOfCurrentSpot = calculateRestartSpotForNextSpot(restartSpotOfCurrentSpot, currentPatternCharacter);
         }
     }
@@ -100,20 +100,24 @@ public class KMP {
         // #1 初始化 当前指针位置的dfa值（指针跳转/状态转移后的位置） - 手段：参考 其重启位置的状态转移情况
         initDFAFor(currentCursorSpot, restartSpotOfCurrentSpot);
 
-        // #2 对于“当前指针位置”上 字符匹配(“接收到的字符” 与 “模式字符”相同)的情况：更新 当前位置的dfa值（指针应该移动/跳转到的位置）为 “它的下一个位置”
+        // #2 对于“当前指针位置”上 字符匹配(“接收到的字符” 与 “模式字符”相同)的情况：更新 当前位置的dfa值（指针应该移动/跳转到的位置）为 “它的物理空间上的下一个位置”
         // 具体做法：把dfa[][]的值更新为 currentCursorSpot的下一个位置
         updateDFAFor(currentCursorSpot, currentPatternCharacter);
     }
 
+    // dfa[pat_char_at_spot0][0] = 1
     private void preFillSpot0WhenReceivingPatCharacter(String patStr) {
+        // #1 获取 模式字符串 在位置0上的模式字符
         char patCharacterOnSpot0 = patStr.charAt(0);
+        // #2 模式指针在位置0，接收到了 位置0上的模式字符，会跳转到位置1
         cursorNextSpotOnCondition[patCharacterOnSpot0][0] = 1;
     }
 
-    // 手段： 下一个位置的重启位置 = 当前位置的重启位置，匹配”当前模式字符“时的”状态转移结果“
+    // 手段：下一个位置的重启位置 = 当前位置的重启位置，匹配(接收到)”当前模式字符“时的”状态转移结果“
     // 原理：位置i的重启状态 就是 由状态0 从pat[1]一直匹配到pat[i-1]所得到的状态转移结果
     // 所以求取X(i)的值 会是一个迭代的过程(求值时依赖于上一个值) -> X(i) = dfa[pat[i-1]][X(i-1)]
     // 🐖 “下一个位置的重启位置”的计算，不依赖于“当前位置”，只依赖于“当前重启位置” 与 “当前模式字符”
+    // 而重启位置X 总是小于 当前位置current_spot的，因此 它的值总是已经确定了的
     private int calculateRestartSpotForNextSpot(int restartSpotForCurrentSpot, char currentPatternCharacter) {
         return cursorNextSpotOnCondition[currentPatternCharacter][restartSpotForCurrentSpot];
     }
@@ -125,7 +129,7 @@ public class KMP {
     private void initDFAFor(int currentCursorSpot, int restartSpotForCurrentSpot) {
         // 对于 当前指针位置上 所可能接收到的每一个字符...
         for (int currentCharacterOption = 0; currentCharacterOption < characterOptionsAmount; currentCharacterOption++) {
-            // 使用“当前位置的重启位置”的dfa值 来 模拟其dfa值（状态应该转移到的下一个位置）
+            // 使用“当前位置的重启位置”的dfa值 来 “模拟”/“填充” 其dfa值（状态应该转移到的“逻辑上的下一个位置”）
             // 🐖 当前位置的重启位置X(i) 相比于 当前位置i 一般会更小 - X(i) < i
             int stateToSimulate = restartSpotForCurrentSpot;
             cursorNextSpotOnCondition[currentCharacterOption][currentCursorSpot] = cursorNextSpotOnCondition[currentCharacterOption][stateToSimulate];
@@ -168,8 +172,7 @@ public class KMP {
      * in the text string; N if no such match
      */
     public int searchWithIn(String passedTxtStr) {
-        // simulate operation of DFA on text
-        // 使用DFA[][] 来 模拟 在文本字符串中对模式字符串的匹配过程
+        // 使用模式字符串的DFA[][] 来 模拟 在文本字符串中对模式字符串的匹配过程
         int txtCharacterAmount = passedTxtStr.length();
         int currentTxtCursor, currentPatCursor;
 
@@ -177,15 +180,19 @@ public class KMP {
         // 对于“当前文本指针”...
         for (currentTxtCursor = 0, currentPatCursor = 0;
              currentTxtCursor < txtCharacterAmount && currentPatCursor < patStrLength; currentTxtCursor++) {
-            // 获取到“文本指针指向的文本字符”，并使用它 来 驱动 “模式字符串的DFA（有限状态自动机）”
-            // 驱动DFA的手段：使用DFA[txt_character][pat_cursor] 来 不断移动模式指针
+            // 获取到“文本指针指向的文本字符”，并
             char currentTxtCharacter = passedTxtStr.charAt(currentTxtCursor);
+            // 使用它 来 驱动 “模式字符串的DFA（有限状态自动机）”
+            // 驱动DFA的手段：使用DFA[txt_character][pat_cursor] 来 不断移动模式指针
             currentPatCursor = cursorNextSpotOnCondition[currentTxtCharacter][currentPatCursor];
         }
 
-        // #2 根据模式指针的最终位置来判断是否找到了“子字符串匹配”
-        // 如果“文本字符串中的字符”能够把“模式指针”驱动到“模式字符串的DFA结束状态”，说明 在“文本字符串”中找到了“匹配模式字符串的子字符串”，则：返回 匹配子字符串的左指针位置
-        if (currentPatCursor == patStrLength) return currentTxtCursor - patStrLength;    // found
+        // #2 根据“模式指针的最终位置” 来 判断是否找到了“子字符串匹配”
+        // 如果“文本字符串中的字符”能够 把“模式指针”驱动到“模式字符串的DFA结束状态”，
+        // 说明 在“文本字符串”中找到了“匹配模式字符串的子字符串”，则：返回 匹配子字符串的左指针位置
+        if (currentPatCursor == patStrLength) {
+            return currentTxtCursor - patStrLength;    // found
+        }
         // 否则，说明没能找到“匹配的子字符串”，则：返回文本字符串的长度
         return txtCharacterAmount;                    // not found
     }

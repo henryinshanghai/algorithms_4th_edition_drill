@@ -13,14 +13,15 @@ DFA应该如何处理下一个字符?
 因为 在计算DFA的第j个状态时，只需要知道 DFA是如何处理 前j-1个字符的，
 所以 总能够从 尚不完整的DFA中 得到所需的信息。
 
-观察到的最后一个关键细节是，你可以观察到 在处理dfa[][]的第j列是，维护重启位置X会很容易。
-因为X<j, 所以 可以使用 已经构造的DFA部分 来 完成这个任务 —— X的下一个值是 dfa[pat.charAt(j)][X].
+观察到的最后一个关键细节是，你可以观察到 在处理dfa[][]的第j列时，维护“重启位置X”会很容易。
+因为X<j, 所以 可以使用 已经构造出的DFA部分 来 完成这个任务 —— X的下一个值是 dfa[pat.charAt(j)][X].
 继续上一段的例子，把X的值 更新为 dfa[C][3]=0（但是我们不会使用这个值，因为DFA的构造已经完成了）
 
 代码重现：
-next_spot = dfa[character_option][current_spot]
-current_spot
-its_restart_spot
+想象在模式字符串上，存在有一个指针 - 它根据匹配的情况在模式字符串上跳来跳去👇
+next_spot = dfa[character_option][current_spot] // 模式指针会跳转到的位置
+current_spot // 模式指针当前指向的位置
+its_restart_spot // ???
 
 character_option MATCH character of current_spot in pattern string.
 
