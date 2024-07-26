@@ -346,7 +346,7 @@ public class TSTWebsite<Value> {
         return keysQueue;
     }
 
-    // TBD
+    // if/else if/else的语法结构具有互斥性，而在模式字符是一个通配符时，我们想要尝试各个子树，所以这里使用的是3个并行的if结构
     private void findAndCollectKeysThatMatchInto(Node<Value> currentRootNode, StringBuilder currentAttemptStr, String patternStr, int currentCharacterSpot, Queue<String> keysQueue) {
         // [递归终结条件] 如果 当前结点为null，说明 #1 分支探索到了null结点; #2 当前模式字符在trie中不存在，则：
         if (currentRootNode == null)
