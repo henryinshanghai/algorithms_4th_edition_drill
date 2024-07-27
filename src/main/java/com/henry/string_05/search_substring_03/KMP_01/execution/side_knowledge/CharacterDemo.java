@@ -1,4 +1,4 @@
-package com.henry.string_05.search_substring_03.KMP_01;
+package com.henry.string_05.search_substring_03.KMP_01.execution.side_knowledge;
 
 // 验证：可以使用 Character的getNumericValue()方法 来 实现 numChar -> numInt的字面转换
 // 输入：一个整数字符； 输出：与字符字面等值的整数；

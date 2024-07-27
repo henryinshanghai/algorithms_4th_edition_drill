@@ -1,4 +1,4 @@
-package com.henry.string_05.search_substring_03.KMP_01;
+package com.henry.string_05.search_substring_03.KMP_01.execution.side_knowledge;
 
 // 验证：可以把一个char类型的变量 作为int类型使用 - 可以把char变量视为一个 取值范围更小的int
 // 参考：https://www.cnblogs.com/liulaolaiu/p/11744410.html

@@ -1,4 +1,4 @@
-package com.henry.string_05.search_substring_03.KMP_01;
+package com.henry.string_05.search_substring_03.KMP_01.execution;
 
 /******************************************************************************
  *  Compilation:  javac KMP.java
