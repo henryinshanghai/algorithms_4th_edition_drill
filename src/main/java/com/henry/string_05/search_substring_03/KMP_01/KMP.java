@@ -57,7 +57,7 @@ public class KMP {
     private final int patStrLength;       // length of pattern
 
     // next_cursor_spot = cursorNextSpotOnCondition[receiving_character][current_cursor_spot]
-    private int[][] cursorNextSpotOnCondition;
+    private int[][] cursorNextJumpSpotOnCondition;
 
     /**
      * Preprocesses(预处理) the pattern string.
@@ -65,12 +65,12 @@ public class KMP {
      * @param patStr the pattern string
      */
     public KMP(String patStr) {
-        this.characterOptionsAmount = 256;
+        this.characterOptionsAmount = 256; // 256
         this.patStrLength = patStr.length();
 
         // DFA的应用：使用DFA（特征：状态转移）来 描述KMP字符串匹配算法中“模式指针”的跳转（当前位置的字符不匹配时，模式指针会跳来跳去）
         // cursorNextSpotOnCondition[character][spot]的值 <-> 回答“在当前位置上接收到特定字符时，模式指针要跳转到的下一个位置是什么？”
-        cursorNextSpotOnCondition = new int[characterOptionsAmount][patStrLength];
+        cursorNextJumpSpotOnCondition = new int[characterOptionsAmount][patStrLength];
 
         // #1：把 cursorNextSpotOnCondition[character][spot]在spot=0，character=patCharacter出的值预填充为1
         // 具体到模式指针跳转的语境，这表示：在位置0发生匹配时，模式指针就会转移到位置1
@@ -110,7 +110,7 @@ public class KMP {
         // #1 获取 模式字符串 在位置0上的模式字符
         char patCharacterOnSpot0 = patStr.charAt(0);
         // #2 模式指针在位置0，接收到了 位置0上的模式字符，会跳转到位置1
-        cursorNextSpotOnCondition[patCharacterOnSpot0][0] = 1;
+        cursorNextJumpSpotOnCondition[patCharacterOnSpot0][0] = 1;
     }
 
     // 手段：下一个位置的重启位置 = 当前位置的重启位置，匹配(接收到)”当前模式字符“时的”状态转移结果“
@@ -119,11 +119,11 @@ public class KMP {
     // 🐖 “下一个位置的重启位置”的计算，不依赖于“当前位置”，只依赖于“当前重启位置” 与 “当前模式字符”
     // 而重启位置X 总是小于 当前位置current_spot的，因此 它的值总是已经确定了的
     private int calculateRestartSpotForNextSpot(int restartSpotForCurrentSpot, char currentPatternCharacter) {
-        return cursorNextSpotOnCondition[currentPatternCharacter][restartSpotForCurrentSpot];
+        return cursorNextJumpSpotOnCondition[currentPatternCharacter][restartSpotForCurrentSpot];
     }
 
     private void updateDFAFor(int currentCursorSpot, char currentPatternCharacter) {
-        cursorNextSpotOnCondition[currentPatternCharacter][currentCursorSpot] = currentCursorSpot + 1;
+        cursorNextJumpSpotOnCondition[currentPatternCharacter][currentCursorSpot] = currentCursorSpot + 1;
     }
 
     private void initDFAFor(int currentCursorSpot, int restartSpotForCurrentSpot) {
@@ -132,35 +132,60 @@ public class KMP {
             // 使用“当前位置的重启位置”的dfa值 来 “模拟”/“填充” 其dfa值（状态应该转移到的“逻辑上的下一个位置”）
             // 🐖 当前位置的重启位置X(i) 相比于 当前位置i 一般会更小 - X(i) < i
             int stateToSimulate = restartSpotForCurrentSpot;
-            cursorNextSpotOnCondition[currentCharacterOption][currentCursorSpot] = cursorNextSpotOnCondition[currentCharacterOption][stateToSimulate];
+            cursorNextJumpSpotOnCondition[currentCharacterOption][currentCursorSpot] = cursorNextJumpSpotOnCondition[currentCharacterOption][stateToSimulate];
         }
     }
 
     /**
      * Preprocesses the pattern string.
-     *
-     * @param pattern                the pattern string
-     * @param characterOptionsAmount the alphabet size
+     * 对 模式字符串 进行预处理
+     * @param pattern                the pattern string 模式字符串
+     * @param characterOptionsAmount the alphabet size  字母表大小：英文字母表的大小是26，ASCII码表的大小是256
      */
     public KMP(char[] pattern, int characterOptionsAmount) {
         this.characterOptionsAmount = characterOptionsAmount;
         this.patStrLength = pattern.length;
 
-        // build DFA from pattern
+        // #1 创建 dfa[character_option][cursor_spot]的空数组
         int patternStrLength = pattern.length;
-        cursorNextSpotOnCondition = new int[characterOptionsAmount][patternStrLength];
-        cursorNextSpotOnCondition[pattern[0]][0] = 1;
+        cursorNextJumpSpotOnCondition = new int[characterOptionsAmount][patternStrLength];
 
-        for (int stateToSimulateWhenMisMatch = 0, patternCharCursorCurrentSpot = 1;
-             patternCharCursorCurrentSpot < patternStrLength; patternCharCursorCurrentSpot++) {
+        // #2 初始化 dfa[pat_char_on_0][0] 的值为1
+        initDFAItemForSpot0(pattern);
 
-            for (int currentCharacter = 0; currentCharacter < characterOptionsAmount; currentCharacter++)
-                cursorNextSpotOnCondition[currentCharacter][patternCharCursorCurrentSpot] = cursorNextSpotOnCondition[currentCharacter][stateToSimulateWhenMisMatch];     // Copy mismatch cases.
+        // #3 从spot=1开始，为 dfa[][]的其他元素 填充 正确的值
+        for (int XSpotOfCurrentSpot = 0, currentPatCursorSpot = 1;
+             currentPatCursorSpot < patternStrLength; currentPatCursorSpot++) {
+            // 获取到 当前的模式字符
+            char currentPatternCharacter = pattern[currentPatCursorSpot];
 
-            char currentPatternCharacter = pattern[patternCharCursorCurrentSpot];
-            cursorNextSpotOnCondition[currentPatternCharacter][patternCharCursorCurrentSpot] = patternCharCursorCurrentSpot + 1;      // Set match case.
-            stateToSimulateWhenMisMatch = cursorNextSpotOnCondition[currentPatternCharacter][stateToSimulateWhenMisMatch];        // Update restart state.
+            // 初始化 dfa[][current_spot] 所有元素的值
+            initDFAItemForCurrentSpot(currentPatCursorSpot, XSpotOfCurrentSpot, characterOptionsAmount);
+
+            // 更新 dfa[pat_char_on_current_spot][current_spot] 元素的值
+            updateDFAItemOnMatchCase(currentPatCursorSpot, currentPatternCharacter);
+
+            // 更新“重启位置X” - 用于 dfa[][next_spot] 所有元素的初始化
+            XSpotOfCurrentSpot = updateXForNextSpot(XSpotOfCurrentSpot, currentPatternCharacter);
         }
+    }
+
+    private int updateXForNextSpot(int stateToSimulateWhenMisMatch, char currentPatternCharacter) {
+        return cursorNextJumpSpotOnCondition[Character.getNumericValue(currentPatternCharacter)][stateToSimulateWhenMisMatch];        // Update restart state.
+    }
+
+    private void updateDFAItemOnMatchCase(int patternCharCursorCurrentSpot, char currentPatternCharacter) {
+        cursorNextJumpSpotOnCondition[Character.getNumericValue(currentPatternCharacter)][patternCharCursorCurrentSpot] = patternCharCursorCurrentSpot + 1;      // Set match case.
+    }
+
+    private void initDFAItemForCurrentSpot(int currentSpot, int stateToSimulateWhenMisMatch, int characterOptionsAmount) {
+        for (int currentCharacter = 0; currentCharacter < characterOptionsAmount; currentCharacter++)
+            cursorNextJumpSpotOnCondition[currentCharacter][currentSpot] =
+                    cursorNextJumpSpotOnCondition[currentCharacter][stateToSimulateWhenMisMatch];     // Copy mismatch cases.
+    }
+
+    private void initDFAItemForSpot0(char[] pattern) {
+        cursorNextJumpSpotOnCondition[Character.getNumericValue(pattern[0])][0] = 1;
     }
 
     /**
@@ -184,7 +209,7 @@ public class KMP {
             char currentTxtCharacter = passedTxtStr.charAt(currentTxtCursor);
             // 使用它 来 驱动 “模式字符串的DFA（有限状态自动机）”
             // 驱动DFA的手段：使用DFA[txt_character][pat_cursor] 来 不断移动模式指针
-            currentPatCursor = cursorNextSpotOnCondition[currentTxtCharacter][currentPatCursor];
+            currentPatCursor = cursorNextJumpSpotOnCondition[currentTxtCharacter][currentPatCursor];
         }
 
         // #2 根据“模式指针的最终位置” 来 判断是否找到了“子字符串匹配”
@@ -233,7 +258,7 @@ public class KMP {
     private int patCursorNextSpotWhenReceiving(int patCursor, char txtCharacter) {
         // 驱动模式字符串的DFA
         // 做法：使用 当前模式指针位置接收到文本字符后，跳转到的新位置 来 更新当前模式指针
-        return cursorNextSpotOnCondition[txtCharacter][patCursor];
+        return cursorNextJumpSpotOnCondition[Character.getNumericValue(txtCharacter)][patCursor];
     }
 
 
@@ -241,30 +266,39 @@ public class KMP {
      * Takes a pattern string and an input string as command-line arguments;
      * searches for the pattern string in the text string; and prints
      * the first occurrence of the pattern string in the text string.
-     *
+     * 使用一个 模式字符串 与 一个输入的字符串 作为 命令行参数；
+     * 在 文本字符串中 搜索 模式字符串；
+     * 并打印出 模式字符串在文本字符串中第一次出现的位置
      * @param args the command-line arguments
      */
     public static void main(String[] args) {
-        String patStr = args[0];
-        String txtStr = args[1];
+        String patStr = args[0]; // 模式字符串
+        String txtStr = args[1]; // 文本字符串
+
         char[] patternCharArr = patStr.toCharArray();
         char[] textCharArr = txtStr.toCharArray();
 
+        // #1 调用KMP的 字符串参数构造方法，得到 模式字符串的DFA（以二维数组的方式）
         KMP patStrDFA = new KMP(patStr);
+        // #2 调用 searchWithIn()方法，获取到 模式字符串在文本字符串中 第一次出现的位置
         int startSpotOfMatchedSubStr = patStrDFA.searchWithIn(txtStr);
 
-        KMP kmp2 = new KMP(patternCharArr, 256);
-        int offset2 = kmp2.search(textCharArr);
-
-        // print results
+        // 打印文本字符串
         StdOut.println("textCharArr:    " + txtStr);
 
+        // 打印模式字符串
         StdOut.print("patternCharArr: ");
+        // 在打印模式字符串之前，先打印 offset个空格 来 实现模式字符串 与 其在文本字符串中的匹配 对齐的效果
         int offset = startSpotOfMatchedSubStr;
         for (int currentSpot = 0; currentSpot < offset; currentSpot++)
             StdOut.print(" ");
         StdOut.println(patStr);
 
+        // 字符数组参数构造方法
+        KMP kmp2 = new KMP(patternCharArr, 256);
+        int offset2 = kmp2.search(textCharArr);
+
+        // 打印模式字符串*2
         StdOut.print("patternCharArr: ");
         for (int currentSpot = 0; currentSpot < offset2; currentSpot++)
             StdOut.print(" ");
