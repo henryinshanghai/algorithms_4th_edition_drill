@@ -1,4 +1,4 @@
-package com.henry.string_05.search_substring_03.Boyer_Moore_02;
+package com.henry.string_05.search_substring_03.Boyer_Moore_02.execution;
 
 /******************************************************************************
  *  Compilation:  javac BoyerMoore.java
@@ -57,7 +57,7 @@ public class BoyerMoore {
 
     /**
      * Preprocesses the pattern string.
-     * 预处理模式字符串
+     * 预处理模式字符串,得到模式字符串对应的 characterToItsLastOccurrenceSpotInPatStr[]
      * @param patternStr the pattern string
      */
     public BoyerMoore(String patternStr) {
@@ -201,15 +201,19 @@ public class BoyerMoore {
         char[] patternArr = patStr.toCharArray();
         char[] textArr = txtStr.toCharArray();
 
+        // #1 根据模式字符串 构造出 它的 “字符->字符在模式字符串中最后一次出现的位置”的数组
         BoyerMoore boyermoore1 = new BoyerMoore(patStr);
         BoyerMoore boyermoore2 = new BoyerMoore(patternArr, 256);
+
+        // #2 调用search()方法，传入 文本字符串 作为参数，得到 模式字符串 在文本字符串中 首次出现的位置
         int offset1 = boyermoore1.search(txtStr);
         int offset2 = boyermoore2.search(textArr);
 
-        // print results
+        // 打印文本字符串
         StdOut.println("textArr:    " + txtStr);
 
         StdOut.print("patternArr: ");
+        // 在打印模式字符串之前，先打印 offset个空格 来 实现模式字符串 与 其在文本字符串中的匹配 打印对齐的效果
         for (int i = 0; i < offset1; i++)
             StdOut.print(" ");
         StdOut.println(patStr);

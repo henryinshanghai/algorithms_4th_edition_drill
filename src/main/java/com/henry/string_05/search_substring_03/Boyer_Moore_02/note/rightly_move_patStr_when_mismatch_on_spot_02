@@ -1,0 +1,53 @@
+===
+启发式地处理不匹配的字符
+
+如图，显示了 F I N D I N' A H A Y S T A C K N E E D L E 中查找模式 N E E D L E的过程。
+
+因为是从右向左 与模式进行匹配，所以
+#1 首先会比较 模式字符串中的E 和 文本中的N（位置5的字符）。
+因为N也出现在了 模式字符串中，所以 把模式字符串 向右移动5个位置 来 把文本中的字符N 和 模式字符串最左侧的N对齐。
+ txt_cursor  txt_cursor'
+    |          |
+    F I N D I [N] A H A Y S T A C K N E E D L E
+    [N] E E D L E
+    |           |
+last_occur pat_cursor
+               N E E D L E
+                         |
+                       pat_cursor'
+#2 然后比较模式字符串最右侧的E 和 文本中的S（位置10的字符）。
+匹配失败，但因为S 不包含在模式字符串中，所以 可以把模式字符串 向右移动6个位置。
+这时 模式字符串最右侧的E 和 文本中位置为16的E 相匹配。
+但是 文本的下一个位置上的字符N(向左) 与 模式字符L（向左）不相同，所以匹配再次失败。
+          txt_cursor    txt_cursor'
+              |             |
+    F I N D I N A H A Y [S] T A C K N' E E D L E
+    N E E D L E
+              N E E D L [E]
+                         |
+          <no_occur>  pat_cursor
+                            N E E D L' E
+                                       |
+                                    pat_cursor'
+#3 把模式字符串 再次向右移动4个位置。
+    最后从位置20处 开始从右向左扫描，发现 文本中含有 与模式字符串相匹配的子字符串。
+                      txt_cursor txt_cursor'
+                          |        |
+    F I N D I N A H A Y S T A C K [N] E E D L E
+    N E E D L E
+              N E E D L E
+                          [N] E E D L E
+                           |        |
+                     last_occur  pat_cursor
+                                  N E E D L E
+                                            |
+                                          pat_cursor'
+
+总结以上过程可得：
+当发生字符不匹配的情况时，通过 找到'文本字符'在’模式字符串‘中第一次出现的位置，
+就能够 进一步地把 txt_cursor 移动 (pat_cursor - last_occur)个位置 来 实现 对此失配字符的重新匹配。
+
+在此基础上，匹配过程会再度 从后往前地进行。
+compare (txt_cursor + pat_cursor) of txt_str with (pat_cursor) of pattern_str;
+
+这种方法最终找到了发生匹配的位置，并且 仅仅使用了4次字符比较（以及6次比较 来 验证是否匹配）！
