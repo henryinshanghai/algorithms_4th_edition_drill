@@ -1,4 +1,4 @@
-package com.henry.string_05.regex_04;
+package com.henry.string_05.regex_04.execution;
 /******************************************************************************
  *  Compilation:  javac NFA.java
  *  Execution:    java NFA regexp text
@@ -64,25 +64,30 @@ public class NFA {
 
     private Digraph epsilonTransitionDigraph;     // digraph of epsilon transitions
     private String regexStr;     // regular expression
-    private final int characterAmountInRegStr;       // number of characters in regular expression
+    private final int characterAmountInRegexStr;       // number of characters in regular expression
 
     /**
      * 根据给定的正则表达式字符串（模式字符串） 来 构造其所对应的NFA的∈-转换有向图
+     * 关键：对需要添加ε转换的场景 进行分类条论；
+     * ε转换的分类：#1 由当前状态转换为下一个状态； #2 用于支持闭包操作/重复操作； #3 用于支持选择/或操作
      *
      * 🐖 正则表达式的NFA中，结点中元素是“模式字符”，结点的状态是“模式字符在正则表达式字符串中的位置”
      * 特征：某一状态的结点，可能会向多个其他状态发生转移。
+     *
      * 状态之间发生转移的原因是：当前模式字符的性质 - 对于不同类型的模式字符，它会有自己的状态转换规则👇
-     * #1 如果模式字符是一个 字母字符，则：它会通过“匹配转换” 来 转换到下一个状态/字符；    特征：匹配转换会消耗一个文本字符串中的字符
+     * #1 如果模式字符是一个 字母字符，则：它会通过“匹配转换” 来 转换到下一个状态/字符；    特征：匹配转换会消耗掉一个 文本字符串中的字符
      * #2 如果模式字符是一个 “非字母字符”，则：它会通过“ε转换” 来 转换到下一个状态/字符；  特征：ε转换 不会消耗 文本字符串中的字符，也就是说 模式字符与文本字符没有匹配时，仍旧会进行状态转移
-     * ε转换的分类：#1 由当前状态转换为下一个状态； #2 支持闭包操作/重复操作； #3 支持选择/或操作
      */
     public NFA(String regexStr) {
+        // 准备一个栈对象 用于记录下 open_character(用作ε转换的起点)的位置
         Stack<Integer> openCharactersSpotStack = new Stack<Integer>();
         this.regexStr = regexStr;
-        characterAmountInRegStr = regexStr.length(); // stateAmountInRegStr
-        epsilonTransitionDigraph = new Digraph(characterAmountInRegStr + 1);
+        characterAmountInRegexStr = regexStr.length(); // stateAmountInRegStr
+        // 准备一个有向图 用于描述 正则表达式的NFA中的ε转换
+        epsilonTransitionDigraph = new Digraph(characterAmountInRegexStr + 1);
 
-        for (int currentSpot = 0; currentSpot < characterAmountInRegStr; currentSpot++) { // 对于模式字符串中的每一个位置/状态...
+        // 对于模式字符串中的每一个位置/状态...
+        for (int currentSpot = 0; currentSpot < characterAmountInRegexStr; currentSpot++) {
             // 声明 leftParenthesisSpot变量，用于记录“当前左括号字符”的位置/状态 - 🐖 初始化为 当前位置/状态
             int leftParenthesisSpotCursor = currentSpot;
 
@@ -90,7 +95,7 @@ public class NFA {
             // Ⅰ 如果当前位置上的字符是 边界字符 {① “启动字符”（左括号字符、或字符）；② “结束字符”（右括号字符）} 的话,则：在遇到结束字符时，向NFA中添加所需的ε转换
             leftParenthesisSpotCursor = whenItIsBoundaryCharacterOn(regexStr, currentSpot, openCharactersSpotStack, leftParenthesisSpotCursor);
 
-            // Ⅱ 如果“当前位置上的字符”的后面紧跟着“闭包操作符”,则：向NFA中添加对应的ε转换 来 支持闭包/重复操作
+            // Ⅱ 如果“当前位置上的字符”的后面 紧跟着“闭包操作符”,则：向NFA中添加对应的ε转换 来 支持闭包/重复操作
             // 用法：#1 X* #2 (X)*     🐖 这里只需要使用 leftParenthesisSpotCursor这个变量就能表示两种情况
             if (isLegitState(currentSpot) && nextRegexCharacterIsAsterisk(regexStr, currentSpot)) {
                 supportClosureOperation(currentSpot, leftParenthesisSpotCursor);
@@ -106,18 +111,19 @@ public class NFA {
     }
 
     private int whenItIsBoundaryCharacterOn(String regexStr, int characterSpot, Stack<Integer> openCharactersSpotStack, int leftParenthesisSpotCursor) {
-        if (isOpenCharacterOn(regexStr, characterSpot)) // 如果是启动字符（左括号字符、或字符），则：不管是什么字符，都...
+        if (isOpenCharacterOn(regexStr, characterSpot)) // 如果当前位置上的模式字符 是 启动字符（左括号字符、或字符），则：
             // 把当前位置 记录到 一个栈结构中
             openCharactersSpotStack.push(characterSpot);
-        else if (isCloseCharacterOn(regexStr, characterSpot)) { // 如果当前模式字符 是 “结束字符”（右括号字符）,则：...
+        else if (isCloseCharacterOn(regexStr, characterSpot)) { // 如果当前位置上的模式字符 是 “结束字符”（右括号字符）,则：
             // 弹出以获取 栈顶当前所记录的“启动字符” - 可能是 左括号字符，也可能是 或字符
             int openCharacterSpot = openCharactersSpotStack.pop();
             char openCharacter = regexStr.charAt(openCharacterSpot);
+
             int rightParenthesisSpot = characterSpot;
 
             /* 对“此启动字符”进行分类讨论👇 */
             if (openCharacter == '|') { // 如果“此启动字符”是“或操作符”，则：向NFA中添加对应的ε转换 来 支持选择/或操作
-                // 再次弹出栈元素 来 获取 栈顶当前所记录的“启动字符”（按照合法的正则表达式的规则，会是左括号字符）的位置 - 由于对合法正则表达式字符串的定义，这里得到的必然是一个左括号字符
+                // 再次弹出栈元素 来 获取 栈顶当前所记录的“启动字符”（按照合法的正则表达式的规则约束，这会是左括号字符）的位置
                 leftParenthesisSpotCursor = openCharactersSpotStack.pop();
                 int orCharacterSpot = openCharacterSpot;
                 supportChooseOperation(leftParenthesisSpotCursor, orCharacterSpot, rightParenthesisSpot);
@@ -183,7 +189,7 @@ public class NFA {
     }
 
     private boolean isLegitState(int currentState) {
-        return currentState < characterAmountInRegStr - 1;
+        return currentState < characterAmountInRegexStr - 1;
     }
 
     /**
@@ -195,7 +201,7 @@ public class NFA {
         Bag<Integer> εTransferReachedStates = getReachedStatesViaεTransferFrom0();
 
         for (int currentTxtCharacterSpot = 0; currentTxtCharacterSpot < txtStr.length(); currentTxtCharacterSpot++) {
-            // 对于每一个 当前文本字符...
+            // 对于当前文本字符...
             char txtCurrentCharacter = txtStr.charAt(currentTxtCharacterSpot);
 
             dealWithBreachOf(txtCurrentCharacter);
@@ -229,7 +235,7 @@ public class NFA {
 
     private boolean acceptedStateIncludeIn(Bag<Integer> reachedStates) {
         for (int currentReachedState : reachedStates)
-            if (currentReachedState == characterAmountInRegStr)
+            if (currentReachedState == characterAmountInRegexStr)
                 return true;
         return false;
     }
@@ -266,7 +272,7 @@ public class NFA {
     }
 
     private boolean isAcceptedState(int currentState) {
-        return currentState == characterAmountInRegStr;
+        return currentState == characterAmountInRegexStr;
     }
 
     // 可达性问题 - 有向图中，由指定顶点（顶点0）可达的所有其他顶点（包含起始顶点本身）
@@ -298,14 +304,18 @@ public class NFA {
      * @param args the command-line arguments
      */
     public static void main(String[] args) {
+        // 获取正则表达式模式字符串
         String originalRegexStr = args[0];
         String wrappedRegexStr = "(" + originalRegexStr + ")";
+        // 获取文本字符串
         String txtStr = args[1];
 
-        // #1 构造出 正则表达式字符串的NFA
+        // #1 构造出 正则表达式模式字符串的NFA(由ε转换所构成的有向图)
         NFA regexConstructedNFA = new NFA(wrappedRegexStr);
         // #2 使用 其NFA 来 判断文本字符串中是否存在有 与正则表达式相匹配的子字符串
         boolean matchResult = doesExistMatchIn(txtStr, regexConstructedNFA);
+
+        // 🐖 NFA只能提供一个boolean值的答案 - yes | no
         StdOut.println(matchResult);
     }
 
