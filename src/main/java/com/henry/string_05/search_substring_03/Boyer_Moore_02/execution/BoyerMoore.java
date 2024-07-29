@@ -47,6 +47,7 @@ import edu.princeton.cs.algs4.StdOut;
  */
 // 验证：可以使用BoyerMoore算法(设置从前往后的文本指针与从后往前的模式指针，当字符不匹配时，把文本指针跳转到 下一个可能匹配的位置) 来 在文本字符串中查找 与模式字符串相匹配的子字符串
 // 字符匹配: pat_character = txt_character; 字符串匹配：每一个文本字符 都与模式字符匹配；
+// 概念：可能发生匹配的位置(current_txt_character)；
 // 特征：txt_cursor并不是直接指向 txt_character的，而是 txt_cursor + backward_pat_cursor
 public class BoyerMoore {
     private final int characterOptionAmount;     // the radix
@@ -82,7 +83,7 @@ public class BoyerMoore {
             char currentPatCharacter = patternStr.charAt(currentCharacterSpot);
             characterToItsLastOccurrenceSpotInPatStr[currentPatCharacter] = currentCharacterSpot;
         }
-        // 没有在模式字符串中出现的字符，它所对应的 lastOccurrenceSpotInPatStr的值为-1
+        // 那些“没有在模式字符串中出现”的字符，它所对应的 lastOccurrenceSpotInPatStr的值为-1
     }
 
     /**
@@ -109,35 +110,32 @@ public class BoyerMoore {
 
     // 返回 文本字符串中，模式字符串第一次出现的位置。
     // 如果没有发生匹配的话，则 返回 文本字符串的长度n
-    public int search(String txtStr) {
+    public int  search(String txtStr) {
         int patStrLength = patternStr.length();
         int txtStrLength = txtStr.length();
 
         int txtCursorNeedJumpDistance;
         // #1 使用文本指针 来 在“可能发生匹配的位置”上开始 尝试匹配
-        // 特征：① 文本指针并不是直接指向“待比较的文本字符”；② 在匹配失败后，文本指针会向后跳动 txtCursorJumpDistance个位置； ③ 跳到新的位置后，会重复同样的过程-对字符进行比较
-        for (int currentTxtCursor = 0; currentTxtCursor <= txtStrLength - patStrLength; currentTxtCursor += txtCursorNeedJumpDistance) {
-            // #2 对于“当前可能发生字符串匹配的位置”（当前文本指针与模式指针）
-            // #2-〇 初始化“文本指针在匹配失败时应该跳转的距离”为0    🐖 对于每个可能匹配的位置，“跳动距离”都会被重新置零
-            txtCursorNeedJumpDistance = 0;
+        // 特征：① “文本指针”并不是直接指向“待比较的文本字符”；② 在匹配失败后，文本指针会向后跳动 txtCursorJumpDistance个位置； ③ 跳到新的位置后，会重复同样的过程-对字符进行比较
+        for (int currentTxtCursor = 0; currentTxtCursor <= txtStrLength - patStrLength; currentTxtCursor += txtCursorNeedJumpDistance) { // #2-Ⅰ 更新“当前可能发生字符串匹配的位置”
+            // #2 对于“当前可能发生字符串匹配的位置”（current_txt_cursor）, 执行“逐个字符匹配/比较”的操作
 
-            for (int backwardsPatCursor = patStrLength - 1; backwardsPatCursor >= 0; backwardsPatCursor--) {
-                // #2-Ⅰ 得到文本字符与模式字符
-                int txtCharacterSpot = currentTxtCursor + backwardsPatCursor;
+            txtCursorNeedJumpDistance = 0; // 每个 可能的匹配位置，都要重新计算它在失配时的跳转距离
+            for (int backwardsPatCursor = patStrLength - 1; backwardsPatCursor >= 0; backwardsPatCursor--) { // 模式指针从后往前
+                int txtCharacterSpot = currentTxtCursor + backwardsPatCursor; // 文本字符也是从后往前
                 char txtCharacter = txtStr.charAt(txtCharacterSpot);
                 char patCharacter = patternStr.charAt(backwardsPatCursor);
 
-                // #2-Ⅱ 并进行字符间的比较
-                // 如果文本字符与模式字符之间不匹配,则：
+                // #2-Ⅰ 如果文本字符与模式字符之间不匹配,则：
                 if (txtCharacter != patCharacter) {
-                    // 计算出 文本指针应该向后跳转的距离
+                    // 计算出 文本指针“应该向后跳转的距离” - 用于更新“当前可能发生字符串匹配的位置”
                     txtCursorNeedJumpDistance = calculateTxtCursorJumpDistance(txtCharacter, backwardsPatCursor);
                     break;
                 }
             }
 
-            // #2-Ⅲ 对于“当前可能发生字符串匹配的位置”，如果它的txtCursorJumpDistance 保持原始值（等于0），说明 模式字符串中的每一个字符都匹配成功，
-            // 则：模式字符串匹配成功，返回“当前文本字符指针“的位置
+            // #2-Ⅱ 如果 “当前可能发生字符串匹配的位置(current_txt_cursor)” 发生了匹配，则：返回该位置(current_txt_cursor)
+            // 手段：如果 txtCursorJumpDistance局部变量 保持原始值（等于0），说明 模式字符串中的每一个字符都匹配成功。则 “发生了匹配”
             if (txtCursorNeedJumpDistance == 0) return currentTxtCursor;    // found
         }
 
@@ -146,9 +144,9 @@ public class BoyerMoore {
         return txtStrLength;                       // not found
     }
 
-    private int calculateTxtCursorJumpDistance(char txtCharacter, int backwardsPatCursor) {
+    private int calculateTxtCursorJumpDistance(char mismatchedTxtCharacter, int backwardsPatCursor) {
         // #1 获取到 此文本字符 在模式字符串中最后一次出现的位置
-        int txtCharactersLastOccurrenceInPatStr = characterToItsLastOccurrenceSpotInPatStr[txtCharacter];
+        int txtCharactersLastOccurrenceInPatStr = characterToItsLastOccurrenceSpotInPatStr[mismatchedTxtCharacter];
         // #2 计算出 模式字符串中，“匹配失败的位置”与“会匹配成功的位置”之间的距离
         int distanceBetweenMismatchSpotAndWouldMatchSpot = backwardsPatCursor - txtCharactersLastOccurrenceInPatStr;
         // #3 这个距离 就是“文本指针应该向后跳转的距离” 🐖 为了防止xxx出现负数，这里使用max()来保证文本指针最少往后移动一个位置
