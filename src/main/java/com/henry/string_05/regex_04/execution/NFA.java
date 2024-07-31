@@ -70,10 +70,10 @@ public class NFA {
      * 根据给定的正则表达式字符串（模式字符串） 来 构造其所对应的NFA的∈-转换有向图
      * 关键：对需要添加ε转换的场景 进行分类条论；
      * ε转换的分类：#1 由当前状态转换为下一个状态； #2 用于支持闭包操作/重复操作； #3 用于支持选择/或操作
-     *
+     * <p>
      * 🐖 正则表达式的NFA中，结点中元素是“模式字符”，结点的状态是“模式字符在正则表达式字符串中的位置”
      * 特征：某一状态的结点，可能会向多个其他状态发生转移。
-     *
+     * <p>
      * 状态之间发生转移的原因是：当前模式字符的性质 - 对于不同类型的模式字符，它会有自己的状态转换规则👇
      * #1 如果模式字符是一个 字母字符，则：它会通过“匹配转换” 来 转换到下一个状态/字符；    特征：匹配转换会消耗掉一个 文本字符串中的字符
      * #2 如果模式字符是一个 “非字母字符”，则：它会通过“ε转换” 来 转换到下一个状态/字符；  特征：ε转换 不会消耗 文本字符串中的字符，也就是说 模式字符与文本字符没有匹配时，仍旧会进行状态转移
@@ -210,17 +210,18 @@ public class NFA {
      * 如果文本被正则表达式匹配的话，则返回true，否则返回false
      */
     public boolean recognizes(String txtStr) {
-        // #1 获取到NFA中，由状态0作为起点，经ε转换所能到达的状态集合 ”ε转换所到达状态的集合“
+        // #1 获取到 在正则表达式字符串的NFA中，由状态0作为起点，经ε转换所能到达的状态集合 ”ε转换所到达状态的集合“
         // 这本质上是 有向图中的”单点可达性问题“
-        Bag<Integer> εTransferReachedStates = getReachedStatesViaεTransferFrom0();
+        Bag<Integer> εTransferReachedStates = getReachedStatesViaεTransferFromSpot0();
 
+        // 对于当前文本字符的位置...
         for (int currentTxtCharacterSpot = 0; currentTxtCharacterSpot < txtStr.length(); currentTxtCharacterSpot++) {
-            // 对于当前文本字符...
+            // 获取此位置上的文本字符
             char txtCurrentCharacter = txtStr.charAt(currentTxtCharacterSpot);
 
             dealWithBreachOf(txtCurrentCharacter);
 
-            // #2 获取到NFA中，由“当前可达的所有状态集合”中的各个状态，经匹配转换(与文本字符匹配)所能到达的状态集合
+            // #2 获取到NFA中，由“当前可达的所有状态集合”中的各个状态，经过 与当前文本字符的匹配（匹配转换） 所能到达的状态集合
             Bag<Integer> matchTransferReachedStates = getReachedStatesViaMatchTransferFrom(εTransferReachedStates, txtCurrentCharacter);
             // 如果当前文本字符不存在匹配转换，说明 在“当前文本位置”无法得到一个匹配, 则：继续在“下一个位置"尝试匹配
             if (matchTransferReachedStates.isEmpty()) continue;
@@ -249,7 +250,9 @@ public class NFA {
 
     private boolean acceptedStateIncludeIn(Bag<Integer> reachedStates) {
         for (int currentReachedState : reachedStates)
+            // 如果 接受状态 在 可达的状态集合中，则：
             if (currentReachedState == characterAmountInRegexStr)
+                // 正则表达式 可以 成功识别 文本字符串
                 return true;
         return false;
     }
@@ -258,11 +261,14 @@ public class NFA {
     private Bag<Integer> renewETransferReachedStatesVia(Bag<Integer> startStates) {
         Bag<Integer> reachableStates = new Bag<Integer>();
 
-        // #1 获取到 以指定顶点集合作为”起点集合“，所能够到达的所有顶点 aka 在NFA中通过epsilon转换所能够到达的状态
+        // 获取到 在NFA对应的有向图中，以指定顶点集合作为”起点集合“，所能够到达的所有顶点
+        // aka 在NFA中通过epsilon转换 所能够到达的状态
+        // 手段: #1 先标记有向图中的结点；
         AccessibleVertexesInDigraph markedDigraph = new AccessibleVertexesInDigraph(epsilonTransitionDigraph, startStates);
 
         for (int currentVertex = 0; currentVertex < epsilonTransitionDigraph.getVertexAmount(); currentVertex++)
-            // 如果当前顶点 由”matchTransferReachedStates“中的任意起点可达，则：#2 把它添加到 “可达顶点”的集合中
+            // #2 如果当前顶点 由”matchTransferReachedStates“中的任意起点可达，则：
+            // 把它添加到 “可达顶点”的集合中
             if (markedDigraph.isAccessibleFromStartVertex(currentVertex))
                 reachableStates.add(currentVertex);
 
@@ -273,15 +279,18 @@ public class NFA {
         Bag<Integer> matchTransferReachedStates = new Bag<Integer>();
         // 检查 当前可达状态集合中，是否存在有 能够与当前文本字符 相匹配的状态
         for (int currentStartState : startStates) {
-            // 如果当前状态 已经是 “接受状态”，说明 在文本字符串中已经找到了一个 正则表达式模式字符串的匹配，则：不再继续处理集合中的其他状态
+            // 如果当前状态 已经是 “接受状态”，说明 在文本字符串中已经找到了一个 正则表达式模式字符串的匹配，
+            // 则：不再继续处理集合中的其他状态
             if (isAcceptedState(currentStartState)) continue;
 
+            // 获取到 当前状态所对应的模式字符
             char currentRegexCharacter = regexStr.charAt(currentStartState);
-            // 如果当前状态上的模式字符 与 当前文本字符 相匹配，则：
+            // 如果 当前状态上的模式字符 与 当前文本字符 相匹配，则：
             if (isMatchBetween(currentTxtCharacter, currentRegexCharacter))
-                // 把 此匹配转换所到达的状态 添加到 “匹配所达的状态集合”中
+                // 把 此匹配转换所到达的状态(当前状态+1) 添加到 “匹配所达的状态集合”中
                 matchTransferReachedStates.add(currentStartState + 1);
         }
+
         return matchTransferReachedStates;
     }
 
@@ -290,7 +299,7 @@ public class NFA {
     }
 
     // 可达性问题 - 有向图中，由指定顶点（顶点0）可达的所有其他顶点（包含起始顶点本身）
-    private Bag<Integer> getReachedStatesViaεTransferFrom0() {
+    private Bag<Integer> getReachedStatesViaεTransferFromSpot0() {
         Bag<Integer> reachableStates = new Bag<Integer>();
 
         // 标记图中“从结点0可达的所有其他结点”
