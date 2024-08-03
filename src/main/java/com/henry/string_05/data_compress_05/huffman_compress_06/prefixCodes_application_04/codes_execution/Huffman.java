@@ -227,9 +227,9 @@ public class Huffman {
         BinaryStdOut.write(false);
 
         // #2 处理左子树 - 把结点的左子树，继续(递归地)写入到标准输出中
-        writeTrieToOutput(currentRootNode.leftSubNode);
+        processNodesInPreOrder(currentRootNode.leftSubNode);
         // #3 处理右子树 - 把结点的右子树，继续(递归地)写入到标准输出中
-        writeTrieToOutput(currentRootNode.rightSubNode);
+        processNodesInPreOrder(currentRootNode.rightSubNode);
     }
 
     // 构造一个编码表 用于建立 字符(符号) 与其编码之间的映射关系 aka a lookup table
