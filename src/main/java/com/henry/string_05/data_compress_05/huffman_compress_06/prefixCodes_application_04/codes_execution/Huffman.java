@@ -17,7 +17,7 @@ package com.henry.string_05.data_compress_05.huffman_compress_06.prefixCodes_app
  *  000000000000000000000000000110001111100101101000111110010100
  *  120 bits
  *
- *  % java Huffman - < abra.txt | java Huffman +
+ *  (current_path)% java Huffman.java - < abra.txt | java Huffman.java +
  *  ABRACADABRA!
  *
  ******************************************************************************/

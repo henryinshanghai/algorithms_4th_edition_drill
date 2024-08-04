@@ -10,6 +10,8 @@ package com.henry.string_05.data_compress_05.LZW_compression_07.codes_execution;
  *
  *  Compress or expand binary input from standard input using LZW.
  *
+ *  terminal command(change directory to current path):java LZW.java - < abraLZW.txt | java LZW.java +
+ *
  ******************************************************************************/
 
 import edu.princeton.cs.algs4.BinaryStdIn;
@@ -46,16 +48,12 @@ public class LZW {
     }
 
     /**
-     * Reads a sequence of 8-bit bytes from standard input; compresses
-     * them using LZW compression with 12-bit codewords; and writes the results
-     * to standard output.
      * 从标准输入中读取 8比特字节的序列；
      * 使用 12位宽度的LZW压缩算法 来 压缩它们；
      * 把压缩结果写入到标准输出中
      */
     public static void compress() {
-        String unattendedCharacterSequence = BinaryStdIn.readString();
-        TST<Integer> keyToItsEncodedValueTable = new TST<Integer>(); // 编码表
+        TST<Integer> keyToItsEncodedValueTable = new TST<Integer>(); // 编码表/用于对字符进行编码的编译表
 
         // #0 初始化“单字符键”的“符号表条目” - 🐖 存在有多少个“字符选项”，就对应地初始化多少个“符号表条目”
         for (int currentCharacter = 0; currentCharacter < characterOptions; currentCharacter++) {
@@ -63,12 +61,15 @@ public class LZW {
             String singleCharacterKey = "" + (char) currentCharacter;
             int keysEncodedValue = currentCharacter;
 
+            // 按照 字符 -> 字符的ASCII码编码的规则 来 对单字符键进行编码
             keyToItsEncodedValueTable.put(singleCharacterKey, keysEncodedValue);
         }
 
         // 从“单字符的最大编码”码值(位置)的下一个码值(位置)开始，继续 对“多字符键”条目进行编码
         int currentUnassignedCodeValue = characterOptions + 1;  // characterOptions预留作为文件结束的口令
 
+        // 从标准输入中读取 “待编码的输入字符序列” 作为 “尚未被处理的字符序列”
+        String unattendedCharacterSequence = BinaryStdIn.readString();
         // 对于“未处理的输入” unattendedCharacterSequence...
         while (unattendedCharacterSequence.length() > 0) {
             /* #1 向标准输出中写入“当前最长匹配前缀键的码值” */
@@ -81,7 +82,7 @@ public class LZW {
 
             /* #2 向编码表中添加“多字符”条目 */
             int currentPrefixLength = longestPrefixStr.length();
-            // 如果编码表中的“最长匹配前缀”键 比起“未处理的输入”要更短，并且“当前多字符键”还在“有效码值范围”内...
+            // 如果编码表中的“最长匹配前缀”键 比起“未处理的输入字符序列”要更短，并且“当前多字符键的码值”还在“有效码值范围”内（编码表还没有被填满）...
             if (prefixStrShorterThanUnattendedInput(unattendedCharacterSequence, currentPrefixLength) && withinMaxCode(currentUnassignedCodeValue))    // Add s to symbol table.
             {
                 // 向编码表中添加“多字符”条目 - 手段：分别构造“编码表条目”的“多字符键”与“码值”，并将它们关联起来
@@ -116,9 +117,6 @@ public class LZW {
     }
 
     /**
-     * Reads a sequence of bit encoded using LZW compression with
-     * 12-bit codewords from standard input; expands them; and writes
-     * the results to standard output.
      * 从标准输入中读取 使用12位宽度的LZW压缩算法 所编码的比特序列；
      * 扩展这些比特序列；
      * 把结果写入到标准输出中。
@@ -159,16 +157,18 @@ public class LZW {
             // #4-① 先处理特殊情况：解码表中的待填充条目的码值 与 输入中的下一个码值 相同，则..
             if (currentCodeValueOfDecodedTable == nextCodeValueOfInput)
                 // 按照规则，构造出 “下一个码值”所对应的字符序列👇
-                // “输入中的下一个码值”所对应的字符串 就等于 “输入中的当前码值”所对应的字符串 + “当前码值所对应的字符串的首字符”
+                // “输入中的下一个码值”所对应的字符串 就等于 “输入中的当前码值”所对应的字符串(AB) + “当前码值所对应的字符串的首字符”(A)
                 nextDecodedStr = currentDecodedStr + currentDecodedStr.charAt(0);
             // #4-② 如果当前码值 还是在“有效码值”的范围内，则：构造解码表条目的“码值” 与 “字符串”，将它们关联起来
             if (currentCodeValueOfDecodedTable < encodedValueOptions)
-                // 构造码值 - 手段：把“自然数序列中的当前码值”+1；  构造“字符串” - 手段：“输入中的当前编码所对应的字符串” + “输入中的下一个编码所对应的字符串”的首字符
+                // 构造码值 - 手段：把“自然数序列中的当前码值”+1；  构造“字符串” - 手段：“输入中的当前编码所对应的字符串” + “输入中的下一个编码所对应的字符串”的首字符(前瞻字符)
                 codeValueToItsDecodedStr[currentCodeValueOfDecodedTable++] = currentDecodedStr + nextDecodedStr.charAt(0);
 
             // #5 更新 “当前解码出的字符串”变量 为 “下一个解码出的字符串” 来 为下一个循环做准备{1 打印字符序列； 2 添加解码表条目}
             currentDecodedStr = nextDecodedStr;
         }
+
+        // 关闭流
         BinaryStdOut.close();
     }
 
