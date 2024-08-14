@@ -1,6 +1,6 @@
 package com.henry.leetcode_traning_camp.week_01.day0;
 
-public class Solution_02 {
+public class Move0TowardsEnd_02 {
     public static void main(String[] args) {
         int[] arr = new int[]{2, 1, 4, 0, 5, 0, 0, 7};
 
@@ -11,6 +11,8 @@ public class Solution_02 {
 
     /**
      * 移动数组中的零到特定的位置
+     * 思路：把非零元素 交换到 正确的位置上
+     * 特征：这种思路 会保持 数组中的原始元素
      * @param arr
      */
     private static void moveZeros(int[] arr) {

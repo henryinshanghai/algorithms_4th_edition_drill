@@ -1,6 +1,6 @@
 package com.henry.leetcode_traning_camp.week_01.day0;
 
-public class Solution_01 {
+public class Move0TowardsEnd_01 {
 
     public static void main(String[] args) {
         int[] arr = new int[]{2, 1, 0, 3, 0, 9};
@@ -12,30 +12,32 @@ public class Solution_01 {
 
     /**
      * 移动数组中的零到数组末尾
+     * 思路：把非零元素 按照顺序覆盖到 正确的位置
+     * 特征：这种做法 会改变数组中的原始元素
      * @param arr
      */
     private static void removeZeros(int[] arr) {
         // 1 准备一个指针
-        int j = 0;
+        int nonZeroCursor = 0;
 
         // 2 遍历数组中的每一个元素  作用：把非零元素按照顺序覆盖到正确的位置
-        for (int i = 0; i < arr.length; i++) {
-            if (arr[i] != 0) {
-                arr[j++] = arr[i];
+        for (int currentSpot = 0; currentSpot < arr.length; currentSpot++) {
+            if (arr[currentSpot] != 0) {
+                arr[nonZeroCursor++] = arr[currentSpot];
             }
         }
 
         // 3 把j指针指向的位置以及数组中后面的位置都绑定0
-        for(int i=j; i < arr.length; i++){
-            arr[i] = 0;
+        for (int currentCursor = nonZeroCursor; currentCursor < arr.length; currentCursor++) {
+            arr[currentCursor] = 0;
         }
     }
 
     private static void printArr(int[] arr) {
         int length = arr.length;
 
-        for (int i = 0; i < length; i++) {
-            System.out.print(arr[i] + " ");
+        for (int currentSpot = 0; currentSpot < length; currentSpot++) {
+            System.out.print(arr[currentSpot] + " ");
         }
     }
 }
