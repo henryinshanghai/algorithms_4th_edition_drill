@@ -1,9 +1,13 @@
 package com.henry.leetcode_traning_camp.week_01.day0;
 
+// 验证：可以通过 #1 把非零元素移动到数组开头； #2 把剩余位置的元素置零的方式 来 实现对元素0的移动；
 public class Move0TowardsEnd_01 {
 
     public static void main(String[] args) {
         int[] arr = new int[]{2, 1, 0, 3, 0, 9};
+
+        System.out.print("original array: ");
+        printArr(arr);
 
         removeZeros(arr);
 
@@ -25,9 +29,11 @@ public class Move0TowardsEnd_01 {
             if (arr[currentSpot] != 0) {
                 arr[nonZeroCursor++] = arr[currentSpot];
             }
+
+            printArr(arr);
         }
 
-        // 3 把j指针指向的位置以及数组中后面的位置都绑定0
+        // 3 把j指针指向的位置 以及 数组中后面的位置上的元素都设置为0
         for (int currentCursor = nonZeroCursor; currentCursor < arr.length; currentCursor++) {
             arr[currentCursor] = 0;
         }
@@ -39,5 +45,7 @@ public class Move0TowardsEnd_01 {
         for (int currentSpot = 0; currentSpot < length; currentSpot++) {
             System.out.print(arr[currentSpot] + " ");
         }
+
+        System.out.println();
     }
 }
