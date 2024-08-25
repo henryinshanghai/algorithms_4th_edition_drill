@@ -1,4 +1,4 @@
-package com.henry.leetcode_traning_camp.week_01.day3_dp_theme;
+package com.henry.leetcode_traning_camp.week_01.day3_dp_theme.smallest_path_in_grid.via_dynamic_programming;
 
 public class Solution_smallest_path_sum_02_method03_dp02_recordX_in_newArr {
     public static void main(String[] args) {
