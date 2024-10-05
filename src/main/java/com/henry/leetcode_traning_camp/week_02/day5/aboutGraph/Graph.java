@@ -1,4 +1,6 @@
-package com.henry.leetcode_traning_camp.week_02.day5.aboutGraph; /******************************************************************************
+package com.henry.leetcode_traning_camp.week_02.day5.aboutGraph;
+
+/******************************************************************************
  *  Compilation:  javac Graph.java        
  *  Execution:    java Graph input.txt
  *  Dependencies: Bag.java StackViaNodeTemplate.java In.java StdOut.java
@@ -42,219 +44,200 @@ import java.util.NoSuchElementException;
 import java.util.Stack;
 
 /**
- *  The {@code Graph} class represents an undirected graph of vertices
- *  named 0 through <em>V</em> – 1.
- *  It supports the following two primary operations: add an edge to the graph,
- *  iterate over all of the vertices adjacent to a vertex. It also provides
- *  methods for returning the degree of a vertex, the number of vertices
- *  <em>V</em> in the graph, and the number of edges <em>E</em> in the graph.
- *  Parallel edges and self-loops are permitted.
- *  By convention, a self-loop <em>v</em>-<em>v</em> appears in the
- *  adjacency list of <em>v</em> twice and contributes two to the degree
- *  of <em>v</em>.
- *  <p>
- *  This implementation uses an <em>adjacency-lists representation</em>, which
- *  is a vertex-indexed array of {@link Bag} objects.
- *  It uses &Theta;(<em>E</em> + <em>V</em>) space, where <em>E</em> is
- *  the number of edges and <em>V</em> is the number of vertices.
- *  All instance methods take &Theta;(1) time. (Though, iterating over
- *  the vertices returned by {@link #adj(int)} takes time proportional
- *  to the degree of the vertex.)
- *  Constructing an empty graph with <em>V</em> vertices takes
- *  &Theta;(<em>V</em>) time; constructing a graph with <em>E</em> edges
- *  and <em>V</em> vertices takes &Theta;(<em>E</em> + <em>V</em>) time. 
- *  <p>
- *  For additional documentation, see
- *  <a href="https://algs4.cs.princeton.edu/41graph">Section 4.1</a>
- *  of <i>Algorithms, 4th Edition</i> by Robert Sedgewick and Kevin Wayne.
+ * The {@code Graph} class represents an undirected graph of vertices
+ * named 0 through <em>V</em> – 1.
+ * It supports the following two primary operations: add an edge to the graph,
+ * iterate over all of the vertices adjacent to a vertex. It also provides
+ * methods for returning the degree of a vertex, the number of vertices
+ * <em>V</em> in the graph, and the number of edges <em>E</em> in the graph.
+ * Parallel edges and self-loops are permitted.
+ * By convention, a self-loop <em>v</em>-<em>v</em> appears in the
+ * adjacency list of <em>v</em> twice and contributes two to the degree
+ * of <em>v</em>.
+ * <p>
+ * This implementation uses an <em>adjacency-lists representation</em>, which
+ * is a vertex-indexed array of {@link Bag} objects.
+ * It uses &Theta;(<em>E</em> + <em>V</em>) space, where <em>E</em> is
+ * the number of edges and <em>V</em> is the number of vertices.
+ * All instance methods take &Theta;(1) time. (Though, iterating over
+ * the vertices returned by {@link #adjacentVertexesOf(int)} takes time proportional
+ * to the degree of the vertex.)
+ * Constructing an empty graph with <em>V</em> vertices takes
+ * &Theta;(<em>V</em>) time; constructing a graph with <em>E</em> edges
+ * and <em>V</em> vertices takes &Theta;(<em>E</em> + <em>V</em>) time.
+ * <p>
+ * For additional documentation, see
+ * <a href="https://algs4.cs.princeton.edu/41graph">Section 4.1</a>
+ * of <i>Algorithms, 4th Edition</i> by Robert Sedgewick and Kevin Wayne.
  *
- *  @author Robert Sedgewick
- *  @author Kevin Wayne
+ * @author Robert Sedgewick
+ * @author Kevin Wayne
  */
+// 验证：可以使用 邻接表(由 结点 -> 结点在图中所有的相邻节点[由Bag类型表示] 所构成) 来 实现图这种逻辑结构
+// 🐖 图的图形化表示/字符串表示 可能具有迷惑性：看上去不同的表示 但其实可能是 同一幅图
+// 对于规模较小的图，我们能够进行有效的验证。而规模较大的图，我们就无能为力了😳
 public class Graph {
     private static final String NEWLINE = System.getProperty("line.separator");
 
-    private final int V;
-    private int E;
-    private Bag<Integer>[] adj;
+    private final int vertexAmount; // 结点数量
+    private int edgeAmount; // 边的数量
+    private Bag<Integer>[] vertexToItsAdjacentVertexes; // 结点 -> 结点所有的相邻结点
 
-    /**
-     * Initializes an empty graph with {@code V} vertices and 0 edges.
-     * param V the number of vertices
-     *
-     * @param  V number of vertices
-     * @throws IllegalArgumentException if {@code V < 0}
-     */
-    public Graph(int V) {
-        if (V < 0) throw new IllegalArgumentException("Number of vertices must be nonnegative");
-        this.V = V;
-        this.E = 0;
-        adj = (Bag<Integer>[]) new Bag[V];
-        for (int v = 0; v < V; v++) {
-            adj[v] = new Bag<Integer>();
+    // 使用 指定数量的结点 和 0条边 来 初始化一幅空的图
+    public Graph(int vertexAmount) {
+        if (vertexAmount < 0) {
+            throw new IllegalArgumentException("Number of vertices must be nonnegative");
+        }
+
+        this.vertexAmount = vertexAmount;
+        this.edgeAmount = 0;
+        // 实例化
+        vertexToItsAdjacentVertexes = (Bag<Integer>[]) new Bag[vertexAmount];
+        // 初始化
+        for (int currentVertex = 0; currentVertex < vertexAmount; currentVertex++) {
+            vertexToItsAdjacentVertexes[currentVertex] = new Bag<Integer>();
         }
     }
 
-    /**
-     * Initializes a graph from the specified input stream.
-     * The format is the number of vertices <em>V</em>,
-     * followed by the number of edges <em>E</em>,
-     * followed by <em>E</em> pairs of vertices, with each entry separated by whitespace.
-     *
-     * @param  in the input stream
-     * @throws IllegalArgumentException if {@code in} is {@code null}
-     * @throws IllegalArgumentException if the endpoints of any edge are not in prescribed range
-     * @throws IllegalArgumentException if the number of vertices or edges is negative
-     * @throws IllegalArgumentException if the input stream is in the wrong format
-     */
-    public Graph(In in) {
-        if (in == null) throw new IllegalArgumentException("argument is null");
+    // 从指定的标准输入流中，初始化一幅图
+    // 格式是：结点数量 + 边的数量 + 结点对(每个对由xxx分隔)
+    public Graph(In inputStream) {
+        if (inputStream == null) throw new IllegalArgumentException("argument is null");
         try {
-            this.V = in.readInt();
-            if (V < 0) throw new IllegalArgumentException("number of vertices in a Graph must be nonnegative");
-            adj = (Bag<Integer>[]) new Bag[V];
-            for (int v = 0; v < V; v++) {
-                adj[v] = new Bag<Integer>();
+            // #1 读取 图中结点的数量（由文件提供）
+            this.vertexAmount = inputStream.readInt();
+            if (vertexAmount < 0) {
+                throw new IllegalArgumentException("number of vertices in a Graph must be nonnegative");
             }
-            int E = in.readInt();
-            if (E < 0) throw new IllegalArgumentException("number of edges in a Graph must be nonnegative");
-            for (int i = 0; i < E; i++) {
-                int v = in.readInt();
-                int w = in.readInt();
-                validateVertex(v);
-                validateVertex(w);
-                addEdge(v, w);
+
+            // 根据读取到的结点数量 来 创建对应大小的邻接表
+            vertexToItsAdjacentVertexes = (Bag<Integer>[]) new Bag[vertexAmount];
+            for (int currentVertex = 0; currentVertex < vertexAmount; currentVertex++) {
+                vertexToItsAdjacentVertexes[currentVertex] = new Bag<Integer>();
             }
-        }
-        catch (NoSuchElementException e) {
+
+            // #2 读取 图中边的数量（由文件提供）
+            int edgeAmount = inputStream.readInt();
+            if (edgeAmount < 0) {
+                throw new IllegalArgumentException("number of edges in a Graph must be nonnegative");
+            }
+
+            // #3 读取每条边中的结点，并 向空图中添加读取到的边
+            for (int currentEdge = 0; currentEdge < edgeAmount; currentEdge++) {
+                int vertexV = inputStream.readInt(); // 结点1
+                int vertexW = inputStream.readInt(); // 结点2
+
+                validateVertex(vertexV);
+                validateVertex(vertexW);
+                // 向图中添加边
+                addEdge(vertexV, vertexW);
+            }
+        } catch (NoSuchElementException e) {
             throw new IllegalArgumentException("invalid input format in Graph constructor", e);
         }
     }
 
 
-    /**
-     * Initializes a new graph that is a deep copy of {@code G}.
-     *
-     * @param  G the graph to copy
-     * @throws IllegalArgumentException if {@code G} is {@code null}
-     */
-    public Graph(Graph G) {
-        this.V = G.V();
-        this.E = G.E();
-        if (V < 0) throw new IllegalArgumentException("Number of vertices must be nonnegative");
-
-        // update adjacency lists
-        adj = (Bag<Integer>[]) new Bag[V];
-        for (int v = 0; v < V; v++) {
-            adj[v] = new Bag<Integer>();
+    // 由一幅图 进行深拷贝 来 初始化得到一幅新的图
+    public Graph(Graph passedGraph) {
+        // #1 获取到结点的数量
+        this.vertexAmount = passedGraph.getVertexAmount();
+        // #2 获取到边的数量
+        this.edgeAmount = passedGraph.getEdgeAmount();
+        if (vertexAmount < 0) {
+            throw new IllegalArgumentException("Number of vertices must be nonnegative");
         }
 
-        for (int v = 0; v < G.V(); v++) {
-            // reverse so that adjacency list is in same order as original
-            Stack<Integer> reverse = new Stack<Integer>();
-            for (int w : G.adj[v]) {
-                reverse.push(w);
+        // 初始化 各个结点的相邻结点列表
+        vertexToItsAdjacentVertexes = (Bag<Integer>[]) new Bag[vertexAmount];
+        for (int currentVertex = 0; currentVertex < vertexAmount; currentVertex++) {
+            vertexToItsAdjacentVertexes[currentVertex] = new Bag<Integer>();
+        }
+
+        // 对于每一个结点...
+        for (int currentVertex = 0; currentVertex < passedGraph.getVertexAmount(); currentVertex++) {
+            // 把它的相邻结点列表 依次入栈到栈中 [in]
+            Stack<Integer> vertexInReverseOrder = new Stack<Integer>();
+            for (int currentAdjacentVertex : passedGraph.vertexToItsAdjacentVertexes[currentVertex]) {
+                vertexInReverseOrder.push(currentAdjacentVertex);
             }
-            for (int w : reverse) {
-                adj[v].add(w);
+            // 把栈中的结点 依次添加到 当前结点的相邻结点列表中[out] - 从而得到完全的拷贝
+            for (int backwardsVertexCursor : vertexInReverseOrder) {
+                vertexToItsAdjacentVertexes[currentVertex].add(backwardsVertexCursor);
             }
         }
     }
 
-    /**
-     * Returns the number of vertices in this graph.
-     *
-     * @return the number of vertices in this graph
-     */
-    public int V() {
-        return V;
+    // 返回图中结点的数量
+    public int getVertexAmount() {
+        return vertexAmount;
     }
 
-    /**
-     * Returns the number of edges in this graph.
-     *
-     * @return the number of edges in this graph
-     */
-    public int E() {
-        return E;
+    // 返回图中边的数量
+    public int getEdgeAmount() {
+        return edgeAmount;
     }
 
-    // throw an IllegalArgumentException unless {@code 0 <= v < V}
-    private void validateVertex(int v) {
-        if (v < 0 || v >= V)
-            throw new IllegalArgumentException("vertex " + v + " is not between 0 and " + (V-1));
+    // 校验结点的合法性 [0, V)
+    private void validateVertex(int passedVertex) {
+        if (passedVertex < 0 || passedVertex >= vertexAmount)
+            throw new IllegalArgumentException("vertex " + passedVertex + " is not between 0 and " + (vertexAmount - 1));
     }
 
-    /**
-     * Adds the undirected edge v-w to this graph.
-     *
-     * @param  v one vertex in the edge
-     * @param  w the other vertex in the edge
-     * @throws IllegalArgumentException unless both {@code 0 <= v < V} and {@code 0 <= w < V}
-     */
-    public void addEdge(int v, int w) {
-        validateVertex(v);
-        validateVertex(w);
-        E++;
-        adj[v].add(w);
-        adj[w].add(v);
+    // 向图中添加无向边 v-w
+    public void addEdge(int vertexV, int vertexW) {
+        validateVertex(vertexV);
+        validateVertex(vertexW);
+        edgeAmount++;
+
+        vertexToItsAdjacentVertexes[vertexV].add(vertexW);
+        vertexToItsAdjacentVertexes[vertexW].add(vertexV);
     }
 
-
-    /**
-     * Returns the vertices adjacent to vertex {@code v}.
-     *
-     * @param  v the vertex
-     * @return the vertices adjacent to vertex {@code v}, as an iterable
-     * @throws IllegalArgumentException unless {@code 0 <= v < V}
-     */
-    public Iterable<Integer> adj(int v) {
-        validateVertex(v);
-        return adj[v];
+    // 以可迭代对象的形式 来 返回指定结点的所有相邻节点
+    public Iterable<Integer> adjacentVertexesOf(int vertexV) {
+        validateVertex(vertexV);
+        return vertexToItsAdjacentVertexes[vertexV];
     }
 
-    /**
-     * Returns the degree of vertex {@code v}.
-     *
-     * @param  v the vertex
-     * @return the degree of vertex {@code v}
-     * @throws IllegalArgumentException unless {@code 0 <= v < V}
-     */
-    public int degree(int v) {
-        validateVertex(v);
-        return adj[v].size();
+    // 返回指定结点的“度数”
+    public int degreeOf(int vertexV) {
+        validateVertex(vertexV);
+        return vertexToItsAdjacentVertexes[vertexV].size();
     }
 
 
-    /**
-     * Returns a string representation of this graph.
-     *
-     * @return the number of vertices <em>V</em>, followed by the number of edges <em>E</em>,
-     *         followed by the <em>V</em> adjacency lists
-     */
+    // 返回 图的字符串表示：{#1 结点数量; #2 边的数量; #3 结点 -> 结点所有的相邻结点所组成的列表}
+    // 手段：使用 StringBuilder对象 来 连接所有需要的子字符串
     public String toString() {
-        StringBuilder s = new StringBuilder();
-        s.append(V + " vertices, " + E + " edges " + NEWLINE);
-        for (int v = 0; v < V; v++) {
-            s.append(v + ": ");
-            for (int w : adj[v]) {
-                s.append(w + " ");
+        StringBuilder strBuilder = new StringBuilder();
+        // 连接 表示 结点数量 与 边的数量 的字符串
+        strBuilder.append(vertexAmount + " vertices, " + edgeAmount + " edges " + NEWLINE);
+
+        // 连接 表示 结点 -> 结点所有的相邻结点 的字符串
+        for (int currentVertex = 0; currentVertex < vertexAmount; currentVertex++) {
+            // #1 当前节点
+            strBuilder.append(currentVertex + ": ");
+            // #2 与当前节点相邻的所有其他结点
+            for (int currentAdjacentVertex : vertexToItsAdjacentVertexes[currentVertex]) {
+                strBuilder.append(currentAdjacentVertex + " ");
             }
-            s.append(NEWLINE);
+            // #3 换行符
+            strBuilder.append(NEWLINE);
         }
-        return s.toString();
+
+        return strBuilder.toString();
     }
 
-
-    /**
-     * Unit tests the {@code Graph} data type.
-     *
-     * @param args the command-line arguments
-     */
+    // “图数据类型”的单元测试
     public static void main(String[] args) {
-        In in = new In(args[0]);
-        Graph G = new Graph(in);
-        StdOut.println(G);
+        // #1 读取命令行参数，解析出标准输入
+        In inputStream = new In(args[0]);
+        // #2 由标准输入得到 图对象
+        Graph constructedGraph = new Graph(inputStream);
+        // #3 打印图对象的字符串表示
+        StdOut.println(constructedGraph);
     }
-
 }
+
+// 启动步骤：在 program argument 输入框中，输入 图文件的绝对路径。这样 它就能作为命令行参数 传递给 程序执行
