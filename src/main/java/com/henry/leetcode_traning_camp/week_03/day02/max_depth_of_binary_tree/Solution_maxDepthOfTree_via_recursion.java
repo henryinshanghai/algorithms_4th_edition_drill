@@ -4,6 +4,7 @@ package com.henry.leetcode_traning_camp.week_03.day02.max_depth_of_binary_tree;
 import com.henry.leetcode_traning_camp.week_03.day02.TreeNode;
 
 // 验证：可以使用递归的方式 max(maxDepth(left), maxDepth(right)) + 1 来 求出二叉树的最大深度；
+// 🐖 处理二叉树相关的任务时，二叉树中结点的遍历方式 是重要的；
 public class Solution_maxDepthOfTree_via_recursion {
     public static void main(String[] args) {
         // 创建一个二叉树对象
@@ -33,7 +34,7 @@ public class Solution_maxDepthOfTree_via_recursion {
 
     /**
      * 递归方法的作用：计算出 指定的二叉树的最大深度
-     *
+     * 二叉树的遍历方式：后序遍历 - 左-右-根
      * @param currentRootNode
      * @return
      */
