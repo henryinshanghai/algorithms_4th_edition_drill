@@ -60,8 +60,8 @@ public class Solution_flip_binary_tree_side_to_side {
         // #1 本级递归需要做的事情(假设递归方法已经完全实现)：翻转左子树、翻转右子树
         // Ⅰ 规模更小的子问题：翻转子树中的结点；
         // Ⅱ 规模更小的子问题的解 怎么能帮助解决原始问题? 子树中的结点翻转后，只要把其根结点“正确地连接到”原始树的根结点，就完成了对原始树的翻转
-        TreeNode newLeftNode = flipTreeSideToSide(currentRootNode.rightSubNode);
         TreeNode newRightNode = flipTreeSideToSide(currentRootNode.leftSubNode);
+        TreeNode newLeftNode = flipTreeSideToSide(currentRootNode.rightSubNode);
 
         // 然后把翻转后的子树的根结点 正确地连接到 原始的根结点上
         currentRootNode.leftSubNode = newLeftNode;

@@ -79,6 +79,7 @@ public class Solution_isValidBST_via_recursion {
     private static boolean isValidBST(TreeNode currentRootNode) {
         // #0 递归终结条件：
         // 如果递归进行到nil节点，说明 在此之上的所有结点 都已经通过了BST的检查，则：
+        // 🐖 nil子树属于任何类型的树
         if (currentRootNode == null) {
             // 可以断言 原始的树是一个BST
             return true;
