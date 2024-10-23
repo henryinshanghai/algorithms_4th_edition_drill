@@ -1,8 +1,6 @@
-package com.henry.leetcode_traning_camp.week_03.day06;
+package com.henry.leetcode_traning_camp.week_03.day06.N_square_queen.other_approach;
 
-import java.util.List;
-
-public class Solution_solveNQueens_03_method02_tusharRoy {
+public class Solution_solveNQueens_by_tusharRoy {
     public static void main(String[] args) {
         int n = 4;
         Position[] res = solveQueenOneSolution(n);

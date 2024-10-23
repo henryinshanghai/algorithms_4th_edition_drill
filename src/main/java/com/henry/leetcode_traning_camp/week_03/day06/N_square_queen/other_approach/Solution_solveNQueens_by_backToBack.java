@@ -1,9 +1,9 @@
-package com.henry.leetcode_traning_camp.week_03.day06;
+package com.henry.leetcode_traning_camp.week_03.day06.N_square_queen.other_approach;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class Solution_solveNQueens_03_method01_backToBack {
+public class Solution_solveNQueens_by_backToBack {
     public static void main(String[] args) {
         int size = 4;
         List<List<Integer>> res = NQueens(size);

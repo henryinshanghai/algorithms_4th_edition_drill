@@ -1,8 +1,8 @@
-package com.henry.leetcode_traning_camp.week_03.day06;
+package com.henry.leetcode_traning_camp.week_03.day06.N_square_queen.other_approach;
 
 import java.util.*;
 
-public class Solution_solveNQueens_03_method03_liweiwei {
+public class Solution_solveNQueens_by_liweiwei {
     public static void main(String[] args) {
         int n = 4;
         List<List<String>> res = solveNQueens(n);
@@ -37,7 +37,7 @@ public class Solution_solveNQueens_03_method03_liweiwei {
         }
 
         // 设置成员变量，减少参数传递，具体作为方法参数还是作为成员变量，请参考团队开发规范
-        Solution_solveNQueens_03_method03_liweiwei.n = n;
+        Solution_solveNQueens_by_liweiwei.n = n;
         col = new boolean[n];
         main = new boolean[2 * n - 1];
         sub = new boolean[2 * n - 1];
