@@ -1,8 +1,8 @@
-package com.henry.leetcode_traning_camp.week_04.day03;
+package com.henry.leetcode_traning_camp.week_04.day03.solitaire_02;
 
 import java.util.*;
 
-public class Solution_findLadders_03_method02_backtrack_liweiwei {
+public class Solution_findLadders_via_liweiwei {
     public static void main(String[] args) {
         String beginWord = "hit";
         String endWord = "cog";

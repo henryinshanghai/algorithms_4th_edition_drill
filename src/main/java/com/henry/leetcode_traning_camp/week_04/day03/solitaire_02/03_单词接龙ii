@@ -1,32 +1,33 @@
-//给定两个单词（beginWord 和 endWord）和一个字典 wordList，找出所有从 beginWord 到 endWord 的最短转换序列。
+#126
+
+给定两个单词（beginWord 和 endWord）和一个字典 wordList，找出所有从 beginWord 到 endWord 的最短转换序列。
 
 规则如下：
-// 每次转换只能改变一个字母。
-// 转换过程中的中间单词必须是字典中的单词。
+#1 每次转换只能改变一个字母。
+#2 转换过程中的中间单词必须是字典中的单词。
 
-// 说明:
-//
-//
-// 如果不存在这样的转换序列，返回一个空列表。
-// 所有单词具有相同的长度。
-// 所有单词只由小写字母组成。
-// 字典中不存在重复的单词。
-// 你可以假设 beginWord 和 endWord 是非空的，且二者不相同。
+说明:
+    #1 如果不存在这样的转换序列，返回一个空列表。
+    #2 所有单词具有相同的长度。
+    #3 所有单词只由小写字母组成。
+    #4 字典中不存在重复的单词。
+你可以假设 beginWord 和 endWord 是非空的，且二者不相同。
 
-// 示例 1:
-//
-// 输入:
-//beginWord = "hit",
-//endWord = "cog",
-//wordList = ["hot","dot","dog","lot","log","cog"]
-//
-//输出:
-//[
-//  ["hit","hot","dot","dog","cog"],
-//  ["hit","hot","lot","log","cog"]
-//]
+===
+示例 1:
 
-------
+输入:
+    beginWord = "hit",
+    endWord = "cog",
+    wordList = ["hot","dot","dog","lot","log","cog"]
+
+输出:
+    [
+      ["hit","hot","dot","dog","cog"],
+      ["hit","hot","lot","log","cog"]
+    ]
+
+===
 题设与要求：
 题设：
     1 给定两个指定的单词和一个单词列表；
@@ -42,6 +43,7 @@
     1 每次转换只能改变一个字母。
     2 转换过程中的中间单词必须是字典中的单词。
 
+===
 分析难点 & 提出解决方案
 难点1：如果从beginWord开始，向endWord进行转换？
 手段：
@@ -60,6 +62,7 @@
 口述算法：
     xxx
 
+===
 伪代码：
 根据要求，反推应该使用的思路；
 要求：求出所有满足条件的路径 => 回溯（try everything）
@@ -152,26 +155,5 @@ final step:
 使用回溯来生成需要的结果（所有从startWord到endWord的最短路径）；
 具体手段：在图中进行DFS，找到一条路径后，untrack，继续查找
 
-参考链接：https://www.youtube.com/watch?v=DFpYnKBGbXY
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+参考链接：
+https://www.youtube.com/watch?v=DFpYnKBGbXY
