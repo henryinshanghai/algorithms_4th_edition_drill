@@ -3,7 +3,8 @@ package com.henry.leetcode_traning_camp.week_06.day01.longest_common_substr;
 // 验证：对于 两个字符串之间所存在的最长公共子序列的长度 这样的问题，可以使用 动态规划的思路 来 得到答案
 // dp[][]数组的含义：currentStrsComboToItsLCSS - 指定的子字符串组合(subStr1 × subStr2)间 所存在的最长公共子字符串的长度
 // 最优子结构：原始问题的最优解 包含有 子问题的最优解；
-// 子字符串之间的 LCSS(longest common subsequence)的长度，能够用于得到 原始字符串之间的LCSS的长度
+// 原始字符串之间的LCSL的长度 包含有 子字符串之间的 LCSL(longest common subsequence length)的长；
+// A 包含有 B => 因此 B 能够用于得到 A
 // 原理：情形#1 新增的字符相等 - 此时只需要 把X+1； 情形#2 新增的字符不相等 - 此时则需要keep the max value of(left, above)；
 public class Solution_longestCommonSubSequence_via_dp_by_happygirl {
     public static void main(String[] args) {
@@ -21,7 +22,8 @@ public class Solution_longestCommonSubSequence_via_dp_by_happygirl {
         int str1Length = str1.length();
         int str2Length = str2.length();
 
-        int[][] currentStrsComboToItsLCSS = new int[str1Length + 1][str2Length + 1];
+        // LCSL: longest common subsequence length
+        int[][] currentStrsComboToItsLCSL = new int[str1Length + 1][str2Length + 1];
 
         /* Ⅱ 计算并填充dpTable[][]二维数组中元素的值 */
         int counter = 0;
@@ -33,27 +35,27 @@ public class Solution_longestCommonSubSequence_via_dp_by_happygirl {
 
                 // 如果 两个指针 当前指向的字符相等，说明 最长公共子序列的长度 相对于上一个值要+1，
                 if (str1CurrentCharacter == str2CurrentCharacter) {
-                    // EXPR:这里计算的是 currentStrsComboToItsLCSS[str1CurrentCursor + 1][str2CurrentCursor + 1]
-                    currentStrsComboToItsLCSS[str1CurrentCursor + 1][str2CurrentCursor + 1]
-                            = currentStrsComboToItsLCSS[str1CurrentCursor][str2CurrentCursor] + 1;
+                    // EXPR:这里计算的是 currentStrsComboToItsLCSL[str1CurrentCursor + 1][str2CurrentCursor + 1]
+                    currentStrsComboToItsLCSL[str1CurrentCursor + 1][str2CurrentCursor + 1]
+                            = currentStrsComboToItsLCSL[str1CurrentCursor][str2CurrentCursor] + 1;
                 } else { // 如果 两个指针 当前指向的字符不相等，说明 这种情况下的最长公共子序列的长度
-                    currentStrsComboToItsLCSS[str1CurrentCursor + 1][str2CurrentCursor + 1]
+                    currentStrsComboToItsLCSL[str1CurrentCursor + 1][str2CurrentCursor + 1]
                             // #3 取两者中的较大值
-                            = Math.max(currentStrsComboToItsLCSS[str1CurrentCursor + 1][str2CurrentCursor], // #1 要么是 长str1×短str2 这种组合的 最长公共子字符串的长度
-                            currentStrsComboToItsLCSS[str1CurrentCursor][str2CurrentCursor + 1]); // #2 要么是 短str1×长str2 这种组合的 最长公共子序列的长度
+                            = Math.max(currentStrsComboToItsLCSL[str1CurrentCursor + 1][str2CurrentCursor], // #1 要么是 长str1×短str2 这种组合的 最长公共子字符串的长度
+                            currentStrsComboToItsLCSL[str1CurrentCursor][str2CurrentCursor + 1]); // #2 要么是 短str1×长str2 这种组合的 最长公共子序列的长度
                 }
             }
 
             System.out.println("当前第" + (++counter) + "次循环👇");
-            print2DimensionArr(currentStrsComboToItsLCSS);
+            print2DimensionArr(currentStrsComboToItsLCSL);
         }
 
         System.out.println("在循环之外打印二维数组👇");
-        print2DimensionArr(currentStrsComboToItsLCSS);
+        print2DimensionArr(currentStrsComboToItsLCSL);
 
         /* Ⅲ 返回dpTable[][]中 符合题目要求的元素值 */
         System.out.println("str1Length: " + str1Length + ", str2Length: " + str2Length);
-        return currentStrsComboToItsLCSS[str1Length][str2Length];
+        return currentStrsComboToItsLCSL[str1Length][str2Length];
     }
 
     private static void print2DimensionArr(int[][] currentStrsComboToItsLCSS) {
