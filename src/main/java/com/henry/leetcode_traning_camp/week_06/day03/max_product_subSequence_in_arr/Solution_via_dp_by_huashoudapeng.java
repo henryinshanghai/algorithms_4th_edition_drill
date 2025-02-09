@@ -16,7 +16,7 @@ public class Solution_via_dp_by_huashoudapeng {
 
     private static int getProductOfMaxSubArrayIn(int[] numArr) {
         int max = Integer.MIN_VALUE,
-                imax = 1, imin = 1; // #1 变量的初始值为1，这样执行乘法后 就能得到”正确的值“
+            imax = 1, imin = 1; // #1 变量的初始值为1，这样执行乘法后 就能得到”正确的值“
 
         // #2 这里currentSpot的起点为0
         for (int currentSpot = 0; currentSpot < numArr.length; currentSpot++) {
