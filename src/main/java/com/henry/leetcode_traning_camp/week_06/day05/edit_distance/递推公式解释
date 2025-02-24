@@ -1,0 +1,44 @@
+===
+dp[i][j]的定义：字符串1的指针拨到i & 字符串2的指针拨到j时，由字符串1 变化到 字符串2所需要的最少操作数量；
+
+情况#1 字符串1的指针 与 字符串2的指针 所指向的字符相同；
+则：dp[i][j] = dp[i-1][j-1];
+
+示例：
+字符串1：henry
+字符串2：gary
+
+变化过程：
+① y不需要任何操作；
+② 由 henr 变化到 gar；// 这个过程所需要的操作数 就是整个过程所需要的操作数
+
+===
+情况#2 字符串1的指针 与 字符串2的指针 所指向的字符不相同；
+则：dp[i][j] = min(dp[i][j-1], dp[i-1][j], dp[i-1][j-1]) + 1;
+
+字符串1：henry
+字符串2：mahendra
+
+dp[i][j-1]:
+henry
+mahendr
+
+变化过程：
+① 先由henry 变化得到 mahendr;
+② 再在 mahendr 后面添加一个字符a，得到 mahendra；
+
+dp[i-1][j]:
+henr
+mahendra
+
+变化过程：
+① 先由 henry 删除一个字符 得到henr；
+② 再由 henr 变化得到 mahendra；
+
+dp[i-1][j-1]:
+henr
+mahendr
+
+变化过程：
+① 先由henry 变化得到 henra（替换 y为a）；
+② 再以henra作为基础（最后一个字符相同），变化得到 mahendra。
