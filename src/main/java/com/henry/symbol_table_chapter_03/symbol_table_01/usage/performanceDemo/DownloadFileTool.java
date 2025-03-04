@@ -51,8 +51,8 @@ public class DownloadFileTool {
     public static void main(String[] args) throws Exception {
         // 准备URL与存储地址
         // 🐖 URL中的斜杠是正斜杠、文件路径中的斜杠是反斜杠
-        String urlPathStr = "https://algs4.cs.princeton.edu/31elementary/leipzig300K.txt";
-        String storePath = "E:\\development_project\\algorithms_4th_edition_drill\\src\\main\\java\\com\\henry\\symbol_table_chapter_03\\symbol_table_01\\performanceDemo\\leipzig300k.txt";
+        String urlPathStr = "https://algs4.cs.princeton.edu/41graph/largeG.txt";
+        String storePath = "E:\\development_project\\algorithms_4th_edition_drill\\src\\main\\java\\com\\henry\\leetcode_traning_camp\\week_02\\day5\\aboutGraph\\data_source\\largeG.txt";
 
         // 🐖 这种方式要求storePath的具体文件已经存在，否则会出现“文件找不到”的异常
         downloadFileViaUrlToGivenPosition(urlPathStr, storePath);
