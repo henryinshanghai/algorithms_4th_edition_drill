@@ -21,6 +21,7 @@ public class Solution_via_dp_by_nickWhite {
         int[] currentHouseToItsMaxRobberyMoneyEndWithIt = new int[houseValueSequence.length + 1]; // 这里指定的值是dpTable的容量，而不是下标
 
         /* Ⅱ dp[]数组 起始元素的初始化 - 用作为递推的基础 */
+        // 🐖 这里房子的序号 从1开始，因此 dp[0] = 0
         currentHouseToItsMaxRobberyMoneyEndWithIt[0] = 0; // 抢 0个房子
         currentHouseToItsMaxRobberyMoneyEndWithIt[1] = houseValueSequence[0]; // 抢1个房子
 
