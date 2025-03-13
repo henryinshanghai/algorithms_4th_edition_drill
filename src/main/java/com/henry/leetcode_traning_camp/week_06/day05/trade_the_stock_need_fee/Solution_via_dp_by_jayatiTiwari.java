@@ -30,23 +30,22 @@ public class Solution_via_dp_by_jayatiTiwari {
         // 第0天不持有股票 aka 什么都不做，则：手上的净余额为0
         currentConditionToItsMaxNetBalance[0][0] = 0;
         // 第0天持有股票 aka 买入股票，则：手上的净余额为 (负的股价 - 交易所需要的手续费)
-        currentConditionToItsMaxNetBalance[0][1] = -currentDayToItsStockValue[0] - tradeFee; // 规则：在买入股票时，支付手续费。
+        currentConditionToItsMaxNetBalance[0][1] = -currentDayToItsStockValue[0] - tradeFee; // 规则：在买入股票时，支付手续费。卖出时就不再支付手续费了
 
-        /* Ⅲ build up the currentConditionToItsMaxNetBalance */
+        /* Ⅲ 计算dp[]数组的元素值 */
         for (int currentDay = 1; currentDay < daysAmount; currentDay++) {
-            // for each day,calculate its value for:
-            // 今天不持有股票的情况下 手中的净余额;
+            // 计算 在今天不持有股票的情况下 手中的净余额;
             currentConditionToItsMaxNetBalance[currentDay][0] =
                     Math.max(currentConditionToItsMaxNetBalance[currentDay - 1][1] + currentDayToItsStockValue[currentDay], // 前一天持有股票 & 今天卖出股票
                             currentConditionToItsMaxNetBalance[currentDay - 1][0]); // 前一天就 不持有股票 & 今天什么都不做
-            // 今天持有股票的情况下 手中的净余额；
+            // 计算 在今天持有股票的情况下 手中的净余额；
             currentConditionToItsMaxNetBalance[currentDay][1] =
                     Math.max(currentConditionToItsMaxNetBalance[currentDay - 1][0] - currentDayToItsStockValue[currentDay] - tradeFee, // 前一天不持有股票 & 今天买入 & 支付手续费(因为是新的交易??)
                         currentConditionToItsMaxNetBalance[currentDay - 1][1]); // 前一天就 持有股票 & 今天什么都不做
 
         }
 
-        /* Ⅳ 返回dpTable中的正确的元素值 */
+        /* Ⅳ 返回dpTable中的正确的元素值：最后一天不持有股票时手上的净余额 */
         return currentConditionToItsMaxNetBalance[daysAmount - 1][0];
     }
 }
