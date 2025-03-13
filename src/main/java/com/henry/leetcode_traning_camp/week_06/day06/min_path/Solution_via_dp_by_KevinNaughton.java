@@ -21,24 +21,24 @@ public class Solution_via_dp_by_KevinNaughton {
         }
 
         // 准备dp[][]数组
-        int[][] currentGridToMinPathSumTowardsIt = new int[numberBoard.length][numberBoard[0].length];
+        int[][] currentGridToMinPathSumReachIt = new int[numberBoard.length][numberBoard[0].length];
 
-        for (int currentRow = 0; currentRow < currentGridToMinPathSumTowardsIt.length; currentRow++) {
-            for (int currentColumn = 0; currentColumn < currentGridToMinPathSumTowardsIt[0].length; currentColumn++) {
+        for (int currentRow = 0; currentRow < currentGridToMinPathSumReachIt.length; currentRow++) {
+            for (int currentColumn = 0; currentColumn < currentGridToMinPathSumReachIt[0].length; currentColumn++) {
                 // 当前路径的sum 一定会包含 当前方格的value
-                currentGridToMinPathSumTowardsIt[currentRow][currentColumn] += numberBoard[currentRow][currentColumn];
+                currentGridToMinPathSumReachIt[currentRow][currentColumn] += numberBoard[currentRow][currentColumn];
 
                 // 当前路径的sum 除了 当前方格的value外，还可能包含哪些部分呢? 🐖 计算方向：从左往右 × 从上往下
                 if (currentRow > 0 && currentColumn > 0) {
-                    currentGridToMinPathSumTowardsIt[currentRow][currentColumn] +=
-                            Math.min(currentGridToMinPathSumTowardsIt[currentRow - 1][currentColumn],
-                                    currentGridToMinPathSumTowardsIt[currentRow][currentColumn - 1]);
+                    currentGridToMinPathSumReachIt[currentRow][currentColumn] +=
+                            Math.min(currentGridToMinPathSumReachIt[currentRow - 1][currentColumn],
+                                    currentGridToMinPathSumReachIt[currentRow][currentColumn - 1]);
                 } else if (currentRow > 0) {
-                    currentGridToMinPathSumTowardsIt[currentRow][currentColumn] +=
-                            currentGridToMinPathSumTowardsIt[currentRow - 1][currentColumn];
+                    currentGridToMinPathSumReachIt[currentRow][currentColumn] +=
+                            currentGridToMinPathSumReachIt[currentRow - 1][currentColumn];
                 } else if (currentColumn > 0) {
-                    currentGridToMinPathSumTowardsIt[currentRow][currentColumn] +=
-                            currentGridToMinPathSumTowardsIt[currentRow][currentColumn - 1];
+                    currentGridToMinPathSumReachIt[currentRow][currentColumn] +=
+                            currentGridToMinPathSumReachIt[currentRow][currentColumn - 1];
                 } else {
                     continue;
                 }
@@ -47,6 +47,6 @@ public class Solution_via_dp_by_KevinNaughton {
             }
         }
 
-        return currentGridToMinPathSumTowardsIt[numberBoard.length - 1][numberBoard[0].length - 1];
+        return currentGridToMinPathSumReachIt[numberBoard.length - 1][numberBoard[0].length - 1];
     }
 }

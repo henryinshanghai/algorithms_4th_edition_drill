@@ -24,38 +24,38 @@ public class Solution_via_dp_by_gulei {
         }
 
         // 准备合乎题意的dp[][]数组
-        int[][] currentGridToMinPathSumTowardsIt = new int[numberBoard.length][numberBoard[0].length];
+        int[][] currentGridToMinPathSumReachIt = new int[numberBoard.length][numberBoard[0].length];
 
         // #0 先把 二维数组中的元素 拷贝到 dp[][]数组中，然后在此基础上 来 计算dp[][]数组正确的元素值
-        fullCopy(numberBoard, currentGridToMinPathSumTowardsIt);
+        fullCopy(numberBoard, currentGridToMinPathSumReachIt);
 
         // #1 初始化dp[][]数组第一列的元素
-        for (int currentRow = 1; currentRow < currentGridToMinPathSumTowardsIt.length; currentRow++) {
-            currentGridToMinPathSumTowardsIt[currentRow][0]
-                    += currentGridToMinPathSumTowardsIt[currentRow - 1][0];
+        for (int currentRow = 1; currentRow < currentGridToMinPathSumReachIt.length; currentRow++) {
+            currentGridToMinPathSumReachIt[currentRow][0]
+                    += currentGridToMinPathSumReachIt[currentRow - 1][0];
         }
 
         // #2 初始化dp[][]数组第一行的元素
-        for (int currentColumn = 1; currentColumn < currentGridToMinPathSumTowardsIt[0].length; currentColumn++) {
-            currentGridToMinPathSumTowardsIt[0][currentColumn] +=
-                    currentGridToMinPathSumTowardsIt[0][currentColumn - 1];
+        for (int currentColumn = 1; currentColumn < currentGridToMinPathSumReachIt[0].length; currentColumn++) {
+            currentGridToMinPathSumReachIt[0][currentColumn] +=
+                    currentGridToMinPathSumReachIt[0][currentColumn - 1];
         }
 
 
         // #3 计算并填充 dp[][]数组中的剩余元素
-        for (int currentRow = 1; currentRow < currentGridToMinPathSumTowardsIt.length; currentRow++) {
-            for (int currentColumn = 1; currentColumn < currentGridToMinPathSumTowardsIt[currentRow].length; currentColumn++) {
+        for (int currentRow = 1; currentRow < currentGridToMinPathSumReachIt.length; currentRow++) {
+            for (int currentColumn = 1; currentColumn < currentGridToMinPathSumReachIt[currentRow].length; currentColumn++) {
 
-                currentGridToMinPathSumTowardsIt[currentRow][currentColumn] += // 当前元素
-                        Math.min(currentGridToMinPathSumTowardsIt[currentRow - 1][currentColumn], // option1: 上一行同列的元素
-                                currentGridToMinPathSumTowardsIt[currentRow][currentColumn - 1]); // option2: 同一行前一列的元素
+                currentGridToMinPathSumReachIt[currentRow][currentColumn] += // 当前元素
+                        Math.min(currentGridToMinPathSumReachIt[currentRow - 1][currentColumn], // option1: 上一行同列的元素
+                                currentGridToMinPathSumReachIt[currentRow][currentColumn - 1]); // option2: 同一行前一列的元素
 
             }
         }
 
         // 最后，返回 最后一个方格 => 到达此方格的最小路径sum
         // 🐖 数组的索引从0开始，因此 最后一个元素是 arr[length - 1]
-        return currentGridToMinPathSumTowardsIt[currentGridToMinPathSumTowardsIt.length - 1][currentGridToMinPathSumTowardsIt[0].length - 1];
+        return currentGridToMinPathSumReachIt[currentGridToMinPathSumReachIt.length - 1][currentGridToMinPathSumReachIt[0].length - 1];
     }
 
     private static void fullCopy(int[][] numberBoard, int[][] currentCoordinationToItsMinPathSum) {
