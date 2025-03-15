@@ -23,29 +23,32 @@ public class Solution_via_dp_by_nationalSite {
         int[][] currentComboToItsMinRequiredEditDistance = new int[str1Arr.length + 1][str2Arr.length + 1]; // 多出一个位置用来列举""空字符串的情况
 
         /* Ⅱ 初始化dpTable[][]中的一些位置 */
+        // 初始化dp[x][0] 也就是第一列的值
         for (int currentRow = 1; currentRow < currentComboToItsMinRequiredEditDistance.length; currentRow++) {
             currentComboToItsMinRequiredEditDistance[currentRow][0] = currentRow;
-        } // 第一行 insert all the way up to the end
+        }
 
+        // 初始化dp[0][x] 也就是第一行的值
         for (int currentColumn = 1; currentColumn < currentComboToItsMinRequiredEditDistance[0].length; currentColumn++) {
             currentComboToItsMinRequiredEditDistance[0][currentColumn] = currentColumn;
-        } // 第一列 insert all the way up to the end
+        }
 
         /* Ⅲ 使用 已经初始化的元素值 + 不同规模子问题之间的递推关系 来 填充dpTable[][] */
         for (int str1Cursor = 1; str1Cursor <= str1Arr.length; str1Cursor++) {
             for (int str2Cursor = 1; str2Cursor <= str2Arr.length; str2Cursor++) {
-                // 如果 两个子字符串 最后一个位置的字符相等,说明 最后一个位置无需进行任何编辑。则：
+                // #1 如果 两个子字符串 最后一个位置的字符相等,说明 最后一个位置无需进行任何编辑。则：
                 if (str1Arr[str1Cursor - 1] == str2Arr[str2Cursor - 1]) {
+                    // 当前子字符串组合所需要的编辑距离 = 先前 更小的子字符串组合所需要的编辑距离
                     // dp[i][j] = dp[i-1][j-1]
                     currentComboToItsMinRequiredEditDistance[str1Cursor][str2Cursor]
                             = currentComboToItsMinRequiredEditDistance[str1Cursor - 1][str2Cursor - 1];
                 } else {
-                    // 否则，找出回退得到的子问题的最小解
+                    // 否则，需要从多个可能的“更小的子问题的解”中 选择出“最小编辑距离”
                     currentComboToItsMinRequiredEditDistance[str1Cursor][str2Cursor] = 1 + // 针对以下的三种情况，这里的+1可以代表不同的操作
                             Math.min(
-                                    currentComboToItsMinRequiredEditDistance[str1Cursor - 1][str2Cursor], // 删除字符的操作(移除字符y) + (henr -> mahendra)
-                                    Math.min(currentComboToItsMinRequiredEditDistance[str1Cursor][str2Cursor - 1], // (henry -> mahendr) + 添加字符(a)的操作
-                                            currentComboToItsMinRequiredEditDistance[str1Cursor - 1][str2Cursor - 1]) // (henr -> mahendr) + 替换字符的操作(y -> a)
+                                    currentComboToItsMinRequiredEditDistance[str1Cursor - 1][str2Cursor], // “删除”字符的操作(移除字符y)，得到henr[对应上面的1] + (henr -> mahendra)
+                                    Math.min(currentComboToItsMinRequiredEditDistance[str1Cursor][str2Cursor - 1], // (henry -> mahendr) + “添加”字符(a)的操作 [对应上面的1]
+                                            currentComboToItsMinRequiredEditDistance[str1Cursor - 1][str2Cursor - 1]) // (henr -> mahendr) + “替换”字符的操作(y -> a) [对应上面的1]
                             );
                 }
             }
