@@ -36,9 +36,9 @@ public class Solution_via_dp_by_jayatiTiwari {
         }
 
         // 数组元素的初始化
-        int[] currentBuyToItsNetBalance = new int[tradeTimes];
-        Arrays.fill(currentBuyToItsNetBalance, Integer.MIN_VALUE); // 买入时的元素初始值为 整型最小值
-        int[] currentSellToItsNetBalance = new int[tradeTimes];
+        int[] currentBuyToItsMaxNetBalance = new int[tradeTimes];
+        Arrays.fill(currentBuyToItsMaxNetBalance, Integer.MIN_VALUE); // 买入时的元素初始值为 整型最小值
+        int[] currentSellToItsMaxNetBalance = new int[tradeTimes];
 
         // 对于每一天...
         for (int currentDay = 0; currentDay < currentDayToItsStockValue.length; currentDay++) {
@@ -49,19 +49,19 @@ public class Solution_via_dp_by_jayatiTiwari {
             // 🐖 每次交易都要保证手上的净余额最大
             for (int currentTrade = 0; currentTrade < tradeTimes; currentTrade++) {
                 // 买入
-                currentBuyToItsNetBalance[currentTrade] =
-                        Math.max(currentBuyToItsNetBalance[currentTrade], // 保持原始的计算值
+                currentBuyToItsMaxNetBalance[currentTrade] =
+                        Math.max(currentBuyToItsMaxNetBalance[currentTrade], // 保持原始的计算值
                                 currentTrade == 0 // 如果是第一次买入
                                         ? -currentDayStockValue // 则：手上的净余额为 负的股票价值
-                                        : (currentSellToItsNetBalance[currentTrade - 1] - currentDayStockValue)); // 否则：净余额 = 在上一次交易的基础上 - 当前股票的价值
+                                        : (currentSellToItsMaxNetBalance[currentTrade - 1] - currentDayStockValue)); // 否则：净余额 = 在上一次交易的基础上 - 当前股票的价值
                 // 卖出
-                currentSellToItsNetBalance[currentTrade] =
-                        Math.max(currentSellToItsNetBalance[currentTrade], // 保持原值
-                                currentBuyToItsNetBalance[currentTrade] + currentDayStockValue); // 净余额 = 在买入操作的基础上 + 当前股票的价值
+                currentSellToItsMaxNetBalance[currentTrade] =
+                        Math.max(currentSellToItsMaxNetBalance[currentTrade], // 保持原值
+                                currentBuyToItsMaxNetBalance[currentTrade] + currentDayStockValue); // 净余额 = 在买入操作的基础上 + 当前股票的价值
             }
         }
 
         // 返回 最后一次交易(tradeTimes - 1)后，手中的余额 aka 净利润
-        return currentSellToItsNetBalance[tradeTimes - 1];
+        return currentSellToItsMaxNetBalance[tradeTimes - 1];
     }
 }
