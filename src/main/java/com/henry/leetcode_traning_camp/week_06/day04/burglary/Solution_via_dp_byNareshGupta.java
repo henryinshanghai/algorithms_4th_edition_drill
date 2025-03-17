@@ -3,6 +3,8 @@ package com.henry.leetcode_traning_camp.week_06.day04.burglary;
 import java.util.Arrays;
 
 // 验证：对于 沿着一个圈来打劫的问题，可以使用 currentHouseToMaxRobMoneyUpToIt[] 的dp数组 来 得到其最大可能的抢劫数额
+// 最优子结构/递推公式: dp[i] = max(dp[i-1], dp[i-2] + current_house_value)
+// 由于递推公式中，当前的dp[]值的计算 只与其前两项相关，因此 可以使用三个连续的指针变量 来 代替dp[]数组，以此节约空间
 public class Solution_via_dp_byNareshGupta {
     public static void main(String[] args) {
         int[] housesValues = {1, 2, 3, 1}; // 4
@@ -19,9 +21,9 @@ public class Solution_via_dp_byNareshGupta {
         // Ⅰ 处理边界情况：如果房子序列中就只有一所房子，则：最大金额就是偷这所房子
         if (housesValues.length == 1) return housesValues[0];
 
-        // Ⅱ 如果房子序列中有多个房子，则：
+        // Ⅱ 由于房子序列组成了一个圆圈，因此我们可以：
         /*
-            人为地/逻辑上地 把房子序列分解成两个子序列：
+            人为地/逻辑上地 把房子序列分解成两个可抢的房子子序列：
                 序列A: [0, houses.length - 1);
                 序列B: [1, house.length); // 实际区间是左闭右开，因此不会越界
          */
