@@ -2,6 +2,13 @@ package com.henry.leetcode_traning_camp.week_06.day03.piece_the_money;
 
 import java.util.Arrays;
 
+// 验证：对于 使用给定的有限可选元素（任意多个） 来 凑出目标数字的 最少数量问题，
+// 可以使用 动态规划 来 得到问题的答案
+// dp[]数组：当前金额 => 凑出当前金额所需要的最少硬币数量
+// 最优子结构/递推公式：dp[i] = min(dp[i], dp[i-coin_option] + 1);
+// 这是一个“完全背包”类的问题，因此for循环遍历时，先遍历物品（可选项），再遍历背包（目标金额）
+// 🐖 这里有一个小技巧：计算dp[i]需要依赖“计算过的dp[i-coin_option]”，因此可以 先判断dp[i-coin_option]是不是已经被计算过了
+// 如果不是，说明 凑不出(i-coin_option)这个目标金额，则：也就凑不出i这个金额，可以跳过没必要的计算
 public class Solution_via_dp_by_Carl {
     public static void main(String[] args) {
         int[] coinOptions = {1, 2, 5}; // 可选的硬币面额
