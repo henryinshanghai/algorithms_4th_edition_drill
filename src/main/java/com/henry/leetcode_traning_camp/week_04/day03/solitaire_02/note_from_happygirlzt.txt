@@ -1,0 +1,91 @@
+根据要求，反推应该使用的思路；
+要求：求出所有满足条件的路径 => 回溯（try everything）
+        【wordList】
+beginWord -> endWord
+
+我们可以找到这些单词之间的转换关系，并以此来构建出一幅图 以表示这种关系。
+
+比如，如果 起始单词是hit，而终止单词是cog，有效的单词变体集合是 ["hot", "dot", "dog", "lot", "log", "cog"]
+
+由hit转换为hot，
+这意味着 hit(作为图中的一个结点) 有一条边 指向hot(图中的另一个结点)
+与此同时，hot也能够转换到hit，这意味着 图是一个双向图。
+
+hot -> dot、lot
+    dot -> hot(×)   一旦我们使用了某个单词，我们需要从 可用单词变体列表中 移除掉它
+        -> dog(√)
+
+    lot -> log（√）
+
+dog -> cog(Bingo!)
+log -> cog(Bingo!)
+
+图的特性：1 无权重； 2 无方向；
+问题转化/简化：从一个无向无权图中找到从 VertexA到 VertexB的最短路径；
+手段：BFS（Breadth-First Search）
+
+算法：
+使用BFS 来 构建出 用于表示 单词 -> 单词的有效/可用转换变体 的图。
+
+特征：
+对于每一个转换操作，它们都会花费相同的常量时间(O(1))
+这意味着 图是一个无权重的图。加上我们已经知道图是无向的，所以 要构建的图是一个 无权重、无方向的图。
+
+算法是怎么工作的？
+目标：找到一个 无权无向图中 所有的最短路径；
+
+刚开始时，第一层就只有一个单词。但是在转化后的其他层中，可能会有多个单词
+所以使用一个startSet来表示当前层的起始单词
+
+伪代码：
+对于单词集合当前层的每一个单词：
+    对于当前单词中的每一个字符：
+        使用a-z的所有字符 来 逐一替换它：
+            如果替换后的新单词 存在于 可用单词列表中：
+                我们就可以构建一个转换关系
+                    比如 hit -> hot
+                一旦 替换后的新单词 与 目标单词 相同，
+                    我们就找到了一个图中的最短路径；
+
+===
+算法的问题与fix：
+drawback：随着图的建立，startSet可能会越来越大
+
+优化方法：把startSet与endSet（开始的时候也是只有一个endWord）交换一下
+原则：always let startSet be the smaller-itsNodesAmount set, and endSet be the larger one. 始终保持 startSet比较小，而endSet比较大；
+当前操作（待优化）：对startSet中的单词进行修改，进入到下一个level；
+优化后的操作(交换startSet与endSet)之后，需要做出的转换就会变少
+衍生问题：
+    最开始startSet，经过变换得到下一个单词；
+    在交换后，endWord里的单词作为value，修改后的单词作为key； aka 映射关系也要交换
+
+startSet
+hit -> hot -> dot
+           -> lot //startSet中的单词开始变多了，在对startSet中的每个单词进行转化（字符修改）时，操作就会很多次
+                  //优化手段：交换 startSet 与 endSet,由于endSet中只有一个单词，所以所需要进行的转换就会少一些
+cog -> dog
+    -> log // 走到这里还没有找到endSet中的单词
+---
+endSet
+cog
+
+dot
+lot
+
+采用上述做法后，graph（使用一个哈希表来表示）中存储的内容如下：
+hit -> hot
+hot -> dot, lot
+
+// 记录翻转后的映射关系
+dog -> cog
+log -> cog
+
+dot -> dog
+lot -> log // 也是反的
+
+final step:
+使用回溯来生成需要的结果（所有从startWord到endWord的最短路径）；
+具体手段：在图中进行DFS，找到一条路径后，untrack，继续查找
+
+参考链接：
+https://www.youtube.com/watch?v=DFpYnKBGbXY
