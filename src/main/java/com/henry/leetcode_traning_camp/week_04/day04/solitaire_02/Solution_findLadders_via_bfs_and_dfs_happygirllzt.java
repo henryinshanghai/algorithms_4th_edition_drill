@@ -1,4 +1,4 @@
-package com.henry.leetcode_traning_camp.week_04.day03.solitaire_02;
+package com.henry.leetcode_traning_camp.week_04.day04.solitaire_02;
 
 import java.util.*;
 
