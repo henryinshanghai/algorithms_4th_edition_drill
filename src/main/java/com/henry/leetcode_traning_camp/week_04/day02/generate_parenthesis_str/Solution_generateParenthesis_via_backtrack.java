@@ -7,7 +7,10 @@ import java.util.List;
 // 组合出/添加出“有效的括号字符串”的手段 {① 添加左括号; ② 左括号更多时，添加右括号}
 public class Solution_generateParenthesis_via_backtrack {
     public static void main(String[] args) {
-        generateValidParenthesisStr("", 0, 0);
+        generateValidParenthesisStr(
+                "",
+                0,
+                0);
         System.out.println(validParenthesisStrList);
     }
 
@@ -29,13 +32,17 @@ public class Solution_generateParenthesis_via_backtrack {
             // 🐖 由于currentGeneratedParenthesisStr是递归方法的参数，所以每次是参数发生了变化，而变量本身并没有发生变化。
             // 因此这里看不到对变量的回溯过程 👇
             // 向“括号组合字符串”中 继续添加左括号
-            generateValidParenthesisStr(currentGeneratedParenthesisStr + "(", currentUsingLeftParenthesisAmount + 1, currentUsingRightParenthesisAmount);
+            generateValidParenthesisStr(currentGeneratedParenthesisStr + "(",
+                    currentUsingLeftParenthesisAmount + 1,
+                    currentUsingRightParenthesisAmount);
         }
 
         // 如果 “当前括号组合字符串”中的左括号更多，说明可以继续添加右括号，则：
         if (currentUsingLeftParenthesisAmount > currentUsingRightParenthesisAmount) {
             // 向“括号组合字符串”中继续添加右括号
-            generateValidParenthesisStr(currentGeneratedParenthesisStr + ")", currentUsingLeftParenthesisAmount, currentUsingRightParenthesisAmount + 1);
+            generateValidParenthesisStr(currentGeneratedParenthesisStr + ")",
+                    currentUsingLeftParenthesisAmount,
+                    currentUsingRightParenthesisAmount + 1);
         }
     }
 } // this seems better. is this got a better time complicity? no I don't think so, it is expo...
