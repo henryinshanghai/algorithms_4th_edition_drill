@@ -87,7 +87,7 @@ public class Solution_findLadders_via_bfs_and_dfs_happygirllzt {
                                                Map<String, List<String>> wordsToItsTransformedVariantsMap,
                                                List<String> pathTowardsEndWord,
                                                List<List<String>> allShortestPathList) {
-        // 如果起始单词 与 目标单词 相同，说明
+        // Ⅰ 如果起始单词 与 目标单词 相同，说明
         // #1 要么 不需要进行任何转换 就得到了目标单词 OR
         // #2 要么 转换序列终于转换到了 目标单词，则：
         if (beginWord.equals(endWord)) {
@@ -97,26 +97,26 @@ public class Solution_findLadders_via_bfs_and_dfs_happygirllzt {
             return;
         }
 
-        // 如果“当前起始单词” 不存在 任何“有效的单词变体”，说明 由当前起始单词经“有效单词变体” 无法转变成为“目标单词”，则：
+        // Ⅱ 如果“当前起始单词” 不存在 任何“有效的单词变体”，说明 由当前起始单词经“有效单词变体” 无法转变成为“目标单词”，则：
         if (wordsToItsTransformedVariantsMap.get(beginWord) == null) {
             // 直接return 以 停止当前级方法的调用
             return;
         }
 
-        // 如果“当前起始单词” 存在有 一堆的“有效的单词变体”，说明 由当前起始单词 经“有效单词变体” 有可能转变得到“目标单词”，则：
+        // Ⅲ 如果“当前起始单词” 存在有 一堆的“有效的单词变体”，说明 由当前起始单词 经“有效单词变体” 有可能转变得到“目标单词”，则：
         // 遍历每一个“有效的单词变体”
         for (String currentTransformedWordVariant : wordsToItsTransformedVariantsMap.get(beginWord)) {
-            // 把 当前“有效的单词变体” 添加到 “由起始单词转变到目标单词的路径”中
+            // ① 把 当前“有效的单词变体” 添加到 “由起始单词转变到目标单词的路径”中
             pathTowardsEndWord.add(currentTransformedWordVariant);
 
-            // 调用dfs 以 得到完整的“到目标单词的路径”
+            // ② 调用dfs 以 得到完整的“到目标单词的路径”
             generatePathListViaDFS(currentTransformedWordVariant, // 子问题：此参数发生了变化
                     endWord,
                     wordsToItsTransformedVariantsMap,
                     pathTowardsEndWord, // path参数也发生了变化
                     allShortestPathList);
 
-            // 回溯当前选择 以便选择下一个“有效的单词变体” 来 构造“到目标单词的路径”
+            // ③ 回溯当前选择 以便选择下一个“有效的单词变体” 来 构造“到目标单词的路径”
             pathTowardsEndWord.remove(pathTowardsEndWord.size() - 1);
         }
     }
