@@ -23,7 +23,7 @@ public class Solution_findLadders_via_bfs_and_dfs_happygirllzt {
                                                   String endWord,
                                                   List<String> availableValidWordVariantList) {
         // 准备一个 元素为list的list对象 - 用于存放所有找到的 “最短转换路径”
-        List<List<String>> allShortestTransformSequenceList = new ArrayList<>();
+        List<List<String>> allWantedPathList = new ArrayList<>();
 
         // 把wordList转化成为一个set对象 用于更快速地判断 是否存在重复元素
         Set<String> availableWordVariantSet = new HashSet<>(availableValidWordVariantList);
@@ -31,7 +31,7 @@ public class Solution_findLadders_via_bfs_and_dfs_happygirllzt {
         // 鲁棒性代码 - endWord一定要出现在 可选的单词变体集合中，否则 不存在任何的转换序列，则：
         if (!availableWordVariantSet.contains(endWord)) {
             // 直接return空列表
-            return allShortestTransformSequenceList;
+            return allWantedPathList;
         }
 
         /* #1 使用bfs 来 构建出图/(word -> itsTransformedWordVariants 一对多映射关系) */
@@ -59,10 +59,10 @@ public class Solution_findLadders_via_bfs_and_dfs_happygirllzt {
                 endWord,
                 wordToItsTransformedVariantsMap,
                 pathTowardsEndWord,
-                allShortestTransformSequenceList
+                allWantedPathList
         );
 
-        return allShortestTransformSequenceList;
+        return allWantedPathList;
 
     }
 
@@ -86,13 +86,13 @@ public class Solution_findLadders_via_bfs_and_dfs_happygirllzt {
                                                String endWord,
                                                Map<String, List<String>> wordsToItsTransformedVariantsMap,
                                                List<String> pathTowardsEndWord,
-                                               List<List<String>> allShortestPathList) {
+                                               List<List<String>> allWantedPathList) {
         // Ⅰ 如果起始单词 与 目标单词 相同，说明
-        // #1 要么 不需要进行任何转换 就得到了目标单词 OR
-        // #2 要么 转换序列终于转换到了 目标单词，则：
+        // #1 要么 不需要进行任何转换 就得到了目标单词(特殊情况) OR
+        // #2 要么 转换序列终于转换到了 目标单词(一般情况)，则：
         if (beginWord.equals(endWord)) {
             // 把 当前到endWord的路径（而不是目标单词本身） 添加到 结果列表中
-            allShortestPathList.add(new ArrayList(pathTowardsEndWord)); // 因为path本身会被回溯而变化，所以我们使用的是一个新的副本
+            allWantedPathList.add(new ArrayList(pathTowardsEndWord)); // 因为path本身会被回溯而变化，所以我们使用的是一个新的副本
             // 即刻返回 以 停止当前级方法的继续调用，返回到上一级
             return;
         }
@@ -114,7 +114,7 @@ public class Solution_findLadders_via_bfs_and_dfs_happygirllzt {
                     endWord,
                     wordsToItsTransformedVariantsMap,
                     pathTowardsEndWord, // path参数也发生了变化
-                    allShortestPathList);
+                    allWantedPathList);
 
             // ③ 回溯当前选择 以便选择下一个“有效的单词变体” 来 构造“到目标单词的路径”
             pathTowardsEndWord.remove(pathTowardsEndWord.size() - 1);
