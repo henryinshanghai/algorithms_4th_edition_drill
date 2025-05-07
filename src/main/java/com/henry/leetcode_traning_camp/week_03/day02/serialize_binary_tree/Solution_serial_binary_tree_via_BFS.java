@@ -4,69 +4,87 @@ import com.henry.leetcode_traning_camp.week_03.day02.TreeNode;
 
 import java.util.Deque;
 import java.util.LinkedList;
+import java.util.Queue;
 
 import static com.henry.leetcode_traning_camp.week_03.day02.serialize_binary_tree.Solution_serialise_binaryTree_via_recursion.preOrderOfTree;
 
+// 验证：#1 可以使用BFS的方式(#1 出队父节点; #2 处理父节点; #3 按顺序入队左右子节点) 来 对二叉树中的结点进行序列化
+// #2 可以从BFS得到的序列中，依据“父节点 - 左子节点 - 右子节点”的顺序 来 使用一个简单队列 反序列化出二叉树本身
 public class Solution_serial_binary_tree_via_BFS {
     public static void main(String[] args) {
+        // 创建一个二叉树对象root: 1 - 2 3  - nil nil 4 5
         TreeNode rootNodeOfTree = constructABinaryTree();
 
         // 把二叉树对象转发成为一个字符串对象 aka 对二叉树对象进行序列化
         // 序列化后字符的顺序是二叉树的前序遍历结果
-        String serial_character_sequence = serialize(rootNodeOfTree);
-        System.out.println("二叉树序列化的结果为： " + serial_character_sequence);
+        String serializedResult = serializeViaSequenceOrder(rootNodeOfTree);
+        System.out.println("二叉树序列化（层序遍历）的结果为： " + serializedResult);
 
-        System.out.println("=======================");
-
-        TreeNode resume_tree = deserialize(serial_character_sequence);
-        System.out.println("使用字符串反序列化得到的二叉树结果为： ");
-        preOrderOfTree(resume_tree);
+        TreeNode originalTree = deserializeViaSequenceOrder(serializedResult);
+        System.out.print("使用字符串反序列化得到的二叉树结果（前序遍历表示）为： ");
+        preOrderOfTree(originalTree);
     }
+
     /**
-     * 从一个字符串反序列化得到一棵树
-     * 注：从一个字符串得到一个树可能会有多种结果 但是这里我们会使用特定的顺序
+     * 从一个字符串 通过BFS的规则 来 反序列化得到一棵树
+     * 🐖 我们已经知道 待反序列化的序列 满足：父节点 - [nil, nil] - 左子节点 - 右子节点 的模式
      * 手段：指针 + 使用数字字符来创建树节点
-     * @param serial_character_sequence
+     * @param serializedResult
      */
-    private static TreeNode deserialize(String serial_character_sequence) {
-        if (serial_character_sequence == "") return null;
-        String[] serial_character_arr = serial_character_sequence.split(", ");
+    private static TreeNode deserializeViaSequenceOrder(String serializedResult) {
+        if (serializedResult == "") return null;
+        String[] nodesSerialSequence = serializedResult.split(", ");
 
-        TreeNode rootNode = new TreeNode(Integer.parseInt(serial_character_arr[0]));
-        // 准备一个结点组成的双端队列
-        Deque<TreeNode> nodeDeque = new LinkedList<>();
-        // 把根结点 从队尾入队
-        nodeDeque.addLast(rootNode);
+        System.out.println("二叉树经层序遍历后的字符串表示为：");
+        printArr(nodesSerialSequence);
 
-        // 准备一个循环   在循环中：#1 遍历剩下的字符； #2 使用剩下的字符 来 逐一创建树中的节点 并 建立链接关系
-        for (int current_character_spot = 1; current_character_spot < serial_character_arr.length; current_character_spot++) { // 指针从第二个位置开始
-            // 出列队首元素，并用它来 创建树的根节点
-            TreeNode node_on_currentHead = nodeDeque.pollFirst();
-            // 获取到 数组指针指向的下一个编码字符
-            String current_character = serial_character_arr[current_character_spot];
+        String firstNodeValue = nodesSerialSequence[0];
+        TreeNode rootNode = new TreeNode(Integer.parseInt(firstNodeValue));
 
-            // 如果该编码字符不是nil，说明是有效节点元素。则：
-            if (isNotNil(current_character)) {
+        // 准备一个简单队列
+        Queue<TreeNode> nodeSimpleQueue = new LinkedList<>();
+        // 把 根结点 从队尾入队
+        nodeSimpleQueue.offer(rootNode); // offer() = add()
+
+        // 准备一个循环
+        // 在循环中：#1 遍历剩下的字符； #2 使用剩下的字符 来 逐一创建树中的节点 并 建立链接关系
+        for (int currentNodeSpot = 1; currentNodeSpot < nodesSerialSequence.length; currentNodeSpot += 2) { // 指针从第二个位置开始，且移动步距为2
+            // #1 出列“父节点”??
+            TreeNode currentFatherNode = nodeSimpleQueue.poll();
+
+            // #2 获取到 “左子节点” aka 数组指针指向的下一个编码字符
+            String currentNodeValue = nodesSerialSequence[currentNodeSpot];
+            // 如果该字符不是nil，说明是有效节点元素。则：
+            if (isNotNil(currentNodeValue)) {
                 // 按照顺序创建树节点 并 将之作为左子节点进行关联
-                TreeNode left_child = new TreeNode(Integer.parseInt(current_character));
-                node_on_currentHead.left = left_child;
+                TreeNode leftSubChild = new TreeNode(Integer.parseInt(currentNodeValue));
+                currentFatherNode.left = leftSubChild;
 
                 // 把新的树节点添加到队列中去 🐖：循环会把这个新节点取出，再去给它建立树节点的连接关系
-                nodeDeque.addLast(left_child);
+                nodeSimpleQueue.offer(leftSubChild);
             }
 
+            // #3 获取到 “右子节点” aka 数组指针指向的下一个编码字符
+            String nextNodeValue = nodesSerialSequence[currentNodeSpot + 1];
             // 如果 指针指向的当前编码字符的 下一个编码字符也不是nil，说明下一个元素也是 有效的树节点。则：
-            if (!serial_character_arr[++current_character_spot].equals("nil")) {
+            if (!nextNodeValue.equals("nil")) {
                 // 按照顺序创建树节点 并 将之作为右子节点进行关联
-                TreeNode right_child = new TreeNode(Integer.parseInt(current_character));
-                node_on_currentHead.right = right_child;
+                TreeNode rightSubChild = new TreeNode(Integer.parseInt(nextNodeValue));
+                currentFatherNode.right = rightSubChild;
 
                 // 把新的树节点添加到队列中去 🐖：循环会把这个新节点取出，再去给它建立树节点的连接关系
-                nodeDeque.addLast(right_child);
+                nodeSimpleQueue.offer(rightSubChild);
             }
         }
 
         return rootNode;
+    }
+
+    private static void printArr(String[] nodesSerialSequence) {
+        for (String node : nodesSerialSequence) {
+            System.out.print(node + " ");
+        }
+        System.out.println();
     }
 
     private static boolean isNotNil(String current_character) {
@@ -76,57 +94,62 @@ public class Solution_serial_binary_tree_via_BFS {
     /**
      * 对一棵树按照特定规则进行序列化，得到一个序列化后的字符串
      * 手段：对树进行”层序遍历“（这意味着解码时 应该按照层序的方式来创建树）来得到“序列化后的字符串”
-     * @param root  指定的树对象
+     * 模式：出队“父节点” + 处理该结点 + 入队“左右子结点”，直到队列为空
+     * @param rootNodeOfTree 指定的树对象
      * @return
      */
-    private static String serialize(TreeNode root) {
-        // 准备一个队列   用于支持层序遍历
-        Deque<TreeNode> nodeDequeInPreOrder = new LinkedList<>();
+    private static String serializeViaSequenceOrder(TreeNode rootNodeOfTree) {
+        // 准备一个普通队列   用于支持层序遍历
+        Queue<TreeNode> nodeSimpleQueueInPreOrder = new LinkedList<>();
         // 准备一个StringBuffer对象   用于添加遍历到的树节点元素值
-        StringBuffer serial_character_sb = new StringBuffer();
+        StringBuilder serializedResult = new StringBuilder();
 
-        // 2 把树的根节点入队
-        nodeDequeInPreOrder.addLast(root);
+        // #〇 把“树的根节点”入队 offer() = add();
+        nodeSimpleQueueInPreOrder.offer(rootNodeOfTree);
 
-        // 3 准备一个循环
-        while (!nodeDequeInPreOrder.isEmpty()) {
-            // 获取并移除 双端队列的队首元素
-            TreeNode current_node = nodeDequeInPreOrder.pollFirst();
+        // 准备一个循环
+        while (!nodeSimpleQueueInPreOrder.isEmpty()) {
+            // #1 获取并移除 双端队列的队首元素 poll() = remove();
+            TreeNode currentNode = nodeSimpleQueueInPreOrder.poll();
 
-            // 特殊情况：如果队列中的元素为nil，说明当前树节点是一个nil节点。则：
-            if (current_node == null) {
+            /* #2 按需处理 当前节点 */
+            // ① 特殊情况：如果队列中的元素为nil，说明当前树节点是一个nil节点。则：
+            if (currentNode == null) {
                 // 向sb对象中追加一个"nil"字符串，并跳过本轮循环
-                serial_character_sb.append("nil, ");
+                serializedResult.append("nil, ");
                 continue;
             }
 
-            // 一般情况：向sb对象中 追加当前结点的value
-            serial_character_sb.append(current_node.val + ", ");
+            // ② 一般情况：向sb对象中 追加当前结点的value
+            serializedResult.append(currentNode.val + ", ");
 
-            // 向队列的队尾 添加当前节点的左子节点、右子节点
-            nodeDequeInPreOrder.addLast(current_node.left);
-            nodeDequeInPreOrder.addLast(current_node.right);
+            // #3 向队列的队尾 按顺序添加 当前节点的左子节点、右子节点;
+            nodeSimpleQueueInPreOrder.offer(currentNode.left); // offer() = add()
+            nodeSimpleQueueInPreOrder.offer(currentNode.right);
         }
 
-        return serial_character_sb.toString();
-
+        return serializedResult.toString();
     }
 
+    // 创建一个二叉树对象root: 1 - 2 3  - nil nil 4 5
     private static TreeNode constructABinaryTree() {
-        // 创建一个二叉树对象root
+        // 根节点
         TreeNode root = new TreeNode(1);
 
+        // 左右子结点
         TreeNode left_child = new TreeNode(2);
         TreeNode right_child = new TreeNode(3);
 
         root.left = left_child;
         root.right = right_child;
 
+        // 右子节点的左右子节点
         TreeNode lefty_of_right_child = new TreeNode(4);
         TreeNode right_of_right_child = new TreeNode(5);
         right_child.left = lefty_of_right_child;
         right_child.right = right_of_right_child;
 
+        // 返回二叉树的根节点（等价于 二叉树本身）
         return root;
     }
 }
