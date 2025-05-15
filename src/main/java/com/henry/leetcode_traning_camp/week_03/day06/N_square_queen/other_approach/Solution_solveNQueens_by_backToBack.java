@@ -5,53 +5,70 @@ import java.util.List;
 
 public class Solution_solveNQueens_by_backToBack {
     public static void main(String[] args) {
-        int size = 4;
-        List<List<Integer>> res = NQueens(size);
+        int boardSize = 4;
+        List<List<Integer>> validLayouts = getValidNQueenLayouts(boardSize);
 
-        for (List<Integer> curr : res) {
-            System.out.println(curr);
+        for (List<Integer> currentValidLayout : validLayouts) {
+            System.out.println(currentValidLayout);
         }
     }
 
-    private static List<List<Integer>> NQueens(int n) {
-        List<List<Integer>> res = new ArrayList<>();
-        solveNQueens(n, 0, new ArrayList<Integer>(), res);
-        return res;
+    private static List<List<Integer>> getValidNQueenLayouts(int boardSize) {
+        List<List<Integer>> allValidLayouts = new ArrayList<>();
+        findAndCollectValidQueensLayouts(boardSize, 0, new ArrayList<Integer>(), allValidLayouts);
+        return allValidLayouts;
     }
 
-    private static void solveNQueens(int n, int row, List<Integer> colPlacements, List<List<Integer>> res) {
+    private static void findAndCollectValidQueensLayouts(int boardSize, int currentRow,
+                                                         List<Integer> currentRowToItsQueenColumn,
+                                                         List<List<Integer>> allValidLayouts) {
         // our goal
-        if (row == n) {
-            res.add(new ArrayList<>(colPlacements));
+        if (currentRow == boardSize) {
+            allValidLayouts.add(new ArrayList<>(currentRowToItsQueenColumn));
         } else {
             // traverse all the choices
-            for (int col = 0; col < n; col++) {
+            for (int currentColumn = 0; currentColumn < boardSize; currentColumn++) {
                 // make a choice
-                colPlacements.add(col);
+                currentRowToItsQueenColumn.add(currentColumn);
 
                 // certain constraints
-                if (isValid(colPlacements)) {
-                    solveNQueens(n, row+1, colPlacements, res);
+                if (isAValidLayout(currentRowToItsQueenColumn)) {
+                    findAndCollectValidQueensLayouts(boardSize, currentRow + 1, currentRowToItsQueenColumn, allValidLayouts);
                 }
-                colPlacements.remove(colPlacements.size() - 1);
+
+                // revert the choice
+                currentRowToItsQueenColumn.remove(currentRowToItsQueenColumn.size() - 1);
             }
         }
     }
 
-    private static boolean isValid(List<Integer> colPlacements) {
-        int rowId = colPlacements.size() - 1;
+    private static boolean isAValidLayout(List<Integer> currentRowToItsQueenColumn) {
+        int totalRowAmount = currentRowToItsQueenColumn.size() - 1;
 
-        for (int i = 0; i < rowId; i++) {
+        for (int currentRow = 0; currentRow < totalRowAmount; currentRow++) {
             /* 最后添加进来的皇后所在的列位置 与 先前摆放的皇后的位置 会不会引起攻击？ */
             // 计算(当前皇后所在的列, 最后添加的皇后所在的列)差值的绝对值
-            int diff = Math.abs(colPlacements.get(i) - colPlacements.get(rowId));
-            // 如果结果为0 说明最后添加的皇后与当前皇后在相同的列，则：会产生攻击，返回false
-            // 如果结果为(rowId - i) aka 行数间的差值，说明 最后添加的皇后与当前皇后处在对角线的位置上，则：会产生攻击，返回false
-            if (diff == 0 || diff == rowId - i) {
+            Integer currentRowsQueensColumn = currentRowToItsQueenColumn.get(currentRow);
+            Integer finalRowsQueenColumn = currentRowToItsQueenColumn.get(totalRowAmount);
+
+            int columnDifference = Math.abs(currentRowsQueensColumn - finalRowsQueenColumn);
+            // #1 如果结果为0 说明最后添加的皇后与当前皇后在相同的列，则：会产生攻击，返回false
+            // #2 如果结果为(totalRowAmount - currentRow) aka 行数间的差值，说明 最后添加的皇后与当前皇后处在对角线的位置上，则：会产生攻击，返回false
+            if (sameColumnBreach(columnDifference) || diagonalBreach(totalRowAmount, currentRow, columnDifference)) {
                 return false;
             }
         }
 
         return true;
-    } // 这种写法得到的结果是：每一行的第X列放置皇后的数组；并不是题目预期的结果
+    } // 这种写法得到的结果是：第X行的皇后应该放在第list[X]的列位置
+
+    // 对角线攻击
+    private static boolean diagonalBreach(int totalRowAmount, int currentRow, int diff) {
+        return diff == totalRowAmount - currentRow;
+    }
+
+    // 相同列攻击
+    private static boolean sameColumnBreach(int diff) {
+        return diff == 0;
+    }
 }
