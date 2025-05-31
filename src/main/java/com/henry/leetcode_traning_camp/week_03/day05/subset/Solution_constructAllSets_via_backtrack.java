@@ -42,7 +42,8 @@ public class Solution_constructAllSets_via_backtrack {
      */
     private static void generateAllPossibleSets(int[] numSequence, int startItemIndex) {
         // 收获结果：把”当前子集“添加到 “结果集”中
-        // 为什么是在这个位置收获结果?? 答：因为每次遇到一个N叉树中的结点，就需要把当前结点所对应的子集 添加到结果集中
+        // 为什么是在这个位置收获结果??
+        // 答：因为每次遇到一个N叉树中的结点，就需要把当前结点所对应的子集 添加到结果集中
         List<Integer> legitSet = new ArrayList<>(currentGeneratedSet);
         legitSetList.add(legitSet);
 
