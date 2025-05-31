@@ -9,7 +9,7 @@ public class Solution_constructPermutations_via_backtrack {
         // 原始的元素序列
         int[] numSequence = new int[]{1, 2, 3};
         // 获取到此元素序列 所能得到的所有的全排列
-        List<List<Integer>> permutationList = permute(numSequence);
+        List<List<Integer>> permutationList = getPermutationsOf(numSequence);
         // 逐个打印这些个全排列
         System.out.println(permutationList);
     }
@@ -19,7 +19,7 @@ public class Solution_constructPermutations_via_backtrack {
     // 用于存储当前得到的全排列结果
     private static Deque<Integer> currentGeneratedPermutation = new ArrayDeque<Integer>();
 
-    private static List<List<Integer>> permute(int[] numSequence) {
+    private static List<List<Integer>> getPermutationsOf(int[] numSequence) {
         // 健壮性代码
         int numAmount = numSequence.length;
         if (numAmount == 0) {
@@ -28,7 +28,6 @@ public class Solution_constructPermutations_via_backtrack {
 
         // 准备一个 boolean类型的数组    用于记录 元素有没有被使用过(“标记法”)
         boolean[] itemIndexToIfUsedArr = new boolean[numAmount];
-
 
         // 求出 所有可能的全排列,并返回
         constructPermutationFrom(numSequence, itemIndexToIfUsedArr);
@@ -54,7 +53,7 @@ public class Solution_constructPermutations_via_backtrack {
                 itemIndexToIsUsedArr[currentItemIndex] = true;
                 currentGeneratedPermutation.addLast(currentItem);
 
-                // #2-2 在[1,N]的正整数序列中，得到由其中所有“未被使用过的元素”所组成的子排列。
+                // #2-2 在[1,N]的正整数序列中，继续使用“未被使用过的元素”来构成全排列结果。
                 // 子问题的解就是原始问题的解的一部分
                 constructPermutationFrom(numSequence, itemIndexToIsUsedArr);
 
