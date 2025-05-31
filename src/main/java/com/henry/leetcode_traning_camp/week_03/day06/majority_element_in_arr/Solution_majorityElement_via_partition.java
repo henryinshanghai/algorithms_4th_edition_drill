@@ -4,7 +4,7 @@ package com.henry.leetcode_traning_camp.week_03.day06.majority_element_in_arr;
 // 原理：只要切分操作中”被排定的位置“ > 元素序列的中间位置，就说明 该排定位置上的元素 就是 ”出现次数最多的元素“
 // 切分操作的模板：#1 设置基准元素、小于区边界指针、大于区边界指针；#2 分拣小于区与大于区中的元素；
 // #3 交换基准元素与大于区指针指向的元素； #4 返回大于区指针；
-public class Solution_majorityElement_via_keep_partition {
+public class Solution_majorityElement_via_partition {
     public static void main(String[] args) {
         int[] itemSequence = {1, 1, 1, 2, 2, 2, 1, 5, 5, 5, 5, 5, 5, 5, 5, 5};
         int resultSequence = majorityItemOf(itemSequence);
