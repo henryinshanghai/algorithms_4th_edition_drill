@@ -75,7 +75,8 @@ public class Solution_construct_permutations_via_cutBranch {
                 && previousItemNotUsed(itemToIsUsedArr, currentItemIndex);
     }
 
-    // 如果前一个元素的当前状态是“未使用”的话，说明这已经是第二次使用”相同的元素“来构造排列，则：这样的情况需要进行剪枝
+    // 在元素有序的情况下，如果前一个相同元素的当前状态是“未使用”的话，
+    // 说明这已经是第二次使用”相同的元素“来构造排列（这会导致重复的排列结果），则：这样的情况需要进行剪枝 aka continue
     private static boolean previousItemNotUsed(boolean[] itemToIsUsedArr, int currentItemIndex) {
         return itemToIsUsedArr[currentItemIndex - 1] == false;
     }
