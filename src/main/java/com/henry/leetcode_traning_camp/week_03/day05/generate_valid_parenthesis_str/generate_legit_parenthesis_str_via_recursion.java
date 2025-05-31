@@ -46,15 +46,17 @@ public class generate_legit_parenthesis_str_via_recursion {
             return;
         }
 
-        // 剪枝（如图，左括号可以使用的个数严格大于右括号可以使用的个数，才剪枝，注意这个细节）
+        // 剪枝（如图，可用的左括号数量 严格大于 可用的右括号的数量，才剪枝，注意这个细节）
         if (availableLeftParenthesisAmount > availableRightParenthesisAmount) {
             return;
         }
 
+        // 可以直接添加左括号，不会导致任何breach
         if (availableLeftParenthesisAmount > 0) {
             generateAndAddLegitStrIntoList(currentGeneratedParenthesisStr + "(", availableLeftParenthesisAmount - 1, availableRightParenthesisAmount);
         }
 
+        // 只有当 字符串中的左括号数量 > 字符串中的右括号数量时，才能够添加右括号字符
         if (availableRightParenthesisAmount > 0 && availableLeftParenthesisAmount < availableRightParenthesisAmount) {
             generateAndAddLegitStrIntoList(currentGeneratedParenthesisStr + ")", availableLeftParenthesisAmount, availableRightParenthesisAmount - 1);
         }
