@@ -15,6 +15,11 @@ public class Solution_level_traverse_nodes_in_tree_via_queue {
         System.out.println(nodesValueSequenceInLevelOrder);
     }
 
+    /*
+        1
+      2   3
+    4  5 6  7
+     */
     private static TreeNode constructATree() {
         TreeNode root = new TreeNode(1);
 
