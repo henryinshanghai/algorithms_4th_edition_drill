@@ -49,15 +49,15 @@ public class Solution_letterCombinations_via_backtrack {
             char currentPickedLetter = currentDigitsLetterSequence.charAt(currentLetterCursor);
             addItInCombination(currentPickedLetter);
 
-            // Ⅱ 在“剩下的字符序列”（规模更小的子问题）中，继续选择 字母元素 来 构造字母组合
+            // Ⅱ 在“剩下的数字序列”（规模更小的子问题）中，继续选择 其对应的字母元素 来 构造字母组合
             generateAndCollectLegitLetterCombinations(inputDigits, currentDigitCursor + 1);
 
-            // Ⅲ 回溯“所选择的字母”
-            backtrackPickedLetter();
+            // Ⅲ 回退“所选择的字母”
+            revertPickedLetter();
         }
     }
 
-    private static void backtrackPickedLetter() {
+    private static void revertPickedLetter() {
         currentGeneratedCombination = currentGeneratedCombination.substring(0, currentGeneratedCombination.length() - 1);
     }
 
