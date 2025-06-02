@@ -17,6 +17,11 @@ public class Solution_max_value_of_each_level_via_bfs {
         System.out.println(maxValueList);
     }
 
+    /*
+        1
+      2   3
+    4 5  6 7
+     */
     private static TreeNode constructABinaryTree() {
         // 根节点
         TreeNode root = new TreeNode(1);
@@ -63,8 +68,8 @@ public class Solution_max_value_of_each_level_via_bfs {
             // 获取到 队列中 当前结点的数量 aka 二叉树中当前层的结点数量
             int currentLevelNodesAmount = nodesOnCurrentLevel.size();
             for (int currentNodeCursor = 0; currentNodeCursor < currentLevelNodesAmount; currentNodeCursor++) {
-                /* ① 先 把下一层的结点顺序添加(先左后右地)到队列中 */
-                // 获取队首元素(不移除)
+                /* ① 先 (先左后右地)到队列中 */
+                // 获取队首元素(不移除)把下一层的结点顺序添加
                 TreeNode peekedHeadNode = nodesOnCurrentLevel.peek();
                 if (peekedHeadNode.left != null)
                     nodesOnCurrentLevel.offer(peekedHeadNode.left);
