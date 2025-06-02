@@ -18,6 +18,7 @@ public class Solution_generateParenthesis_via_backtrack {
     private static int parenthesisPairAmount = 3;
     private static List<String> validParenthesisStrList = new ArrayList<>();
 
+    // 🐖 这里的参数使用 当前括号字符串所使用的括号数量，代码更容易理解
     private static void generateValidParenthesisStr(String currentGeneratedParenthesisStr,
                                                     int currentUsingLeftParenthesisAmount,
                                                     int currentUsingRightParenthesisAmount) {
