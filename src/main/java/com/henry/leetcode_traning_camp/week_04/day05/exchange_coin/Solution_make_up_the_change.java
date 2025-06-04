@@ -31,12 +31,12 @@ public class Solution_make_up_the_change {
 
             // 对于 当前想要兑换的零钱数额targetChangeMoney...
             for (int currentChangeMoney = currentCoinNote; currentChangeMoney <= targetChangeMoney; currentChangeMoney++) {
-                // #2 得到 其减去“当前硬币面额”后 所“剩余的数额”
+                // #2 得到 其减去“当前硬币面额currentCoinNote”后 所“剩余的数额remindedChangeMoney”
                 int remindedChangeMoney = currentChangeMoney - currentCoinNote;
 
                 // 如果“此剩余数额”在dp[]数组中所对应的元素值 不等于 “最大的int值(初始值)”，说明 存在凑出该数额的硬币方案，则：
                 if (changeMoneyToRequiredLeastCoinAmount[remindedChangeMoney] != maximumInt) {
-                    // 递推公式：通过比较，选择 能够凑出“当前想要的零钱数额”的最小硬币数量
+                    // 递推公式：通过比较所有可能的选项，选择出 能够凑出“当前想要的零钱数额”的 最小硬币数量
                     changeMoneyToRequiredLeastCoinAmount[currentChangeMoney] =
                             Math.min(changeMoneyToRequiredLeastCoinAmount[currentChangeMoney], // #1 要么保持 当前元素值
                                     changeMoneyToRequiredLeastCoinAmount[remindedChangeMoney] + 1); // #2 要么使用 “剩余数额”所需的最小硬币数量 + 当前硬币的数量1
