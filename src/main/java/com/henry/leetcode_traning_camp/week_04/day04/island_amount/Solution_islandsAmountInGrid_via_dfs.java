@@ -28,7 +28,7 @@ public class Solution_islandsAmountInGrid_via_dfs {
                     islandAmount++;
                     // #2 把从“当前位置”出发，把 所有由当前位置所能够到达的“陆地单元”(“当前岛屿”上所有的陆地单元)，都标记成“水单元”👇
                     // 用于 ① 避免重复累计岛屿的数量； ② 能够在下次遇到“陆地单元”时，自信地判定 它是某个新的岛屿的一部分
-                    searchAndMarkLandsIn(unitsGrid, currentRowCursor, currentColumnCursor);
+                    markAllAccessibleGridInIsland(unitsGrid, currentRowCursor, currentColumnCursor);
                 }
             }
         }
@@ -37,24 +37,24 @@ public class Solution_islandsAmountInGrid_via_dfs {
     }
 
     // 作用：在二位网格中，把所有由当前位置可以到达的“陆地单元” 都标记成为“水单元”
-    private static void searchAndMarkLandsIn(char[][] grid, int currentRow, int currentColumn) {
+    public static void markAllAccessibleGridInIsland(char[][] gridArr, int currentRow, int currentColumn) {
         // #1 递归终结条件
         // 如果 搜索范围超过了索引越界 或者 当前网格不是陆地，说明 对当前岛屿的搜索已经结束，则：
         if ((currentRow < 0) || (currentColumn < 0)
-                || (currentRow > grid.length)
-                || (currentColumn > grid[0].length) // 搜索范围超过了索引越界
-                || (grid[currentRow][currentColumn] != '1')) { // 当前网格不是陆地
+                || (currentRow > gridArr.length)
+                || (currentColumn > gridArr[0].length) // 搜索范围超过了索引越界
+                || (gridArr[currentRow][currentColumn] != '1')) { // 当前网格不是陆地
             // 结束当前递归，返回上一级递归
             return;
         }
 
         /* #2 本级递归要做的事情 */
         // #2-1 把当前位置 标记为 “水单元”
-        grid[currentRow][currentColumn] = '*';
+        gridArr[currentRow][currentColumn] = '*';
         // #2-2 从当前位置，沿着所有可能的方向 继续搜索陆地
-        searchAndMarkLandsIn(grid, currentRow, currentColumn + 1); // 向右一格
-        searchAndMarkLandsIn(grid, currentRow, currentColumn - 1); // 向左一格
-        searchAndMarkLandsIn(grid, currentRow + 1, currentColumn); // 向下一格
-        searchAndMarkLandsIn(grid, currentRow - 1, currentColumn); // 向上一格
+        markAllAccessibleGridInIsland(gridArr, currentRow, currentColumn + 1); // 向右一格
+        markAllAccessibleGridInIsland(gridArr, currentRow, currentColumn - 1); // 向左一格
+        markAllAccessibleGridInIsland(gridArr, currentRow + 1, currentColumn); // 向下一格
+        markAllAccessibleGridInIsland(gridArr, currentRow - 1, currentColumn); // 向上一格
     }
 }
