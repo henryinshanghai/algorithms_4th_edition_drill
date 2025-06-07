@@ -45,7 +45,7 @@ public class Solution_simulate_walking_robot_in_a_grid {
         /* Ⅲ 遍历指令，开始执行 */
         for (int currentReceivedCommand : commandSequence) {
             //  规则：#1 -2：向左转 90 度; #2 -1：向右转 90 度; #3 1<= x <=9：向前移动 x 个单位长度;
-            // 如果指令为-1, 也就是想让机器人 向右转90度，则：
+            // 如果指令为-1, 说明是一个“转向指令”，也就是想让机器人 向右转90度，则：
             if (currentReceivedCommand == -1) {
                 // 把当前方向值+1
                 // 每次右转，都把方向值+1 方向值的有效范围应该是 [0-3] [北-东-南-西]，因此 +1操作有超出有效范围的风险
@@ -55,7 +55,7 @@ public class Solution_simulate_walking_robot_in_a_grid {
                 if (currentDirection == 4) {
                     currentDirection = 0;
                 }
-            } else if (currentReceivedCommand == -2) { // 如果指令为-2，也就是要把机器人 向左转90度，
+            } else if (currentReceivedCommand == -2) { // 如果指令为-2，说明是一个“转向指令”，也就是要把机器人 向左转90度，
                 // 把当前方向值-1 -
                 // 每次左转，都把方向值-1 方向值的有效范围应该是 [0-3] [北-东-南-西]，因此 -1操作有超出有效范围的风险
                 currentDirection--;
@@ -64,7 +64,7 @@ public class Solution_simulate_walking_robot_in_a_grid {
                 if (currentDirection == -1) {
                     currentDirection = 3;
                 }
-            } else { // 如果指令不是-1或-2，说明得到了一个移动的指令，则：
+            } else { // 如果指令不是-1或-2，说明得到了一个“移动指令”，则：
                 // 尝试按照指令指示，一直向前移动 直到 #1 移动了需要的步数 或者 #2 遇到了障碍物
                 // 手段：一个while循环
                 while (currentReceivedCommand-- > 0 && // 步数还没有移动完成..
