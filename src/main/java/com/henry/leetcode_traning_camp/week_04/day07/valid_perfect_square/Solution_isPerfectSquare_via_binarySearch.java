@@ -23,9 +23,10 @@ public class Solution_isPerfectSquare_via_binarySearch {
              rightBarNum = givenIntegerNumber;
         long middleNum = 1;
 
-        // 对于 左闭右闭区间[leftBarNum, rightBarNum],使用二分法 不断缩小此区间 来 找到 给定整数数字的平方根
+        // 对于 左闭右闭区间[leftBarNum, rightBarNum],使用二分法 不断缩小此区间 来 找到目标值（给定整数数字的平方根）
         while (leftBarNum <= rightBarNum) {
             // 计算得到 当前区间[leftBarNum, rightBarNum]的中间位置 middleNum
+            // 🐖 这种方式计算得到的middleNum结果 一定是整数
             middleNum = leftBarNum + (rightBarNum - leftBarNum) / 2;
 
             // 如果 中间位置数字的平方 等于 给定的整数数字，说明 给定的整数数字是一个 完全平方数，则：
