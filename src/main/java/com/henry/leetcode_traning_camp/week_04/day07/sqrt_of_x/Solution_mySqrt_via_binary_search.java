@@ -1,9 +1,9 @@
 package com.henry.leetcode_traning_camp.week_04.day07;
 
-// 验证：可以使用二分查找的方式 来 计算出一个给定整数的平方根的整数部分
+// 验证：可以使用二分查找的方式 来 查找/计算出一个给定整数的平方根的整数部分
 // 概念：左闭右闭区间、平方根值、平方根的整数部分、平方根值的下一个整数:ceiling(平方根值)
 // 原理：
-// #1 按照 {#1 mid偏大则调整右区间； #2 否则调整左区间}的区间调整规则，区间的左右边界 一定会在 平方根值的下一个整数处相遇
+// #1 按照 {#1 mid偏大则调整右区间； #2 否则调整左区间}的区间调整规则，区间的左右边界 一定会在 “平方根值的下一个整数”处相遇
 // #2 平方根的整数部分 = 平方根值的下一个整数 - 1；
 public class Solution_mySqrt_via_binary_search {
     public static void main(String[] args) {
@@ -58,7 +58,7 @@ public class Solution_mySqrt_via_binary_search {
         }
 
         // Ⅲ 返回跳出循环前范围的某个边界————具体是左边界还是右边界需要进行调试，因为循环结束时，left与right指针的位置顺序可能已经发生变化
-        // EXPR3: 这里必须要返回 区间的右边界数字
+        // EXPR3: 这里必须要返回 区间的右边界数字的整数部分即可(题目要求)
         System.out.println("while循环结束后，leftBarNum = " + leftBarNum +
                 ", rightBarNum = " + rightBarNum +
                 ", midNum = " + midNum);
