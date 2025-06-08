@@ -4,7 +4,7 @@ package com.henry.leetcode_traning_camp.week_04.day06.jump_game2;
 // 概念：#0 第X次跳跃 所能达到的最远位置；
 // #1 跳跃作为基本动作(一次跳跃可以 跳xx单位的距离)、
 // #2 当前所能达到的最远位置 currentMaxReachSpot、
-// #3 下一次跳跃所能到达的最远位置 maxReachSpotViaNextJump
+// #3 经下一次跳跃后 所能到达的最远位置 maxReachSpotViaNextJump
 // 原理：#1 从起点开始跳跃，每次跳跃都有其能够到达的最远位置；
 // #2 当游标指针 移动到此最远位置后，就需要开始下一次跳跃。
 // 🐖 使用添加的打印语句 来 帮助理解算法的执行过程
