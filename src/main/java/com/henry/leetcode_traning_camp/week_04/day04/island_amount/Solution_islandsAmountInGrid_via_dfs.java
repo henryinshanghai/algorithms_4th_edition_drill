@@ -41,8 +41,8 @@ public class Solution_islandsAmountInGrid_via_dfs {
         // #1 递归终结条件
         // 如果 搜索范围超过了索引越界 或者 当前网格不是陆地，说明 对当前岛屿的搜索已经结束，则：
         if ((currentRow < 0) || (currentColumn < 0)
-                || (currentRow > gridArr.length)
-                || (currentColumn > gridArr[0].length) // 搜索范围超过了索引越界
+                || (currentRow >= gridArr.length)
+                || (currentColumn >= gridArr[0].length) // 搜索范围超过了”有效索引“的边界 🐖 有效的索引不能等于length
                 || (gridArr[currentRow][currentColumn] != '1')) { // 当前网格不是陆地
             // 结束当前递归，返回上一级递归
             return;
