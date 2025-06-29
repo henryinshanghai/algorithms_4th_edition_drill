@@ -1,8 +1,15 @@
 package com.henry.leetcode_traning_camp.week_04.day04.game_board;
 
-public class Solution_updateBoard_02_method01_dfs_happygirllzt {
+public class Solution_updateBoardOnClicking_via_dfs_happygirllzt {
     public static void main(String[] args) {
         // 初始时，就只有 未挖出的空方快 + 未挖出的地雷[上帝视角]
+        /*
+            #1 'M' 代表一个未挖出的地雷，
+            #2 'E' 代表一个未挖出的空方块，
+            #3 'B' 代表 ① 没有相邻（上，下，左，右，和所有4个对角线）地雷的、② “已挖出”的空白方块，
+            #4 数字（'1' 到 '8'）表示有多少地雷与这块已挖出的方块相邻，
+            #5 'X' 则表示一个已挖出的地雷。
+         */
         char[][] gameBoard = {
                 {'E', 'E', 'E', 'E', 'E'},
                 {'E', 'E', 'M', 'E', 'E'},
@@ -32,7 +39,13 @@ public class Solution_updateBoard_02_method01_dfs_happygirllzt {
             {1, 1} // 右上
     };
 
-    // 揭露指定位置上的方格，并递归地揭露其邻居方格
+    /*
+    游戏规则：
+        操作	        结果	                是否递归
+        点击 M	    变 X，游戏结束	    否
+        点击 E有雷邻	显示数字（1-8）	    否
+        点击 E无雷邻	变 'B'，递归翻相邻 E	是
+     */
     private static char[][] updateBoardOnClicking(char[][] gameBoard, int[] clickedCoordination) {
         int rowCoordination = clickedCoordination[0];
         int colCoordination = clickedCoordination[1];
@@ -41,7 +54,7 @@ public class Solution_updateBoard_02_method01_dfs_happygirllzt {
         int maxRow = gameBoard.length;
         int maxColumn = gameBoard[0].length;
 
-        // 如果 点击到的当前位置 是一个 未挖出的地雷方格/已经挖出的地雷方格（方格的值为M或者X），则：
+        // #1 如果 点击到的当前位置 是一个 未挖出的地雷方格/已经挖出的地雷方格（方格的值为M或者X），则：
         if (gameBoard[rowCoordination][colCoordination] == 'M' ||
                 gameBoard[rowCoordination][colCoordination] == 'X') {
             // 按照规则，把方格中的值设置为X
@@ -50,8 +63,8 @@ public class Solution_updateBoard_02_method01_dfs_happygirllzt {
             return gameBoard;
         }
 
-        // 如果 点击到的当前位置 是 其他类型的方格，则：查看 以当前方格作为中心方格地九宫格中 存在有多少个“地雷方格”
-        int mineAmountInCurrentGrid = 0;
+        // #2 如果 点击到的当前位置 是 其他类型的方格，则：查看 以当前方格作为中心方格地九宫格中 存在有多少个“地雷方格”
+        int mineNeighborsAmount = 0;
         // 对于所有的8个方向...
         for (int[] currentDirection : allDirections) {
             // 计算出当前方向上的邻居方格的坐标
@@ -63,18 +76,18 @@ public class Solution_updateBoard_02_method01_dfs_happygirllzt {
                     neighborColumnCoord < maxColumn && neighborRowCoord < maxRow &&
                     gameBoard[neighborRowCoord][neighborColumnCoord] == 'M') {
                 // 把“当前位置的 直接邻居地雷的计数”+1
-                mineAmountInCurrentGrid++;
+                mineNeighborsAmount++;
             }
         }
 
-        // 如果“以当前点击坐标为中心的九宫格”中的地雷数量 不为0，说明 需要更新 当前点击坐标所显示的值，则：
-        if (mineAmountInCurrentGrid > 0) {
+        // #2-① 如果“以当前点击坐标为中心的九宫格”中的地雷数量 不为0，说明 需要更新 当前点击坐标所显示的值，则：
+        if (mineNeighborsAmount > 0) {
             // 按照规则 来 更新当前方格的值 为 ”当前九宫格中的地雷数量“
-            gameBoard[rowCoordination][colCoordination] = (char)(mineAmountInCurrentGrid - '0');
+            gameBoard[rowCoordination][colCoordination] = (char)(mineNeighborsAmount + '0'); // 这里的+ 为什么不能是 -??
             return gameBoard;
         }
 
-        // 如果“九宫格中的地雷数量”为0，说明 它应该显示成为一个 “已挖出的空方块”，则：
+        // #2-② 如果“九宫格中的地雷数量”为0，说明 它应该显示成为一个 “已挖出的空方块”，则：
         // 按照规则 来 更新“所有能够被更新的方块”
         // ① 首先修改当前方块为‘B’
         gameBoard[rowCoordination][colCoordination] = 'B';
