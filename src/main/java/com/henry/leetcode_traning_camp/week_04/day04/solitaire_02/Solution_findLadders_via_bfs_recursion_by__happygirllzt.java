@@ -6,7 +6,7 @@ import java.util.*;
 // 原理：BFS（递归实现） 用于 构建图中 word -> itsValidWordVariants 的映射关系；
 // DFS（递归实现）+回溯 用于 图中所存在的“到目标单词的转换序列”。
 // 🐖 DFS/BFS的基本作用是：找到图中与指定顶点相连通的所有顶点
-public class Solution_findLadders_via_bfs_and_dfs_happygirllzt {
+public class Solution_findLadders_via_bfs_recursion_by__happygirllzt {
     public static void main(String[] args) {
         String beginWord = "hit";
         String endWord = "cog";
