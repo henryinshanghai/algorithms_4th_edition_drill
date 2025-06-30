@@ -19,11 +19,12 @@ public class Solution_findLadders_via_bfs_and_dfs_happygirllzt {
         System.out.println("最终的结果为：" + allShortestTransformSequences);
     }
 
+    // 准备一个 元素为list的list对象 - 用于存放所有找到的 “最短转换路径”
+    public static List<List<String>> allWantedPathList = new ArrayList<>();
+
     private static List<List<String>> findLadders(String beginWord,
                                                   String endWord,
                                                   List<String> validMiddleWordList) {
-        // 准备一个 元素为list的list对象 - 用于存放所有找到的 “最短转换路径”
-        List<List<String>> allWantedPathList = new ArrayList<>();
 
         // 把wordList转化成为一个set对象 用于更快速地判断 是否存在重复元素
         Set<String> validMiddleWordSet = new HashSet<>(validMiddleWordList);
@@ -37,11 +38,11 @@ public class Solution_findLadders_via_bfs_and_dfs_happygirllzt {
         /* #1 使用bfs 来 构建出图/(word -> itsTransformedWordVariants 一对多映射关系) */
         Map<String, List<String>> wordToItsChangedMiddleWordsMap = new HashMap<>();
         // 准备一个集合(用于存储所有的“起始单词”), 然后把当前的beginWord放进去
-        Set<String> startWordSet = new HashSet<>();
-        startWordSet.add(beginWord);
+        Set<String> startWordSetOnCurrentLevel = new HashSet<>();
+        startWordSetOnCurrentLevel.add(beginWord);
 
         // 构建出 对应的无权无向图
-        generateTheMapViaBFS(startWordSet,
+        generateTheMapViaBFS(startWordSetOnCurrentLevel,
                 endWord,
                 wordToItsChangedMiddleWordsMap, // map参数的作用：在方法执行的过程中被构建
                 validMiddleWordSet);
@@ -58,8 +59,7 @@ public class Solution_findLadders_via_bfs_and_dfs_happygirllzt {
         generatePathListViaDFS(beginWord,
                 endWord,
                 wordToItsChangedMiddleWordsMap,
-                pathTowardsEndWord,
-                allWantedPathList
+                pathTowardsEndWord
         );
 
         return allWantedPathList;
@@ -67,15 +67,15 @@ public class Solution_findLadders_via_bfs_and_dfs_happygirllzt {
     }
 
     // 打印出所有 word -> its transformed variants的映射关系
-    private static void printThe(Map<String, List<String>> wordToItsTransformedWordVariants) {
-        if (wordToItsTransformedWordVariants == null) return;
+    private static void printThe(Map<String, List<String>> wordToItsChangedMiddleWordsMap) {
+        if (wordToItsChangedMiddleWordsMap == null) return;
 
-        for (Map.Entry<String, List<String>> currentWordToItsTransformedWordVariants : wordToItsTransformedWordVariants.entrySet()) {
-            String currentWord = currentWordToItsTransformedWordVariants.getKey();
-            List<String> itsTransformedWordVariants = currentWordToItsTransformedWordVariants.getValue();
+        for (Map.Entry<String, List<String>> currentEntry : wordToItsChangedMiddleWordsMap.entrySet()) {
+            String currentWord = currentEntry.getKey();
+            List<String> itsChangedMiddleWords = currentEntry.getValue();
 
             System.out.print("Key - " + currentWord + " | ");
-            System.out.println("Value - " + itsTransformedWordVariants);
+            System.out.println("Value - " + itsChangedMiddleWords);
         }
     }
 
@@ -85,8 +85,7 @@ public class Solution_findLadders_via_bfs_and_dfs_happygirllzt {
     private static void generatePathListViaDFS(String beginWord,
                                                String endWord,
                                                Map<String, List<String>> wordsToItsChangedMiddleWordsMap,
-                                               List<String> pathTowardsEndWord,
-                                               List<List<String>> allWantedPathList) {
+                                               List<String> pathTowardsEndWord) {
         // Ⅰ 如果起始单词 与 目标单词 相同，说明
         // #1 要么 不需要进行任何转换 就得到了目标单词(特殊情况) OR
         // #2 要么 转换序列终于转换到了 目标单词(一般情况)，则：
@@ -113,8 +112,8 @@ public class Solution_findLadders_via_bfs_and_dfs_happygirllzt {
             generatePathListViaDFS(currentChangedMiddleWord, // 子问题：此参数发生了变化
                     endWord,
                     wordsToItsChangedMiddleWordsMap,
-                    pathTowardsEndWord, // path参数也发生了变化
-                    allWantedPathList);
+                    pathTowardsEndWord // path参数也发生了变化
+            );
 
             // ③ 回溯当前选择 以便选择下一个“有效的单词变体” 来 构造“到目标单词的路径”
             pathTowardsEndWord.remove(pathTowardsEndWord.size() - 1);
@@ -126,6 +125,7 @@ public class Solution_findLadders_via_bfs_and_dfs_happygirllzt {
      * 一个endWord参数
      * 还需要一个映射关系map：描述一个单词所能转换到的其他有效单词
      * 特征：这个BFS并没有使用到Queue
+     * 🐖 这种BFS的实现使用了递归，可能会导致栈溢出的问题
      */
     private static void generateTheMapViaBFS(Set<String> startWordSetOnCurrentLevel,
                                              String endWord,
@@ -171,7 +171,7 @@ public class Solution_findLadders_via_bfs_and_dfs_happygirllzt {
                         /* #1 把当前“转换中间结果” 添加到 下一层的“起始单词”集合中 */
                         // 如果当前“替换字符后的单词变体” 就是 “目标单词”/“结束单词”，说明 已经得到了完整的转换序列，不需要继续转换，则：
                         if (endWord.equals(currentReplacedResult)) {
-                            // 把 标记转换是否结束的变量 设置为true
+                            // 把 标记转换是否结束的变量 设置为true    🐖 这里只是修改flag，而不能直接return下班。因为图还没有构建完成
                             isTransformFinished = true;
                         } else { // 否则，说明转换序列还没有结束，则：
                             // 把 这个“转换中间结果” 添加到 表示“图中下一层结点”的set对象中 来 为扩展图的下一层做准备
@@ -179,8 +179,9 @@ public class Solution_findLadders_via_bfs_and_dfs_happygirllzt {
                         }
 
                         /* #2 把 “当前startWord” -> 当前“转换中间结果” 的映射 添加到 用于存储转换映射关系的map对象 中 */
+                        // 🐖 这里构建图的语句 需要写在if{}/else{}的外面，因为不管是那个分支，都会需要创建图的步骤
                         // #2-① 如果缺失条目，则先新增条目
-                        // 🐖 computeIfAbsent() 用来 替换 “if(null) {}”的语句块
+                        // 手段：computeIfAbsent() 用来 替换 “if(null) {}”的语句块
                         wordToItsChangedMiddleWordMap.computeIfAbsent(currentStartWordStr, key -> new ArrayList<>());
                         // #2-② 再向映射关系的该条目中，添加其所能转换到item
                         wordToItsChangedMiddleWordMap.get(currentStartWordStr).add(currentReplacedResult);
