@@ -58,10 +58,10 @@ public class Solution_findLadders_via_bfs_queue_by__happygirllzt {
         /* #2 查看下map对象|图 是否 “按照预期被创建” */
         printThe(wordToItsChangedMiddleWordsMap);
 
-        /* #3 使用DFS+回溯 来 从图中得到 所有可能的“到目标单词的转换序列” */
+        // #3 使用DFS+回溯 来 从图中得到 所有可能的“到目标单词的转换序列” //
         // 准备一个path（用于 收集“到目标单词的转换序列”中的所有单词）然后把beginWord放进去
-        List<String> pathTowardsEndWord = new ArrayList<>();
-        pathTowardsEndWord.add(beginWord);
+        LinkedList<String> pathTowardsEndWord = new LinkedList<>();
+        pathTowardsEndWord.addFirst(endWord);
 
         // 使用dfs来生成结果
         generatePathListViaDFS(beginWord,
@@ -69,6 +69,7 @@ public class Solution_findLadders_via_bfs_queue_by__happygirllzt {
                 wordToItsChangedMiddleWordsMap,
                 pathTowardsEndWord
         );
+
 
         return allWantedPathList;
 
@@ -89,11 +90,12 @@ public class Solution_findLadders_via_bfs_queue_by__happygirllzt {
 
     /**
      * 在构建好的图中，找到 所需要的路径 pathTowardsEndWord，并把它添加到 pathList中
+     * 🐖 为了支持头插元素，这里的 pathTowardsEndWord的类型是 LinkedList
      */
     private static void generatePathListViaDFS(String beginWord,
                                                String endWord,
                                                Map<String, List<String>> wordsToItsChangedMiddleWordsMap,
-                                               List<String> pathTowardsEndWord) {
+                                               LinkedList<String> pathTowardsEndWord) {
         // Ⅰ 如果起始单词 与 目标单词 相同，说明
         // #1 要么 不需要进行任何转换 就得到了目标单词(特殊情况) OR
         // #2 要么 转换序列终于转换到了 目标单词(一般情况)，则：
@@ -105,26 +107,26 @@ public class Solution_findLadders_via_bfs_queue_by__happygirllzt {
         }
 
         // Ⅱ 如果“当前起始单词” 不存在 任何“有效的单词变体”，说明 由当前起始单词经“有效单词变体” 无法转变成为“目标单词”，则：
-        if (wordsToItsChangedMiddleWordsMap.get(beginWord) == null) {
+        if (wordsToItsChangedMiddleWordsMap.get(endWord) == null) {
             // 直接return 以 停止当前级方法的调用
             return;
         }
 
         // Ⅲ 如果“当前起始单词” 存在有 一堆的“有效的单词变体”，说明 由当前起始单词 经“有效单词变体” 有可能转变得到“目标单词”，则：
         // 遍历每一个“有效的单词变体”
-        for (String currentChangedMiddleWord : wordsToItsChangedMiddleWordsMap.get(beginWord)) {
+        for (String currentChangedMiddleWord : wordsToItsChangedMiddleWordsMap.get(endWord)) {
             // ① 把 当前“有效的单词变体” 添加到 “由起始单词转变到目标单词的路径”中
-            pathTowardsEndWord.add(currentChangedMiddleWord);
+            pathTowardsEndWord.addFirst(currentChangedMiddleWord);
 
             // ② 调用dfs 以 得到完整的“到目标单词的路径”
-            generatePathListViaDFS(currentChangedMiddleWord, // 子问题：此参数发生了变化
-                    endWord,
+            generatePathListViaDFS(beginWord, // 子问题：此参数发生了变化
+                    currentChangedMiddleWord,
                     wordsToItsChangedMiddleWordsMap,
                     pathTowardsEndWord // path参数也发生了变化
             );
 
             // ③ 回溯当前选择 以便选择下一个“有效的单词变体” 来 构造“到目标单词的路径”
-            pathTowardsEndWord.remove(pathTowardsEndWord.size() - 1);
+            pathTowardsEndWord.removeFirst();
         }
     }
 
@@ -133,7 +135,8 @@ public class Solution_findLadders_via_bfs_queue_by__happygirllzt {
      * 一个endWord参数
      * 还需要一个映射关系map：描述一个单词所能转换到的其他有效单词
      * 特征：这个BFS并没有使用到Queue
-     * 🐖 这种BFS的实现使用了递归，可能会导致栈溢出的问题
+     * 🐖 这种BFS的实现使用了queue，以此来避免栈溢出的可能
+     * 🐖 这里构建的图是反向的 terminal -> depart,为此 dfs的代码也要做对应的修改
      */
     private static void generateTheMapViaBFS(Set<String> startWordSet,
                                              String endWord,
@@ -153,6 +156,9 @@ public class Solution_findLadders_via_bfs_queue_by__happygirllzt {
             int startWordAmountOnCurrentLevel = startWordQueue.size();
             // 用于存储当前层级处理过的单词，避免重复处理
             Set<String> usedMiddleWordsOnCurrentLevel = new HashSet<>();
+
+            // 处理层之前，先把层中的middleWord从validMiddleWordSet中全部移除
+            validMiddleWordSet.removeAll(startWordQueue);
 
             // 处理当前层级的所有节点
             for (int currentStartWordCursor = 0; currentStartWordCursor < startWordAmountOnCurrentLevel; currentStartWordCursor++) {
@@ -186,8 +192,9 @@ public class Solution_findLadders_via_bfs_queue_by__happygirllzt {
                             }
 
                             // 构建图  手段：建立map中的映射关系
-                            wordToItsChangedMiddleWordMap.computeIfAbsent(currentStartWordStr, key -> new ArrayList<>());
-                            wordToItsChangedMiddleWordMap.get(currentStartWordStr).add(currentReplacedResult);
+                            // 🐖 为了能够通过leetcode上的测试用例，这里需要建立的是 terminal -> depart 的图
+                            wordToItsChangedMiddleWordMap.computeIfAbsent(currentReplacedResult, key -> new ArrayList<>());
+                            wordToItsChangedMiddleWordMap.get(currentReplacedResult).add(currentStartWordStr);
                         }
                     }
 
@@ -195,9 +202,6 @@ public class Solution_findLadders_via_bfs_queue_by__happygirllzt {
                     currentStartWordCharacterArr[currentSpotToReplace] = currentCharacter;
                 }
             }
-
-            // 处理完成整个层之后，把当前层中的单词 从有效的middleWords列表中移除。因为它们已经不再是 有效的中间单词了...
-            validMiddleWordSet.removeAll(usedMiddleWordsOnCurrentLevel);
         }
     }
 }
