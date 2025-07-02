@@ -7,7 +7,7 @@ package com.henry.leetcode_traning_camp.week_04.day06.jump_game2;
 // #3 经下一次跳跃后 所能到达的最远位置 maxReachSpotViaNextJump
 // 原理：#1 从起点开始跳跃，每次跳跃都有其能够到达的最远位置；
 // #2 当游标指针 移动到此最远位置后，就需要开始下一次跳跃。
-// 🐖 使用添加的打印语句 来 帮助理解算法的执行过程
+// 🐖 使用添加的打印语句 来 帮助理解算法的执行过程  && 题目保证了终点位置必然可达
 public class Solution_jumpGame_ii_via_greedy {
     public static void main(String[] args) {
         int[] currentSpotToItsMaxJumpDistance = {2, 3, 1, 1, 4};
@@ -23,6 +23,8 @@ public class Solution_jumpGame_ii_via_greedy {
         int requiredMinJumpSteps = 0; // 到达终点位置所需要的跳跃数量
 
         // 🐖 作为一个动态的过程，以下两个if发生的时机并不相同
+        // 🐖 这里只需要遍历到倒数第二个位置
+        // 原因：如果遍历到最后一个位置的话，currentCursorSpot == currentJumpMaxReachSpot 的判断条件可能会导致一次多余的跳跃，而这时候最后一个位置已经是可达的了
         for (int currentCursorSpot = 0; currentCursorSpot < currentSpotToItsMaxJumpDistance.length - 1; currentCursorSpot++) {
             /* #1 获取到 由当前位置 经过一步跳跃所能跳出的最远距离 */
             int maxJumpDistanceOfCurrentSpot = currentSpotToItsMaxJumpDistance[currentCursorSpot];
