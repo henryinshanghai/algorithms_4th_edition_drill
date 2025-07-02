@@ -40,7 +40,7 @@ public class Solution_simulate_walking_robot_in_a_grid {
         /* Ⅱ 定义并初始化 机器人的相关变量 */
         int currentDirection = 0, // 初始方向为 向北，把向北的情况 定义为0
                 currentCoordX = 0, currentCoordY = 0, // 位置坐标
-                currentEuclidDistance = 0; // 欧氏距离结果
+                maxEuclidDistance = 0; // 欧氏距离结果
 
         /* Ⅲ 遍历指令，开始执行 */
         for (int currentReceivedCommand : commandSequence) {
@@ -77,12 +77,12 @@ public class Solution_simulate_walking_robot_in_a_grid {
             }
 
             // 每次执行完成指令后，使用 机器人的当前位置 来 尝试更新“最大的欧氏距离”
-            currentEuclidDistance = Math.max(currentEuclidDistance,
+            maxEuclidDistance = Math.max(maxEuclidDistance,
                     currentCoordX * currentCoordX + currentCoordY * currentCoordY);
         }
 
         /* Ⅳ 返回最终的 最大的欧氏距离结果 */
-        return currentEuclidDistance;
+        return maxEuclidDistance;
     }
 
 }
