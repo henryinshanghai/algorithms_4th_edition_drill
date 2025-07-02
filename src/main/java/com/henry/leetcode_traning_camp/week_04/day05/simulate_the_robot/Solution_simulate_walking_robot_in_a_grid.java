@@ -34,8 +34,8 @@ public class Solution_simulate_walking_robot_in_a_grid {
         }
 
         /* Ⅰ 定义机器人前进的四个方向（使用int[][]数组） */
-        // 定义机器人前进的四个方向     手段：一个二维数组
-        int[][] allDirections = new int[][]{{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
+        // 定义机器人前进的四个方向：北、东、南、西     手段：一个二维数组
+        int[][] directionToItsForwardDistance = new int[][]{{0, 1}, {1, 0}, {0, -1}, {-1, 0}};
 
         /* Ⅱ 定义并初始化 机器人的相关变量 */
         int currentDirection = 0, // 初始方向为 向北，把向北的情况 定义为0
@@ -67,12 +67,21 @@ public class Solution_simulate_walking_robot_in_a_grid {
             } else { // 如果指令不是-1或-2，说明得到了一个“移动指令”，则：
                 // 尝试按照指令指示，一直向前移动 直到 #1 移动了需要的步数 或者 #2 遇到了障碍物
                 // 手段：一个while循环
-                while (currentReceivedCommand-- > 0 && // 步数还没有移动完成..
-                        !obstacleCoordSet.contains((currentCoordX + allDirections[currentDirection][0]) + " " +
-                                                    (currentCoordY + allDirections[currentDirection][1]))) { // 下一步不是一个障碍方格
+                while (currentReceivedCommand-- > 0) {
+                    // 计算出在X与Y方向上前进的距离
+                    int forwardOnX = directionToItsForwardDistance[currentDirection][0];
+                    int forwardOnY = directionToItsForwardDistance[currentDirection][1];
+
+                    // 得到下一步方格的字符串表示
+                    String nextReachedCoordStr = (currentCoordX + forwardOnX) + " " + (currentCoordY + forwardOnY);
+                    // 如果下一步到达的方格是一个障碍方格，说明无法继续行进，则：
+                    if (obstacleCoordSet.contains(nextReachedCoordStr))
+                        // 中止当前指令
+                        break;
+
                     // 更新当前位置的坐标
-                    currentCoordX += allDirections[currentDirection][0];
-                    currentCoordY += allDirections[currentDirection][1];
+                    currentCoordX += forwardOnX;
+                    currentCoordY += forwardOnY;
                 }
             }
 
