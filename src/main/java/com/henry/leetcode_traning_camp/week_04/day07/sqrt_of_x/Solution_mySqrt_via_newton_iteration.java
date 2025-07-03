@@ -2,7 +2,7 @@ package com.henry.leetcode_traning_camp.week_04.day07.sqrt_of_x;
 
 // 验证：可以使用 牛顿迭代法 来 计算出给定整数值的平方根的整数部分
 // 原理：牛顿迭代法(切线逼近) 能够逐步逼近，得到 x^2-N=0 方程的精确解
-// 简化的公式：x1 = (x0 + 10/x0) * 1/2
+// 简化的公式：x1 = (x0 + N/x0) * 1/2
 public class Solution_mySqrt_via_newton_iteration {
     public static void main(String[] args) {
         int givenIntegerNumber = 8;
@@ -23,7 +23,7 @@ public class Solution_mySqrt_via_newton_iteration {
         // 🐖 这里用到了一个小技巧：把乘法转化成为除法
         while (approximateResult > givenIntegerNumber / approximateResult) {
             // Ⅱ 使用 “当前近似解” + “牛顿迭代法” 来 计算出 “更精确的近似解x1” 并将之作为“当前近似解”
-            // 公式：x1 = (x0 + 10/x0) * 1/2
+            // 公式：x1 = (x0 + N/x0) * 1/2
             approximateResult = (approximateResult + givenIntegerNumber / approximateResult) / 2;
         }
 
