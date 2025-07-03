@@ -7,9 +7,10 @@ package com.henry.leetcode_traning_camp.week_04.day07;
 // #2 平方根的整数部分 = 平方根值的下一个整数 - 1；
 public class Solution_mySqrt_via_binary_search {
     public static void main(String[] args) {
-        int givenIntegerNumber = 8; // 2
+//        int givenIntegerNumber = 8; // 2
 //        int givenIntegerNumber = 9; // 3
 //        int givenIntegerNumber = 10; // 3
+        int givenIntegerNumber = 2147395599;
         int integerPartOfSqrtResult = mySqrtOf(givenIntegerNumber);
 
         System.out.println(givenIntegerNumber + "的平方根结果的整数部分为：" + integerPartOfSqrtResult);
