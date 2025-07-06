@@ -4,6 +4,7 @@ import java.util.Arrays;
 
 // 验证：对于动态规划的应用，如果在递推公式中，只存在有 dpTable[]相邻两项之间的关系。那么就可以 使用一个单一的变量 来 代替dpTable[]
 // 从而节省空间
+// 选择：#1 追加新元素； #2 从新元素重新开始；    关口在于：当前的sum是不是一个正数
 public class Solution_maxSubArray_via_dp_with_optimal_by_huashouDapeng {
     public static void main(String[] args) {
         int[] numArr = {-2, 1, -3, 4, -1, 2, 1, -5, 4};
