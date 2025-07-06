@@ -12,9 +12,9 @@ public class Solution_via_dp_by_kevinNaughton {
     }
 
     private static int getApproachAmountClimbingToTopStair(int stairsAmount) {
-        int[] currentStairToApproachesAmountUpToIt = new int[stairsAmount + 1];
+        int[] currentStairToApproachesAmountUpToIt = new int[stairsAmount + 1]; // +1是为了得到自然数的映射关系
 
-        currentStairToApproachesAmountUpToIt[0] = 1;
+        currentStairToApproachesAmountUpToIt[0] = 1; // 🐖 这里要初始化为1，才能在计算dp[2]的时候得到正确的值
         currentStairToApproachesAmountUpToIt[1] = 1;
 
         for (int currentStair = 2; currentStair <= stairsAmount; currentStair++) {
@@ -26,6 +26,7 @@ public class Solution_via_dp_by_kevinNaughton {
         printArr(currentStairToApproachesAmountUpToIt);
 
         // 返回 到达最后一级台阶的走法数量
+        // 🐖 这里 currentStair => its amount的映射关系中，currStair是自然数
         return currentStairToApproachesAmountUpToIt[stairsAmount];
     }
 
