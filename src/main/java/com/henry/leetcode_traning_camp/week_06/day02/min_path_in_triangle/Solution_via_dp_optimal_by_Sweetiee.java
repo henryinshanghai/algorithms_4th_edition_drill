@@ -34,6 +34,7 @@ public class Solution_via_dp_optimal_by_Sweetiee {
     private static int getMinPathTowardsEndIn(List<List<Integer>> triangle) {
         /* 〇 准备dpTable（根据情况空间适当+1，这样能够避免代码中多余的边界判断）*/
         int rowsAmount = triangle.size();
+        // 和优化前的版本一样，这里的初始空间也可以设置成 rowsAmount，但会需要对应的改动：① for循环下标；② 数组元素的初始化
         int[] currentColumnToItsMinPathValue = new int[rowsAmount + 1];
 
         /* Ⅰ 遍历每一层的每一个元素，根据当前元素与其相邻子元素的关系来更新dpTable */
