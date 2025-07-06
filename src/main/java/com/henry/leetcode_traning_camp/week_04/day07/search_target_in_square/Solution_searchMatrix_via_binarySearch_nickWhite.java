@@ -35,7 +35,7 @@ public class Solution_searchMatrix_via_binarySearch_nickWhite {
         // 2 准备while循环，直到：1 left与right边界相遇； OR 2 找到了target元素
         while (leftBar <= rightBar) { // EXPR1： <=
             // 2-1 计算数组的中间位置        技术处理：避免Integer Overflow
-            int middle_position = leftBar + (rightBar - leftBar) / 2; // EXPR2: leftBar + (rightBar - leftBar) / 2;
+            int middle_position_in_one_dimension_arr = leftBar + (rightBar - leftBar) / 2; // EXPR2: leftBar + (rightBar - leftBar) / 2;
 
             // 2-2 计算中间位置在二维数组中的坐标，并从坐标索引到二维数组中的元素
             /*
@@ -43,7 +43,9 @@ public class Solution_searchMatrix_via_binarySearch_nickWhite {
                 // ➗ 列数 = 在二维数组中的行
                 // % 列数 = 在二维数组中的列
              */
-            int item_on_middle_position = itemMatrix[middle_position / columnAmount][middle_position % columnAmount];
+            int correspondingRow = middle_position_in_one_dimension_arr / columnAmount;
+            int correspondingCol = middle_position_in_one_dimension_arr % columnAmount;
+            int item_on_middle_position = itemMatrix[correspondingRow][correspondingCol];
 
 
             // 2-3 如果 当前的中间位置上的元素 等于target，说明 xxx
@@ -52,10 +54,10 @@ public class Solution_searchMatrix_via_binarySearch_nickWhite {
                 return true;
             } else if (targetItem < item_on_middle_position) { // 如果xxx, 说明ooo
                 // 则：调整区间的右边界
-                rightBar = middle_position - 1; // EXPR3：-1
+                rightBar = middle_position_in_one_dimension_arr - 1; // EXPR3：-1
             } else if (targetItem > item_on_middle_position) {
                 // 则：调整区间的左边界
-                leftBar = middle_position + 1; // EXPR4：+1
+                leftBar = middle_position_in_one_dimension_arr + 1; // EXPR4：+1
             }
         }
 
