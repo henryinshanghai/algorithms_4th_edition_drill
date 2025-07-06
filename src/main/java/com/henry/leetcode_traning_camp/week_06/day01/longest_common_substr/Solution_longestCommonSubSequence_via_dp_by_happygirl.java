@@ -36,9 +36,11 @@ public class Solution_longestCommonSubSequence_via_dp_by_happygirl {
                 // 如果 两个指针 当前指向的字符相等，说明 最长公共子序列的长度 相对于上一个值要+1，
                 if (str1CurrentCharacter == str2CurrentCharacter) {
                     // EXPR:这里计算的是 currentStrsComboToItsLCSL[str1CurrentCursor + 1][str2CurrentCursor + 1]
+                    // 🐖 从dp[1][1]开始计算
                     currentStrsComboToItsLCSL[str1CurrentCursor + 1][str2CurrentCursor + 1]
                             = currentStrsComboToItsLCSL[str1CurrentCursor][str2CurrentCursor] + 1;
                 } else { // 如果 两个指针 当前指向的字符不相等，说明 这种情况下的最长公共子序列的长度
+                    // 🐖 计算到dp[str1Length][str2Length]
                     currentStrsComboToItsLCSL[str1CurrentCursor + 1][str2CurrentCursor + 1]
                             // #3 取两者中的较大值
                             = Math.max(currentStrsComboToItsLCSL[str1CurrentCursor + 1][str2CurrentCursor], // #1 要么是 长str1×短str2 这种组合的 最长公共子字符串的长度
@@ -54,6 +56,7 @@ public class Solution_longestCommonSubSequence_via_dp_by_happygirl {
         print2DimensionArr(currentStrsComboToItsLCSL);
 
         /* Ⅲ 返回dpTable[][]中 符合题目要求的元素值 */
+        // 🐖 正确的dp元素为 dp[str1Length][str2Length]
         System.out.println("str1Length: " + str1Length + ", str2Length: " + str2Length);
         return currentStrsComboToItsLCSL[str1Length][str2Length];
     }
