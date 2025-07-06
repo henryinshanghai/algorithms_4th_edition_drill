@@ -30,10 +30,12 @@ public class Solution_uniquePathsWithObstacles_03_dp_by_sweetieSis {
         // 🐖 只有当方格是 非障碍方格(值为0)的时候，才会方格的值进行初始化
         // 初始化第一列的方格的值
         for (int currentRow = 0; currentRow < rows && boardWithObstacles[currentRow][0] == 0; currentRow++) {
+            if(pathAmountTowardCurrentPosition[currentRow][0] == 1) break;
             pathAmountTowardCurrentPosition[currentRow][0] = 1;
         }
         // 初始化第一行的方格的值
         for (int currentColumn = 0; currentColumn < columns && boardWithObstacles[0][currentColumn] == 0; currentColumn++) {
+            if(pathAmountTowardCurrentPosition[0][currentColumn] == 1) break;
             pathAmountTowardCurrentPosition[0][currentColumn] = 1;
         }
 
@@ -46,7 +48,10 @@ public class Solution_uniquePathsWithObstacles_03_dp_by_sweetieSis {
                     pathAmountTowardCurrentPosition[currentRow][currentColumn]
                             = pathAmountTowardCurrentPosition[currentRow - 1][currentColumn] // 左边前一个方格的元素值
                             + pathAmountTowardCurrentPosition[currentRow][currentColumn - 1]; // 上面一个方格的元素值
-                } // 二维数组元素默认绑定的初始值为0
+                } else {
+                    // 虽然二维数组元素默认绑定的初始值为0，但是 当是障碍物方格时，我们还是显式地将之设置为0.
+                    pathAmountTowardCurrentPosition[currentRow][currentColumn] = 0;
+                }
             }
         }
 
