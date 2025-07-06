@@ -43,7 +43,7 @@ public class Solution_islandsAmountInGrid_via_dfs {
         if ((currentRow < 0) || (currentColumn < 0)
                 || (currentRow >= gridArr.length)
                 || (currentColumn >= gridArr[0].length) // 搜索范围超过了”有效索引“的边界 🐖 有效的索引不能等于length
-                || (gridArr[currentRow][currentColumn] != '1')) { // 当前网格不是陆地
+                || (gridArr[currentRow][currentColumn] != '1')) { // 当前网格不是陆地方格(1)
             // 结束当前递归，返回上一级递归
             return;
         }
