@@ -8,7 +8,7 @@ import java.util.Arrays;
 // dp[]数组的具体含义：currentSpotToMaxProductEndWithIt[] + currentSpotToMinProductEndWithIt[]
 // 获取目标值：由于每个currentSpot上记录的maxProduct之间是相互独立的，因此
 // 目标结果并不是maxProduct[]数组的最后一个元素，而是 maxProduct[]数组的最大元素（使用遍历+更新的方式得到）
-public class Solution_via_2_dp_arr {
+public class Solution_via_max_and_min_dp_arr {
     public static void main(String[] args) {
         int[] numArr = {2, 3, -2, 4};
 //        int[] numArr = {-2, 0, -1};
@@ -22,14 +22,15 @@ public class Solution_via_2_dp_arr {
         int numAmount = numArr.length;
 
         // 用于存储当前找到的最大值，初始化为 数组的第一个元素
-        int maxProductOfAllSpot = Integer.MIN_VALUE; // numArr[0]
+        // 🐖 如果这里初始化为Integer.MIN_VALUE的话，在原始数组只有一个元素的情况下，会得到错误的结果
+        int maxProductOfAllSpot = numArr[0];
 
         // 准备两个dp[]数组：dpA[] 用于记录 以当前位置作为结束位置的所有子数组中 乘积最大的子数组的乘积值，
         // dpB[] 用于记录 以当前位置作为结束位置的所有子数组中 乘积最小的子数组的乘积值
         int[] currentSpotToMaxProductEndWithIt = new int[numAmount + 1];
         int[] currentSpotToMinProductEndWithIt = new int[numAmount + 1];
 
-        // 初始化 dp[]数组的首元素，用以 正确地驱动递推公式
+        // 🐖 需要初始化 dp[]数组的首元素，用以 正确地驱动递推公式
         currentSpotToMaxProductEndWithIt[0] = numArr[0]; // 位置0的maxProduct为 元素本身
         currentSpotToMinProductEndWithIt[0] = numArr[0]; // 位置0的minProduct为 元素本身
 
@@ -39,7 +40,11 @@ public class Solution_via_2_dp_arr {
             // #1-2 为了得到“最小乘积值”，我们应该 使用“当前最大的乘积值”来与它相乘 - 这样才能保证 乘积结果尽可能地小
             // 为此，对于“当前数组元素为负数”的情况，我们在 乘进当前子数组元素 之前，要先 交换 “当前最大乘积值” 与 “当前最小乘积值”
             if (numArr[currentSpot] < 0) {
-                swap(currentSpotToMaxProductEndWithIt[currentSpot], currentSpotToMinProductEndWithIt[currentSpot]);
+                // 🐖 下面的swap()实现没有真正地交换数组元素，需要具体考察一下为什么..
+//                swap(currentSpotToMaxProductEndWithIt[currentSpot - 1], currentSpotToMinProductEndWithIt[currentSpot - 1]);
+                int temp = currentSpotToMaxProductEndWithIt[currentSpot - 1];
+                currentSpotToMaxProductEndWithIt[currentSpot - 1] = currentSpotToMinProductEndWithIt[currentSpot - 1];
+                currentSpotToMinProductEndWithIt[currentSpot - 1] = temp;
             }
 
             // #2 与加和一样，当前元素 * 当前数组元素乘积后得到的结果可能会变大或变小；
@@ -64,6 +69,9 @@ public class Solution_via_2_dp_arr {
 
             System.out.println("当前currentSpotToMinProductEndWithIt[]数组为👇");
             printArr(currentSpotToMinProductEndWithIt);
+
+            // 🐖 在一个print语句中打印出所有关联的变量，能够更加直观地查看 具体哪个变量的值计算错误
+            System.out.println("当前位置" + currentSpot + "上的数组元素为：" + numArr[currentSpot] +  ",以其结尾的子数组的maxProduct为：" + currentSpotToMaxProductEndWithIt[currentSpot]);
 
             System.out.println("当前的maxProductOfAllSpot为👇");
             System.out.println(maxProductOfAllSpot);
