@@ -21,6 +21,7 @@ public class Solution_via_dp_by_Carl {
 
     public static int calculateMinCoinAmount(int[] coinOptions, int wantedMoneyAmount) {
         int[] currentMoneyAmountToItsRequiredMinCoins = new int[wantedMoneyAmount + 1];
+        // 🐖 这里使用Integer类型的最大值作为初始值，那对应地 计算dp[i]时，就需要先判断dp[i-coin]是否为最大值，否则就会有数值溢出的风险
         int maxInitValue = Integer.MAX_VALUE;
 
         // 初始化dp数组中的元素为 整数最大值 - 这样在后续 使用min来更新元素值时，计算的值 就不会被原始值给覆盖掉
@@ -38,6 +39,7 @@ public class Solution_via_dp_by_Carl {
                 int restMoneyAmount = currentMoneyAmount - coinOptions[currentCoinSpot];
 
                 // 如果“剩余金额”所需要的 最少硬币数量 不等于 maxInitValue，说明 针对此金额已经有“最少硬币方案”了，则：
+                // 🐖 这里的if判断是重要的，否则就可能会产生 数值溢出的错误
                 if (currentMoneyAmountToItsRequiredMinCoins[restMoneyAmount] != maxInitValue) {
                     // 确定 “当前金额”的最少硬币方案
                     currentMoneyAmountToItsRequiredMinCoins[currentMoneyAmount]
