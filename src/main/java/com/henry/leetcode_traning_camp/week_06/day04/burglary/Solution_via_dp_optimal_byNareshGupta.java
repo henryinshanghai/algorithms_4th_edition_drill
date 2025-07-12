@@ -5,7 +5,8 @@ import java.util.Arrays;
 // 验证：对于 沿着一个圈来打劫的问题，可以使用 currentHouseToMaxRobMoneyUpToIt[] 的dp数组 来 得到其最大可能的抢劫数额
 // 最优子结构/递推公式: dp[i] = max(dp[i-1], dp[i-2] + current_house_value)
 // 由于递推公式中，当前的dp[]值的计算 只与其前两项相关，因此 可以使用三个连续的指针变量 来 代替dp[]数组，以此节约空间
-public class Solution_via_dp_byNareshGupta {
+// 🐖 双指针的做法 可以避免对下标越界情况的处理
+public class Solution_via_dp_optimal_byNareshGupta {
     public static void main(String[] args) {
         int[] housesValues = {1, 2, 3, 1}; // 4
 //        int[] housesValues = {2,3,2}; // 3
@@ -41,29 +42,30 @@ public class Solution_via_dp_byNareshGupta {
      * @return
      */
     private static int getMaxBurglaryValueFromRange(int[] housesValues, int startSpot, int endSpot) {
-        // ① 准备两个额外的变量prevOne、sumValueUpToPrevTwo & 一个变量max
-        int sumValueUpToPrevTwo = 0, sumValueUpToPrevOne = 0, // prevOne与prevTwo用于存储临时的max（用于计算当前的max）
-                maxSumValue = 0; //  max用于记录与更新 当前所抢劫到的最大金额
+        // ① 准备两个额外的变量prevOne、maxRobberyMoneyUpToPrevTwo & 一个变量max
+        int maxRobberyMoneyUpToPrevTwo = 0, maxRobberyMoneyUpToPrevOne = 0, // prevOne与prevTwo用于存储临时的max（用于计算当前的max）
+            maxRobberyMoneyUpToCurrent = 0; //  max用于记录与更新 当前所抢劫到的最大金额
 
         // ② 开始遍历当前区间中的每一个位置，并累加max
-        for (int currentSpot = startSpot; currentSpot < endSpot; currentSpot++) { // 🐖 这里只能是<，而不能是<=
+        for (int currentSpot = startSpot; currentSpot < endSpot; currentSpot++) { // 🐖 由于选择了左闭右开区间，所以这里是<
             // 获取到 当前房子的价值
             int currentHouseValue = housesValues[currentSpot];
 
-            // 计算出 如果抢劫当前房子，所能得到的金额
-            // 如果抢劫当前的房子，说明不抢劫 前一个房子，则：抢劫到的金额 = 到前两个房子为止所抢到的金额 + 当前房子的价值
-            int sumValueWhenRobCurrentHouse = sumValueUpToPrevTwo + currentHouseValue;
+            /* 计算出 抢劫当前房子的情况下，所能得到的金额 */
+            // 如果抢劫当前的房子，说明不抢劫 前一个房子，则：
+            // 抢劫到的金额 = 到前两个房子为止所抢到的金额 + 当前房子的价值
+            int robberyMoneyWhenRobCurrentHouse = maxRobberyMoneyUpToPrevTwo + currentHouseValue;
 
             // 从 “抢劫当前房子” 与 “不抢劫当前房子” 的抢劫结果中，选择出 最大值 来作为“抢劫到此房子为止所能抢到的最大金额”
-            maxSumValue = Math.max(sumValueWhenRobCurrentHouse, // 抢劫当前房子
-                    sumValueUpToPrevOne); // 不抢劫当前房子
+            maxRobberyMoneyUpToCurrent = Math.max(robberyMoneyWhenRobCurrentHouse, // 抢劫当前房子
+                    maxRobberyMoneyUpToPrevOne); // 不抢劫当前房子
 
             // 更新 prevOne与prevTwo变量的值 来 用于计算下一个位置的max
-            sumValueUpToPrevTwo = sumValueUpToPrevOne;
-            sumValueUpToPrevOne = maxSumValue;
+            maxRobberyMoneyUpToPrevTwo = maxRobberyMoneyUpToPrevOne;
+            maxRobberyMoneyUpToPrevOne = maxRobberyMoneyUpToCurrent;
         }
 
         // ③ 返回循环结束后 最终求取到的max aka 抢劫到最后一个房子为止所能抢到的最大金额
-        return maxSumValue;
+        return maxRobberyMoneyUpToCurrent;
     }
 }
