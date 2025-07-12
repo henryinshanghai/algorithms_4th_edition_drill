@@ -12,8 +12,7 @@ public class Solution_via_iteration_by_KevinNaughton {
 
         int maxProfit = getMaxProfitFrom(currentDayToItsStockValue);
 
-        System.out.println("在可以连续交易的情况下，对于本质股票的价格序列: " + Arrays.toString(currentDayToItsStockValue) +
-                "所能赚取的最大利润为： " + maxProfit);
+        System.out.println("在可以连续交易的情况下，对于本质股票的价格序列: " + Arrays.toString(currentDayToItsStockValue) + "所能赚取的最大利润为： " + maxProfit);
     }
 
     private static int getMaxProfitFrom(int[] currentDayToItsStockValueArr) {
@@ -25,11 +24,14 @@ public class Solution_via_iteration_by_KevinNaughton {
         /* Ⅱ 遍历价格序列中每一天的价格，以“低买高卖”的原则把每一份”可能的利润“添加进来(以一次交易的形式) */
         int accumulatedProfit = 0;
         for (int currentDay = 0; currentDay < currentDayToItsStockValueArr.length - 1; currentDay++) {
+            int currentDayStockValue = currentDayToItsStockValueArr[currentDay];
+            int nextDayStockValue = currentDayToItsStockValueArr[currentDay + 1];
+
             // #1 如果明天的股价更高，说明今天就可以 用“今天低买”+“明天高买” 的方式 来 获取可能的利润(aka 利润)，则：
-            if (nextDaysValueIsBigger(currentDayToItsStockValueArr, currentDay)) {
-                // 计算利润
-                int profitOfCurrentTrade = currentDayToItsStockValueArr[currentDay + 1] - currentDayToItsStockValueArr[currentDay];
-                // 把利润累加到总利润中
+            if (currentDayStockValue < nextDayStockValue) {
+                // 先计算当前交易的利润
+                int profitOfCurrentTrade = nextDayStockValue - currentDayStockValue;
+                // 再把利润累加到总利润中
                 accumulatedProfit += profitOfCurrentTrade;
             }
             // #2 如果没有更高，就继续遍历。直到遇到价格更高的某一天 再卖出赚钱
