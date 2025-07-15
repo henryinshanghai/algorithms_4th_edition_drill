@@ -44,11 +44,12 @@ public class Solution_via_dp_by_nationalSite {
                             = currentComboToItsMinRequiredEditDistance[str1Cursor - 1][str2Cursor - 1];
                 } else {
                     // 否则，需要从多个可能的“更小的子问题的解”中 选择出“最小编辑距离”
+                    // henry => mahendra 从henry出发，最终得到mahendra
                     currentComboToItsMinRequiredEditDistance[str1Cursor][str2Cursor] = 1 + // 针对以下的三种情况，这里的+1可以代表不同的操作
                             Math.min(
-                                    currentComboToItsMinRequiredEditDistance[str1Cursor - 1][str2Cursor], // “删除”字符的操作(移除字符y)，得到henr[对应上面的1] + (henr -> mahendra)
-                                    Math.min(currentComboToItsMinRequiredEditDistance[str1Cursor][str2Cursor - 1], // (henry -> mahendr) + “添加”字符(a)的操作 [对应上面的1]
-                                            currentComboToItsMinRequiredEditDistance[str1Cursor - 1][str2Cursor - 1]) // (henr -> mahendr) + “替换”字符的操作(y -> a) [对应上面的1]
+                                    currentComboToItsMinRequiredEditDistance[str1Cursor - 1][str2Cursor], // (henr -> mahendra) & (henry -> henr) [1对应此处“删除”字符(y)的操作]
+                                    Math.min(currentComboToItsMinRequiredEditDistance[str1Cursor][str2Cursor - 1], // (henry -> mahendr) & (mahendr -> mahendra)[1对应此处“添加”字符(a)的操作]
+                                            currentComboToItsMinRequiredEditDistance[str1Cursor - 1][str2Cursor - 1]) // (henr -> mahendr) & (henr[y] -> mahendr[a]) [1对应此处“替换”字符的操作]
                             );
                 }
             }
