@@ -12,8 +12,8 @@ public class Solution_via_dp_by_jayatiTiwari {
 
         int maxProfit = maxProfitCouldGetFrom(currentDayToItsStockValue, tradeFee);
 
-        System.out.println("如果可以进行无数次交易，并且每次交易需要收取费用" + tradeFee + ",");
-        System.out.println("则：股价序列：" + Arrays.toString(currentDayToItsStockValue) + "所能赚取的最大利润为： " + maxProfit);
+        System.out.println("如果可以进行无数次交易，并且每次交易需要收取费用，则：" + tradeFee + ",");
+        System.out.println("股价序列：" + Arrays.toString(currentDayToItsStockValue) + "所能赚取的最大利润为： " + maxProfit);
     }
 
     private static int maxProfitCouldGetFrom(int[] currentDayToItsStockValue, int tradeFee) {
@@ -30,17 +30,17 @@ public class Solution_via_dp_by_jayatiTiwari {
         // 第0天不持有股票 aka 什么都不做，则：手上的净余额为0
         currentConditionToItsMaxNetBalance[0][0] = 0;
         // 第0天持有股票 aka 买入股票，则：手上的净余额为 (负的股价 - 交易所需要的手续费)
-        currentConditionToItsMaxNetBalance[0][1] = -currentDayToItsStockValue[0] - tradeFee; // 规则：在买入股票时，支付手续费。卖出时就不再支付手续费了
+        currentConditionToItsMaxNetBalance[0][1] = -currentDayToItsStockValue[0]; //  - tradeFee 国际通用规则：在卖出股票时，支付手续费。
 
         /* Ⅲ 计算dp[]数组的元素值 */
         for (int currentDay = 1; currentDay < daysAmount; currentDay++) {
             // 计算 在今天不持有股票的情况下 手中的净余额;
             currentConditionToItsMaxNetBalance[currentDay][0] =
-                    Math.max(currentConditionToItsMaxNetBalance[currentDay - 1][1] + currentDayToItsStockValue[currentDay], // 前一天持有股票 & 今天卖出股票
+                    Math.max(currentConditionToItsMaxNetBalance[currentDay - 1][1] + currentDayToItsStockValue[currentDay] - tradeFee, // 前一天持有股票 & 今天卖出股票，并支付手续费
                             currentConditionToItsMaxNetBalance[currentDay - 1][0]); // 前一天就 不持有股票 & 今天什么都不做
             // 计算 在今天持有股票的情况下 手中的净余额；
             currentConditionToItsMaxNetBalance[currentDay][1] =
-                    Math.max(currentConditionToItsMaxNetBalance[currentDay - 1][0] - currentDayToItsStockValue[currentDay] - tradeFee, // 前一天不持有股票 & 今天买入 & 支付手续费(因为是新的交易??)
+                    Math.max(currentConditionToItsMaxNetBalance[currentDay - 1][0] - currentDayToItsStockValue[currentDay], // 前一天不持有股票 & 今天买入
                         currentConditionToItsMaxNetBalance[currentDay - 1][1]); // 前一天就 持有股票 & 今天什么都不做
 
         }
