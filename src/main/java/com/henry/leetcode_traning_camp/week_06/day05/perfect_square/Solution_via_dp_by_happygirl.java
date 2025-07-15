@@ -25,6 +25,8 @@ public class Solution_via_dp_by_happygirl {
         currentNumberToItsMinRequiredSquareAmount[1] = 1;
 
         // 4 递推计算出 dp[]数组所有元素正确的值
+        // 🐖 本题是先遍历背包，因为可选择的物品需要根据背包容量来动态生成
+        // EXPR：物品是否动态生成 → 决定循环顺序。这里 完全平方数是物品，而目标数字是背包
         for (int currentNumber = 1; currentNumber <= givenNumber; currentNumber++) {
             // 事实：dp[]数组中前面的元素 不会影响到 后继的元素??
             // currentNumberToItsMinRequiredSquareAmount[4]的意思是 凑出数值4 最少需要 currentNumberToItsMinRequiredSquareAmount[4]个完全平方数
@@ -33,8 +35,9 @@ public class Solution_via_dp_by_happygirl {
             // 对于每一个子问题，我们都尝试 使用可选的硬币 来 凑出它。但要怎么表示 可选的硬币(平方数)呢?
             for (int baseNumber = 1; baseNumber * baseNumber <= currentNumber; baseNumber++) {
                 currentNumberToItsMinRequiredSquareAmount[currentNumber]
-                        = Math.min(currentNumberToItsMinRequiredSquareAmount[currentNumber], // option01: 当前 “凑出指定数字”所需要的最少square数量 aka 它本身
-                        currentNumberToItsMinRequiredSquareAmount[currentNumber - baseNumber * baseNumber] + 1); // option02: 刨去一个当前平方数后 所需要的最少平方数数量(最优子结构) + 1（刨去的这个平方数）
+                        = Math.min(
+                                currentNumberToItsMinRequiredSquareAmount[currentNumber], // option01: 当前 “凑出指定数字”所需要的最少square数量 aka 它本身
+                                currentNumberToItsMinRequiredSquareAmount[currentNumber - baseNumber * baseNumber] + 1); // option02: 刨去一个当前平方数后 所需要的最少平方数数量(最优子结构) + 1（刨去的这个平方数）
             }
         }
 
