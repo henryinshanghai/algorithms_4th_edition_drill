@@ -23,7 +23,7 @@ public class Solution_via_dp_by_jayatiTiwari {
 
         int profit = 0;
         // 如果允许的交易次数很多的话，说明 可以按照低价买入 + 高价卖出的原则 来 收获所有可能的利润，则：
-        if (tradeTimes >= tradeTimes / 2) {
+        if (tradeTimes >= days / 2) {
             for (int currentDay = 0; currentDay < days - 1; currentDay++) {
                 // 遍历股价序列，来
                 if (currentDayToItsStockValue[currentDay] < currentDayToItsStockValue[currentDay + 1]) {
