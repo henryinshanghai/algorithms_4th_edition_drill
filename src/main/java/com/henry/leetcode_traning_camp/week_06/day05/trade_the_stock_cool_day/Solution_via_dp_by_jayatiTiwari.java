@@ -64,7 +64,7 @@ public class Solution_via_dp_by_jayatiTiwari {
             // 今天没有持股时 手上的净余额
             currentConditionToItsNetBalance[currentDay][0]
                     = Math.max(currentConditionToItsNetBalance[currentDay - 1][0], // option01: 前一天没有持股，今天没有买入
-                    currentConditionToItsNetBalance[currentDay - 1][1] + currentDayToItsStockValueArr[currentDay]); // option02: 前一天持股 + 今天卖出股票（第二天是冷冻期）
+                    currentConditionToItsNetBalance[currentDay - 1][1] + currentDayToItsStockValueArr[currentDay]); // option02: 前一天持股 + 今天卖出股票（下一天会是冷冻期）
 
             // 今天持股时 手上的净余额
             currentConditionToItsNetBalance[currentDay][1]
