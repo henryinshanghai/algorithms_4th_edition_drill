@@ -3,7 +3,7 @@ package com.henry.leetcode_traning_camp.week_06.day06.min_path;
 // 验证：对于 从矩形棋盘上计算出 按照特定规则从左上角到右下角的最小路径的问题，可以使用
 // 从所有可能的选项中选择最小路径的方式 来 得到 “到达当前方格的最小路径”
 // 最优子结构：到达当前方格的最小路径 = 到达“上一个方格”的最小路径 + 当前方格的value
-// 🐖 这种方式 先拷贝元素到dp[][]数组中
+// 🐖 这种方式 先拷贝元素到dp[][]数组中，这种做法会 #1 代码层面上，由于元素是本地操作，所以使用+=的操作； #2 更加耗时
 public class Solution_via_dp_by_gulei {
     public static void main(String[] args) {
         int[][] numberBoard = {
@@ -19,12 +19,15 @@ public class Solution_via_dp_by_gulei {
 
     private static int getMinimumPathSumOf(int[][] numberBoard) {
         // 边界条件
-        if (numberBoard == null || numberBoard.length == 0) {
+        int rowAmount = numberBoard.length;
+        int columnAmount = numberBoard[0].length;
+
+        if (numberBoard == null || rowAmount == 0) {
             return 0;
         }
 
         // 准备合乎题意的dp[][]数组
-        int[][] currentGridToMinPathSumReachIt = new int[numberBoard.length][numberBoard[0].length];
+        int[][] currentGridToMinPathSumReachIt = new int[rowAmount][columnAmount];
 
         // #0 先把 二维数组中的元素 拷贝到 dp[][]数组中，然后在此基础上 来 计算dp[][]数组正确的元素值
         fullCopy(numberBoard, currentGridToMinPathSumReachIt);
@@ -41,7 +44,6 @@ public class Solution_via_dp_by_gulei {
                     currentGridToMinPathSumReachIt[0][currentColumn - 1];
         }
 
-
         // #3 计算并填充 dp[][]数组中的剩余元素
         for (int currentRow = 1; currentRow < currentGridToMinPathSumReachIt.length; currentRow++) {
             for (int currentColumn = 1; currentColumn < currentGridToMinPathSumReachIt[currentRow].length; currentColumn++) {
@@ -55,7 +57,7 @@ public class Solution_via_dp_by_gulei {
 
         // 最后，返回 最后一个方格 => 到达此方格的最小路径sum
         // 🐖 数组的索引从0开始，因此 最后一个元素是 arr[length - 1]
-        return currentGridToMinPathSumReachIt[currentGridToMinPathSumReachIt.length - 1][currentGridToMinPathSumReachIt[0].length - 1];
+        return currentGridToMinPathSumReachIt[rowAmount - 1][columnAmount - 1];
     }
 
     private static void fullCopy(int[][] numberBoard, int[][] currentCoordinationToItsMinPathSum) {
