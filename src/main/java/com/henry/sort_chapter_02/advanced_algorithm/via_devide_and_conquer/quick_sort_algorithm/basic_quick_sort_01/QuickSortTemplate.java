@@ -82,8 +82,8 @@ public class QuickSortTemplate {
 
     // 在数组的指定区间（闭区间）中，排定一个切分元素，并返回排定的位置
     private static int arrangePivotViaPartition(Comparable[] arrayToSort, int leftBar, int rightBar) {
-        // #1 借助一组指针（小于区边界指针、大于区边界指针） 来 把元素放置到正确的区域中
-        int greaterZoneBoundary = putItemIntoRightZone(arrayToSort, leftBar, rightBar);
+        // #1 借助一组指针（小于区边界指针、大于区边界指针） 来 把元素放置到/分拣到正确的区域中
+        int greaterZoneBoundary = putItemIntoCorrectZone(arrayToSort, leftBar, rightBar);
 
         // #2 排定基准元素 aka 把基准元素放到它正确的位置上     手段: 把基准元素 与 greaterZoneBoundary所指向的元素 交换位置
         exch(arrayToSort, leftBar, greaterZoneBoundary);
@@ -91,7 +91,7 @@ public class QuickSortTemplate {
         return greaterZoneBoundary;
     }
 
-    private static int putItemIntoRightZone(Comparable[] arrayToSort, int leftBar, int rightBar) {
+    private static int putItemIntoCorrectZone(Comparable[] arrayToSort, int leftBar, int rightBar) {
         // #1 准备左右边界的指针
         int lessZoneBoundary = leftBar;
         int greaterZoneBoundary = rightBar + 1;
@@ -109,7 +109,7 @@ public class QuickSortTemplate {
             // 如果基准元素大于其他的任何元素，则：循环条件直接不成立，右指针不会向左移动
             while (less(pivotItem, arrayToSort[--greaterZoneBoundary])) if (greaterZoneBoundary == leftBar) break;
 
-            // #3-③ 判断元素的分拣工作是否已经完成
+            // #3-③ 先判断元素的分拣工作是否已经完成
             // 当左指针与右指针相遇时，说明元素分拣已经完成 - 小于基准元素的元素都在左侧区间、大于基准元素的元素都在右侧区间
             if (lessZoneBoundary >= greaterZoneBoundary) {
                 break;

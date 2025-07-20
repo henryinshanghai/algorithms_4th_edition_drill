@@ -53,18 +53,29 @@ public class MergeSortBottomUpTemplate {
         }
     }
 
-    private static void mergeUnitsByPairTillEnd(Comparable[] originalArr, int itemAmount, int unitSize) {
+    private static void mergeUnitsByPairTillEnd(Comparable[] originalArr,
+                                                int itemAmount,
+                                                int unitSize) {
         // 通过 成组地移动指针(左指针、中间指针、右指针) 来 对每一个pair进行归并排序 直到最后一个pair👇
         for (int leftBarOfCurrentPair = 0; leftBarOfCurrentPair < itemAmount - unitSize; leftBarOfCurrentPair += (unitSize * 2)) { // ① 移动左指针
             // 🐖 随着currentPair被不断更新，rightBarCursor可能会超出原始数组的边界。因此这里使用min()
-            mergeUnitsInPair(originalArr, leftBarOfCurrentPair, leftBarOfCurrentPair + unitSize - 1,
-                    Math.min((leftBarOfCurrentPair + unitSize * 2) - 1, itemAmount - 1)); // ② 计算中间指针与右指针
+            int expectedRightBarOfCurrentPair
+                    = (leftBarOfCurrentPair + unitSize * 2) - 1;
+            int maxRightBar = itemAmount - 1;
+
+            mergeUnitsInPair(originalArr,
+                    leftBarOfCurrentPair,
+                    leftBarOfCurrentPair + unitSize - 1,
+                    Math.min(expectedRightBarOfCurrentPair, maxRightBar)); // ② 计算中间指针与右指针
         }
     }
 
     // 归并数组中指定闭区间中的元素
     // 特征：a[leftBar, middle] 与 a[middle+1, rightBar] - 均为闭区间
-    private static void mergeUnitsInPair(Comparable[] originalArr, int leftBarOfPair, int middleOfPair, int rightBarOfPair) {
+    private static void mergeUnitsInPair(Comparable[] originalArr,
+                                         int leftBarOfPair,
+                                         int middleOfPair,
+                                         int rightBarOfPair) {
         // #1 把原始数组中“指定区间”中的元素，拷贝到辅助数组aux中
         copyItemToAux(originalArr, leftBarOfPair, rightBarOfPair);
 
@@ -72,7 +83,10 @@ public class MergeSortBottomUpTemplate {
         writeItemToGetThemSorted(originalArr, leftBarOfPair, middleOfPair, rightBarOfPair);
     }
 
-    private static void writeItemToGetThemSorted(Comparable[] originalArr, int leftBarOfPair, int middleOfPair, int rightBarOfPair) {
+    private static void writeItemToGetThemSorted(Comparable[] originalArr,
+                                                 int leftBarOfPair,
+                                                 int middleOfPair,
+                                                 int rightBarOfPair) {
         // #1 准备左右游标指针 - 用于比较元素，得到“正确的元素”
         int leftHalfCursor = leftBarOfPair;
         int rightHalfCursor = middleOfPair + 1;
@@ -80,14 +94,20 @@ public class MergeSortBottomUpTemplate {
         // #2 对于原始数组中的“当前待排定的位置”...
         for (int currentSpotToArrange = leftBarOfPair; currentSpotToArrange <= rightBarOfPair; currentSpotToArrange++) {
             // 比较辅助数组中，左右指针所指向的元素。然后把“较小的元素” 绑定到 原始数组“待排定的位置”上
-            if (leftHalfCursor > middleOfPair) originalArr[currentSpotToArrange] = aux[rightHalfCursor++];
-            else if (rightHalfCursor > rightBarOfPair) originalArr[currentSpotToArrange] = aux[leftHalfCursor++];
-            else if (less(aux[leftHalfCursor], aux[rightHalfCursor])) originalArr[currentSpotToArrange] = aux[leftHalfCursor++];
-            else originalArr[currentSpotToArrange] = aux[rightHalfCursor++];
+            if (leftHalfCursor > middleOfPair)
+                originalArr[currentSpotToArrange] = aux[rightHalfCursor++];
+            else if (rightHalfCursor > rightBarOfPair)
+                originalArr[currentSpotToArrange] = aux[leftHalfCursor++];
+            else if (less(aux[leftHalfCursor], aux[rightHalfCursor]))
+                originalArr[currentSpotToArrange] = aux[leftHalfCursor++];
+            else
+                originalArr[currentSpotToArrange] = aux[rightHalfCursor++];
         }
     }
 
-    private static void copyItemToAux(Comparable[] originalArr, int leftBarOfPair, int rightBarOfPair) {
+    private static void copyItemToAux(Comparable[] originalArr,
+                                      int leftBarOfPair,
+                                      int rightBarOfPair) {
         for (int currentSpotCursor = leftBarOfPair; currentSpotCursor <= rightBarOfPair; currentSpotCursor++) {
             aux[currentSpotCursor] = originalArr[currentSpotCursor];
         }

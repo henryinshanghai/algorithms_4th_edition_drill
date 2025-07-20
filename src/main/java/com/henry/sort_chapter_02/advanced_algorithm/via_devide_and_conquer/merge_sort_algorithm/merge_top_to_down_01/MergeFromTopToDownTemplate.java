@@ -59,7 +59,10 @@ public class MergeFromTopToDownTemplate {
     }
 
     // 归并 a[leftBar, middle] 与 a[middle+1, rightBar] - 特征：两个子区间都已经是有序数组了
-    private static void mergeSortedRange(Comparable[] originalArr, int leftBar, int middleSpot, int rightBar) {
+    private static void mergeSortedRange(Comparable[] originalArr,
+                                         int leftBar,
+                                         int middleSpot,
+                                         int rightBar) {
         // #1 拷贝区间[leftBar, rightBar](闭区间)之间的元素 到 aux
         copyItemToAux(originalArr, leftBar, rightBar);
 
@@ -67,7 +70,10 @@ public class MergeFromTopToDownTemplate {
         writeItemBackToGetThemSorted(originalArr, leftBar, middleSpot, rightBar);
     }
 
-    private static void writeItemBackToGetThemSorted(Comparable[] originalArr, int leftBar, int middleSpot, int rightBar) {
+    private static void writeItemBackToGetThemSorted(Comparable[] originalArr,
+                                                     int leftBar,
+                                                     int middleSpot,
+                                                     int rightBar) {
         // #1 准备左区间的指针 与 右区间的指针 - 用于比较元素，得到“正确的元素”
         int leftHalfCursor = leftBar;
         int rightHalfCursor = middleSpot + 1;

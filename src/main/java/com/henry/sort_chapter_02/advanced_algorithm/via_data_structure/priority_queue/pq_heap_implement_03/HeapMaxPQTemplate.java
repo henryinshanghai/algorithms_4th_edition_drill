@@ -32,7 +32,7 @@ import java.util.NoSuchElementException;
 // 步骤：#1 通过向堆的末尾添加结点并修复breach的方式 来 实现添加队列元素； #2 通过删除堆顶结点并修复breach的方式 来 实现删除最大队列元素；
 // 术语：队列元素 <=> 堆结点 | 堆结点 <=> 数组元素、结点在堆中的位置 <=> 数组元素在数组中的位置
 public class HeapMaxPQTemplate<Item> implements Iterable<Item> { // 类本身实现了 Iterables接口
-    private Item[] itemHeap;                    // 底层使用“单数组物理结构”来实现“堆逻辑结构” 具体来说，用[1, itemAmount]的区间 来 存储元素
+    private Item[] arrImplementedHeap;                    // 底层使用“单数组物理结构”来实现“堆逻辑结构” 具体来说，用[1, itemAmount]的区间 来 存储元素
     private int itemAmount;                       // 优先队列中的元素数量
     private Comparator<Item> comparator;  // 比较器（可选的）
 
@@ -41,7 +41,7 @@ public class HeapMaxPQTemplate<Item> implements Iterable<Item> { // 类本身实
      * @param initCapacity the initial capacity of this priority queue
      */
     public HeapMaxPQTemplate(int initCapacity) {
-        itemHeap = (Item[]) new Object[initCapacity + 1];
+        arrImplementedHeap = (Item[]) new Object[initCapacity + 1];
         itemAmount = 0;
     }
 
@@ -57,7 +57,7 @@ public class HeapMaxPQTemplate<Item> implements Iterable<Item> { // 类本身实
      */
     public HeapMaxPQTemplate(int initCapacity, Comparator<Item> comparator) {
         this.comparator = comparator;
-        itemHeap = (Item[]) new Object[initCapacity + 1];
+        arrImplementedHeap = (Item[]) new Object[initCapacity + 1];
         itemAmount = 0;
     }
 
@@ -76,9 +76,9 @@ public class HeapMaxPQTemplate<Item> implements Iterable<Item> { // 类本身实
      */
     public HeapMaxPQTemplate(Item[] items) {
         itemAmount = items.length;
-        itemHeap = (Item[]) new Object[items.length + 1];
+        arrImplementedHeap = (Item[]) new Object[items.length + 1];
         for (int i = 0; i < itemAmount; i++)
-            itemHeap[i + 1] = items[i];
+            arrImplementedHeap[i + 1] = items[i];
 
         // 构造出一个堆 - 手段：使用sink()方法 排定一半的元素
         // 原理：如果数组中，前面一半的元素都已经满足“堆有序”的话，则：整个数组必然是堆有序的
@@ -121,7 +121,7 @@ public class HeapMaxPQTemplate<Item> implements Iterable<Item> { // 类本身实
     }
 
     private Item getTopNodeInHeap() {
-        return itemHeap[1];
+        return arrImplementedHeap[1];
     }
 
     // 为堆数组执行扩容
@@ -129,9 +129,9 @@ public class HeapMaxPQTemplate<Item> implements Iterable<Item> { // 类本身实
         assert capacity > itemAmount;
         Item[] temp = (Item[]) new Object[capacity];
         for (int i = 1; i <= itemAmount; i++) {
-            temp[i] = itemHeap[i];
+            temp[i] = arrImplementedHeap[i];
         }
-        itemHeap = temp;
+        arrImplementedHeap = temp;
     }
 
 
@@ -162,12 +162,12 @@ public class HeapMaxPQTemplate<Item> implements Iterable<Item> { // 类本身实
     }
 
     private void addNewNodeAfterLastSpot(Item newItem) {
-        itemHeap[++itemAmount] = newItem;
+        arrImplementedHeap[++itemAmount] = newItem;
     }
 
     private void resizeHeapSizeAsNeededOnInsertion() {
-        if (itemAmount == itemHeap.length - 1)
-            resize(2 * itemHeap.length);
+        if (itemAmount == arrImplementedHeap.length - 1)
+            resize(2 * arrImplementedHeap.length);
     }
 
     /**
@@ -188,7 +188,7 @@ public class HeapMaxPQTemplate<Item> implements Iterable<Item> { // 类本身实
     }
 
     private Item retrieveMaxNodeOfHeap() {
-        Item maxNodeInHeap = itemHeap[1];
+        Item maxNodeInHeap = arrImplementedHeap[1];
         return maxNodeInHeap;
     }
 
@@ -210,12 +210,12 @@ public class HeapMaxPQTemplate<Item> implements Iterable<Item> { // 类本身实
 
     private void resizeHeapAsNeededOnDeletion() {
         // 删除元素后，查看是不是需要调整 数组的容量大小
-        if ((itemAmount > 0) && (itemAmount == (itemHeap.length - 1) / 4)) resize(itemHeap.length / 2);
+        if ((itemAmount > 0) && (itemAmount == (arrImplementedHeap.length - 1) / 4)) resize(arrImplementedHeap.length / 2);
     }
 
     private void removeLastNodePhysically() {
         // 删除数组中最后一个位置上的元素(它已经不属于堆) 以防止对象游离
-        itemHeap[itemAmount + 1] = null;     // to avoid loitering and help with garbage collection
+        arrImplementedHeap[itemAmount + 1] = null;     // to avoid loitering and help with garbage collection
     }
 
     private void fixBreachIntroducedByExchanging() {
@@ -275,49 +275,50 @@ public class HeapMaxPQTemplate<Item> implements Iterable<Item> { // 类本身实
     // 比较堆中 位置i与位置j上的元素大小
     // 手段：获取到 对应位置上的数组元素，进行比较
     private boolean less(int spotI, int spotJ) {
-        Item itemOnSpotJ = itemHeap[spotJ];
+        Item itemOnSpotJ = arrImplementedHeap[spotJ];
 
         if (comparator == null) {
-            Comparable<Item> itemOnSpotI = (Comparable<Item>) itemHeap[spotI];
+            Comparable<Item> itemOnSpotI = (Comparable<Item>) arrImplementedHeap[spotI];
             return itemOnSpotI.compareTo(itemOnSpotJ) < 0;
         } else {
-            return comparator.compare(itemHeap[spotI], itemOnSpotJ) < 0;
+            return comparator.compare(arrImplementedHeap[spotI], itemOnSpotJ) < 0;
         }
     }
 
     // 交换堆中 位置i与位置j上的结点
     // 手段：获取到 对应位置上的数组元素，进行交换
     private void exch(int spotI, int spotJ) {
-        Item swap = itemHeap[spotI];
-        itemHeap[spotI] = itemHeap[spotJ];
-        itemHeap[spotJ] = swap;
+        Item swap = arrImplementedHeap[spotI];
+        arrImplementedHeap[spotI] = arrImplementedHeap[spotJ];
+        arrImplementedHeap[spotJ] = swap;
     }
 
     // 判断当前的数组 是否是 一个二叉堆？ 原理：根据二叉堆的特性
     private boolean isMaxHeap() {
         // 堆的性质1 - 完全二叉树 aka 数组中的元素连续且不为null
         for (int cursor = 1; cursor <= itemAmount; cursor++) {
-            if (itemHeap[cursor] == null) return false;
+            if (arrImplementedHeap[cursor] == null) return false;
         }
         // 堆的性质2 - 使用数组表示的完全二叉树 aka 数组中其他的位置上不能有元素
-        for (int i = itemAmount + 1; i < itemHeap.length; i++) {
-            if (itemHeap[i] != null) return false;
+        for (int i = itemAmount + 1; i < arrImplementedHeap.length; i++) {
+            if (arrImplementedHeap[i] != null) return false;
         }
         // 堆的约定 - 数组的第一个位置不存放任何元素（方便数组下标index 与 元素在二叉树中位置spot之间的转换）
-        if (itemHeap[0] != null) return false;
+        if (arrImplementedHeap[0] != null) return false;
         return isMaxHeapOrdered(1);
     }
 
     // 以当前spot作为根节点的子树 是不是一个max heap?
-    // 手段：
+    // 手段：#1 + #2
     private boolean isMaxHeapOrdered(int currentSpot) {
         if (currentSpot > itemAmount) return true;
         int leftChildSpot = 2 * currentSpot;
         int rightChildSpot = 2 * currentSpot + 1;
+        // #1 数值约束：当前位置上结点的值 > 其对应的左右子结点值；
         if (leftChildSpot <= itemAmount && less(currentSpot, leftChildSpot)) return false;
         if (rightChildSpot <= itemAmount && less(currentSpot, rightChildSpot)) return false;
 
-        // 以当前节点的左右子节点作为根节点 的树，也是一个最大堆 - 堆的定义的递归性
+        // #2 结构约束：以当前节点的左右子节点作为根节点 的“（递归）子树”，也是一个最大堆 - 堆的定义的递归性
         return isMaxHeapOrdered(leftChildSpot) && isMaxHeapOrdered(rightChildSpot);
     }
 
@@ -347,7 +348,7 @@ public class HeapMaxPQTemplate<Item> implements Iterable<Item> { // 类本身实
             else copy = new HeapMaxPQTemplate<Item>(size(), comparator);
             // 初始化 队列中的元素
             for (int i = 1; i <= itemAmount; i++)
-                copy.insert(itemHeap[i]);
+                copy.insert(arrImplementedHeap[i]);
         }
 
         public boolean hasNext() {

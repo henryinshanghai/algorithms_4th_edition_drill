@@ -26,12 +26,15 @@ public class OrderedArrayMaxPQTemplate<Key extends Comparable<Key>> {
 
         // 排定“待插入元素”
         while (backwardsCursor >= 0 && less(key, itemArray[backwardsCursor])) { // #1 比较当前元素 与 待插入元素
-            // 如果当前元素更大，则：把当前元素往后移动一个位置
+            // 如果“指针所指向的元素”更大，说明 当前指针位置 大于 应该插入的位置，则：
+            // #1 把当前元素往后移动一个位置 🐖 这也解释了为什么需要从后往前地遍历指针，是为了避免arr[i+1]被覆盖掉
             itemArray[backwardsCursor+1] = itemArray[backwardsCursor];
+            // #2 把指针位置向前移动一个位置
             backwardsCursor--;
         }
 
-        // 如果当前元素更小，说明找到了插入位置。则：在当前位置的下一位置上插入元素
+        // 如果当前元素更小，说明找到了 应该插入的位置。则：
+        // 在“当前位置的下一位置”上 插入元素
         itemArray[backwardsCursor+1] = key;
 
         // 更新元素数量
