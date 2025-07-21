@@ -32,7 +32,7 @@ import java.util.NoSuchElementException;
 // 步骤：#1 通过向堆的末尾添加结点并修复breach的方式 来 实现添加队列元素； #2 通过删除堆顶结点并修复breach的方式 来 实现删除最大队列元素；
 // 术语：队列元素 <=> 堆结点 | 堆结点 <=> 数组元素、结点在堆中的位置 <=> 数组元素在数组中的位置
 public class HeapMaxPQTemplate<Item> implements Iterable<Item> { // 类本身实现了 Iterables接口
-    private Item[] arrImplementedHeap;                    // 底层使用“单数组物理结构”来实现“堆逻辑结构” 具体来说，用[1, itemAmount]的区间 来 存储元素
+    private Item[] arrImplementedHeap;                    // 底层使用“单数组物理结构”来实现“堆逻辑结构” 具体来说，用[1, itemAmount]的区间 来 存储堆结点
     private int itemAmount;                       // 优先队列中的元素数量
     private Comparator<Item> comparator;  // 比较器（可选的）
 
