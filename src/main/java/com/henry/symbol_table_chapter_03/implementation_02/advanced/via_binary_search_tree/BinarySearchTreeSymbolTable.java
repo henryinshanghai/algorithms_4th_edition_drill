@@ -36,13 +36,14 @@ import java.util.NoSuchElementException;
 // 手段：使用BST中的节点 来 封装key -> value的映射
 // 特征：使用BST能够得到较好的 get(), put()操作性能
 public class BinarySearchTreeSymbolTable<Key extends Comparable<Key>, Value> {
-    private Node rootNode;             // 二叉查找树的根结点
+    private Node rootNode;             // 底层数据结构是一个BST / BST的根结点
 
+    // BST中结点的定义(所包含的信息)
     private class Node {
         private Key key;           // 结点的key - 二叉查找树的排序依据就是结点中的key
         private Value value;         // 与key相关联的值
         private Node leftSubTree, rightSubTree;  // 当前结点的左右子节点/子树
-        private int itsNodesAmount;          // 以当前节点为根结点的二叉树中的结点数量
+        private int itsNodesAmount;          // “以当前节点为根结点”的二叉树中的结点数量
 
         public Node(Key passedKey, Value associatedValue, int itsNodesAmount) {
             this.key = passedKey;
@@ -57,7 +58,7 @@ public class BinarySearchTreeSymbolTable<Key extends Comparable<Key>, Value> {
     public BinarySearchTreeSymbolTable() {
     }
 
-    // ~~ GET, PUT, DELETE ~~
+    // ~~ 作为数据容器的核心方法：GET, PUT, DELETE ~~
     /**
      * 在符号表中查找传入的键，并返回 其所关联的值。
      * 如果符号表中不存在传入的键，则：返回null
@@ -157,17 +158,17 @@ public class BinarySearchTreeSymbolTable<Key extends Comparable<Key>, Value> {
         if (result < 0)
             // 则：从左子树中删除结点 & “使用删除结点后的子树 来 更新指向原始子树的链接”
             currentNode.leftSubTree = deletePairFrom(currentNode.leftSubTree, passedKey);
-            // 如果更大，说明 传入的key在右子树中（假如存在的话）
+        // 如果更大，说明 传入的key在右子树中（假如存在的话）
         else if (result > 0)
             // 则：从右子树中删除节点 & 使用“删除节点后的子树” 来 更新指向原始子树的连接
             currentNode.rightSubTree = deletePairFrom(currentNode.rightSubTree, passedKey);
-            // 如果相等，说明 传入的key 就是根结点中的key
+        // 如果相等，说明 传入的key 就是根结点中的key
         else {
             // 则：删除根结点(当前结点)
-            /* 当根结点(当前结点)有两个子节点时，删除结点后，会有两个链接无处attach。但是父结点上只会有一个空链接可用 该怎么办？
+            /* 当根结点(当前结点)有两个子节点时，删除结点后，会有两个链接无处attach。但是其父结点上只会有一个空链接可用 该怎么办？
                 高层手段（Hibbard）：使用 被删除结点的后继结点(successor) 来 填补/替换 被删除结点的位置
                 原理：在二叉树中的任何一个结点，都会有一个指向它的链接 & 两个从它指出的链接 - 比喻：挖东墙，补西墙。
-                难点：选择的后继结点 替换 被删除的结点后，整棵二叉搜索树仍旧能够遵守 BST的数值约束。
+                难点：选择的后继结点 替换 被删除的结点后，整棵二叉搜索树仍旧 需要遵守 BST的数值约束。
                 具体手段：这里选择的后继结点 是 “待删除结点的右子树中的最小结点”。
                     因为从BST数值约束的角度来说，它可以作为 待删除的原始结点的平替(replacement)
                 具体做法：
@@ -180,12 +181,12 @@ public class BinarySearchTreeSymbolTable<Key extends Comparable<Key>, Value> {
             // #case02 左子树为空
             if (currentNode.leftSubTree == null) return currentNode.rightSubTree;
 
-            // 为当前结点添加一个引用 - 用于记录原始结点，从而在需要的时候 用它来获取到原始结点的左右结点
+            // 为当前结点添加一个引用originalNode - 用于记录原始结点，从而在需要的时候 用它来获取到原始结点的左右结点
             Node originalNode = currentNode;
-            // #1 获取原始结点 右子树中的最小结点 & 并 将之作为当前结点
+            // #1 获取原始结点 右子树中的最小结点 & 并 把当前节点的指针currentNode指向它
             currentNode = nodeOfMinKeyFrom(originalNode.rightSubTree);
             // #2 设置当前结点的左右子树
-            // 手段：对于右子树，使用“删除结点后的右子树”来更新指向右子树的链接
+            // 手段：对于右子树，使用“删除最小结点后的右子树” 来 更新指向右子树的链接
             currentNode.rightSubTree = deletePairOfMinKeyFrom(originalNode.rightSubTree);
             // 对于左子树，使用“原始节点的左子树” 来 更新指向“当前结点左子树”的链接
             currentNode.leftSubTree = originalNode.leftSubTree;
@@ -194,7 +195,7 @@ public class BinarySearchTreeSymbolTable<Key extends Comparable<Key>, Value> {
         // 更新当前二叉树根结点中的 结点计数器
         currentNode.itsNodesAmount = nodeAmountOf(currentNode.leftSubTree) + nodeAmountOf(currentNode.rightSubTree) + 1;
 
-        // 返回“当前结点” 来 连接到 父结点上
+        // 返回“当前结点” 来 链接到 父结点上
         return currentNode;
     }
 

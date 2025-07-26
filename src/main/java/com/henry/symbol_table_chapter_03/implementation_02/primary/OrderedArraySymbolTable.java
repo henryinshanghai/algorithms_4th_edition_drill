@@ -68,7 +68,7 @@ public class OrderedArraySymbolTable<Key extends Comparable<Key>, Value> {
             tempValueArray[currentSpot] = valueArray[currentSpot];
         }
 
-        // 把原始变量 指向（向右）新数组 / 把新数组 绑定（向左）到原始变量上
+        // 把原始变量 指向（向右视角）新数组 / 把新数组 绑定（向左视角）到原始变量上
         valueArray = tempValueArray;
         keyArray = tempKeyArray;
     }
@@ -201,14 +201,15 @@ public class OrderedArraySymbolTable<Key extends Comparable<Key>, Value> {
         // 计算出 指定key在有序数组中的排名
         int keysRanking = rankOf(passedKey);
 
-        // 如果指定的key不在符号表中
+        // 如果 指定的key在符号表中的排名是 pairAmount OR 指定的key的排名在符号表中对应的key 不等于 指定的key本身，说明 指定的key不存在
         Key correspondingKey = keyArray[keysRanking];
         if (keysRanking == pairAmount || notEqual(passedKey, correspondingKey)) {
             // 则：什么也不做
             return;
         }
 
-        // 如果键存在于符号表中，则：从后向前地向前拷贝 来 删除指定的键值对
+        // 如果键存在于符号表中，说明 我们可以对此pair执行删除，则：
+        // 通过从后向前地向前拷贝 来 删除指定的键值对
         for (int backwardsCursor = keysRanking; backwardsCursor < pairAmount - 1; backwardsCursor++) {
             keyArray[backwardsCursor] = keyArray[backwardsCursor + 1];
             valueArray[backwardsCursor] = valueArray[backwardsCursor + 1];
