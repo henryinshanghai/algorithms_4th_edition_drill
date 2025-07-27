@@ -34,9 +34,9 @@ import edu.princeton.cs.algs4.StdOut;
  ******************************************************************************/
 
 // 验证：可以使用红黑树 作为底层数据结构 来 实现符号表
-// 手段：使用红黑树中的节点 来 封装 #1 key -> value的映射 & #2 结点的颜色 - 用于使用2-结点 来 表示3-结点
-// 性能特征：作为平衡树，红黑树能够保证 - 在最坏的情况下，各种操作的算法增长数量级都是logN
-// put()操作特征：#1 插入新结点时，始终插入红色的新结点; #2 插入新结点后，通过{左旋转、右旋转、颜色翻转} 来 维护“合法的红黑树”
+// 手段：使用”红黑树中的节点“ 来 封装 #1 key -> value的映射 & #2 结点的颜色 - 用于使用2-结点 来 表示3-结点
+// 性能特征：作为平衡树，红黑树能够保证 - 在最坏的情况下，各种操作的算法增长数量级 都是logN
+// put()操作特征：#1 插入新结点时，始终插入 红色的新结点; #2 插入新结点后，通过{左旋转、右旋转、颜色翻转} 来 维护“合法的红黑树”
 public class RedBlackTreeLiteSymbolTable<Key extends Comparable<Key>, Value> {
 
     private static final boolean RED = true;
@@ -50,7 +50,7 @@ public class RedBlackTreeLiteSymbolTable<Key extends Comparable<Key>, Value> {
         private Key key;           // 结点中的键
         private Value value;         // 结点中 键所关联的值
         private Node leftSubNode, rightSubNode;  // 当前结点的左子结点、右子结点
-        private boolean color;     // 相比较BST中的Node，这里新增了一个属性：结点的颜色（指向当前结点的链接的颜色）
+        private boolean color;     // 相比较BST中的Node，这里新增了一个属性：结点的颜色（表示 ”指向当前结点“的 链接的颜色）
 
         public Node(Key key, Value value, boolean color) {
             this.key = key;
@@ -109,35 +109,35 @@ public class RedBlackTreeLiteSymbolTable<Key extends Comparable<Key>, Value> {
 
     // 手段：先查找，再插入
     private Node putPairInto(Node currentRootNode, Key passedKey, Value associatedValue) {
-        // 如果查找操作结束于一个空结点 说明BST中不存在 与passedKey相等的键(&值)，则...
+        // 如果查找操作 结束于 一个空结点 说明BST中 不存在 与passedKey相等的键(&值)，则...
         if (currentRootNode == null) {
             pairsAmount++;
-            // 将传入的键值作为新结点添加到树的底部
-            // 🐖 插入新结点时，使用红链接 将之和父节点之间相连
-            return new Node(passedKey, associatedValue, RED); // 插入的结点总是红色的
+            // 将 传入的键值 作为新结点 添加到 树的底部
+            // 🐖 插入新结点时，使用红链接 将之和父节点之间相连👇 aka 插入的结点 总是红色的
+            return new Node(passedKey, associatedValue, RED);
         }
 
-        // 为了保证“对称有序性”，按照与根结点的比较结果，在对应的子树中递归地插入结点
+        // 为了保证“对称有序性”，按照与根结点的比较结果，在 对应的子树 中 递归地插入结点
         int result = passedKey.compareTo(currentRootNode.key);
-        if (result < 0)
-            currentRootNode.leftSubNode = putPairInto(currentRootNode.leftSubNode, passedKey, associatedValue); // 在左子树中插入
-        else if (result > 0)
-            currentRootNode.rightSubNode = putPairInto(currentRootNode.rightSubNode, passedKey, associatedValue); // 在右子树中插入
+        if (result < 0) // 在左子树中插入
+            currentRootNode.leftSubNode = putPairInto(currentRootNode.leftSubNode, passedKey, associatedValue);
+        else if (result > 0) // 在右子树中插入
+            currentRootNode.rightSubNode = putPairInto(currentRootNode.rightSubNode, passedKey, associatedValue);
         else
-            currentRootNode.value = associatedValue; // 更新结点的value
+            currentRootNode.value = associatedValue; // 如果存在相等的key，则：执行更新操作 更新结点的value
 
-        /* 插入结点后，维护得到“合法的红黑树(黑链接平衡&&红链接约束)”     原理：参考 implement_insertion_code_wise_04 */
+        /* 插入结点后，维护得到“合法的红黑树(黑链接平衡约束 && 红链接约束)”     原理：参考 insertion_implementation_04 */
         // 手段：树中的局部变换 {左旋转、右旋转、颜色翻转}
-        // 具体做法：插入结点后，在查找路径中的每一个结点（从下往上）上，根据需要来进行适当的局部变换
-        // 🐖 红黑树中插入新结点是，5种具体情形(2-结点的插入&3-结点的插入)归约后得到如下3种情形👇
+        // 具体做法：插入结点后，在 查找路径中的每一个结点（从下往上）上，根据需要 来 进行适当的局部变换
+        // 🐖 在红黑树中插入新结点 时，有5种具体情形(2-结点的插入 && 3-结点的插入) 归约后得到 如下3种情形👇
         if (isRed(currentRootNode.rightSubNode) && !isRed(currentRootNode.leftSubNode)) // #1 右子结点为红色，而左子结点为黑色
-            // 对当前结点（的红色右链接），进行左旋转 - 得到红色的左链接
+            // 对当前结点（的红色右链接），进行左旋转 - 得到 红色的左链接（合法）
             currentRootNode = rotateItsRedSubLinkToLeft(currentRootNode);
         if (isRed(currentRootNode.leftSubNode) && isRed(currentRootNode.leftSubNode.leftSubNode)) // #2 左子结点为红色，左子结点的左子结点也为红色
-            // 对第一层的红色左链接进行右旋转 - 得到红色的右链接
+            // 对 第一层的红色左链接 进行右旋转 - 得到 红色的左链接 + 右链接（仍旧不合法，留于下一个if解决）
             currentRootNode = rotateItsRedSubLinkToRight(currentRootNode);
         if (isRed(currentRootNode.leftSubNode) && isRed(currentRootNode.rightSubNode)) // #3 左子结点为红色，且右子结点也为红色
-            // 进行颜色转换 来 #1 消除breach； #2 把红链接向上传递（维持与2-3树的等价性）
+            // 进行颜色翻转 来 #1 消除breach； #2 把红链接向上传递（维持与2-3树的等价性）
             flipColorToRed(currentRootNode);
 
         // 返回 “合法的红黑树”
@@ -174,7 +174,7 @@ public class RedBlackTreeLiteSymbolTable<Key extends Comparable<Key>, Value> {
     // rotate red leftSubNode to right
     private Node rotateItsRedSubLinkToLeft(Node currentNode) {
         assert (currentNode != null) && isRed(currentNode.rightSubNode);
-        /* 左旋转的操作统共需要5步来完成 👇 */
+        /* 左旋转的操作 统共需要5步 来完成 👇 */
         /* 结构上的变更 */
         Node replacerNode = currentNode.rightSubNode;  // #1 获取当前结点的右子结点，作为“替换结点”
         currentNode.rightSubNode = replacerNode.leftSubNode; // #2 获取“替换结点”的左子树，并绑定为当前节点的右子树
