@@ -544,6 +544,7 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
             // 如果 查询 已经到达 树的叶子节点处，并且 在此找到了 预期删除的结点，说明 删除操作 发生在当前节点，
             if (findTheWantedAtBottom(currentNode, passedKey))
                 // 则：返回null 来 直接“物理删除”结点
+                // 🐖 这里的删除 不同于BST中同情形下的删除(返回左子树)，因此 它会留下一个断链，等待 fixBreaches()对其进行修复
                 return performDeletion();
 
             // Ⅰ-②： 如果 在查询路径上 出现了2-节点，说明 我们需要想办法 为路径中引入红链接，
