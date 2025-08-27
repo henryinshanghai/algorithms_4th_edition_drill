@@ -231,7 +231,7 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
 
         // 如果查询路径上的第一个链接不是红链接（根结点的左右子节点都是黑色的），说明根结点是一个2-结点。则：
         // 把根结点改变成为一个红节点 - 后继才能把这个红链接往下推
-        if (rootNodeIsA2Node())
+        if (rootNodeHas2BlackChild())
             rootNode.color = RED;
 
         rootNode = deletePairOfMaxKeyFrom(rootNode);
@@ -242,7 +242,7 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
     }
 
     // 判断根结点是不是一个2-结点   手段：判断根结点的左子结点、右子结点是不是都是黑色结点
-    private boolean rootNodeIsA2Node() {
+    private boolean rootNodeHas2BlackChild() {
         return !isRed(rootNode.leftSubNode) && !isRed(rootNode.rightSubNode);
     }
 
@@ -299,7 +299,7 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
 
         // 如果查询路径上的第一个链接不是红链接（根结点的左右子节点都是黑色的），说明根结点是一个2-结点。则：
         // 把根结点改变成为一个红节点 - 后继才能把这个红链接往下推
-        if (rootNodeIsA2Node())
+        if (rootNodeHas2BlackChild())
             rootNode.color = RED;
 
         rootNode = deleteNodeOfMinKeyFrom(rootNode);
@@ -404,11 +404,11 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
     // #1 把 当前结点上的红链接 沿着查询路径 向下移动（default approach）
     // #2 或者 把 红链接 从右孙子 移动到 左孙子（如果有的话）
     private Node introduceRedLinkIntoMinPath(Node currentNode) { // moveRedLeft
-        // 手段#1（默认操作）：翻转 当前节点 及 其子节点的颜色
+        // 手段#1（默认操作）：翻转 当前节点 及 其子节点的颜色 来 为minPath中引入红链接
         // 🐖 由于所维护的不变性，因此 当前节点h 必然是 红节点。
         defaultApproach(currentNode);
 
-        // 手段#2：根据需要，从 incoming结点 的兄弟结点中，借一个结点，得到一个 3-结点
+        // 手段#2：如果可能，从 incoming结点 的兄弟结点中，借一个结点，得到一个 3-结点
         // ① 获取 minPath路径上的 incoming结点的兄弟结点 aka “当前节点的右子结点”;
         Node siblingNodeOfIncomingNode = currentNode.rightSubNode;
         if (isNot2Node(siblingNodeOfIncomingNode)) {
@@ -503,7 +503,7 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
 
         // 根据需要（下一级结点没有红节点），在查询路径中，手动引入一个红节点
         // 手段：把根结点设置为红色
-        if (rootNodeIsA2Node())
+        if (rootNodeHas2BlackChild())
             rootNode.color = RED;
 
         // 从 当前树中 删除 传入的key, 并把 删除后的结果 绑定回到 当前结点上
@@ -541,8 +541,8 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
 
             /* Ⅱ 删除结点 */
             // Ⅱ-①：在 继续 “在查询路径中引入红链接” 之前，先判断 查询是不是已经到了 树的底部
-            // 如果 查询 已经到达 树的叶子节点处，并且 在此找到了 预期删除的结点，说明 删除操作 发生在当前节点，
-            if (findTheWantedAtBottom(currentNode, passedKey))
+            // 如果 在此找到了 预期删除的结点，并且 目标节点的右子树为null（特殊的节点位置），说明 可以直接删除（而不用 借助后继节点进行删除），
+            if (findTheTargetWithoutRightChild(currentNode, passedKey))
                 // 则：返回null 来 直接“物理删除”结点
                 // 🐖 这里的删除 不同于BST中同情形下的删除(返回左子树)，因此 它会留下一个断链，等待 fixBreaches()对其进行修复
                 return performDeletion();
@@ -553,13 +553,13 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
                 currentNode = introduceRedLinkIntoMaxPath(currentNode);
 
             // Ⅱ-②（相对于deleteFromMax()是新增的步骤）：在继续 “递归地在当前子树（右子树）中查找” 之前，先判断 当前结点的key 与 传入的key 是否相等
-            // 如果 当前节点 就是 待删除的结点...
-            if (findWantedNode(currentNode, passedKey)) {
+            // 如果 当前节点 就是 待删除的结点（一般性的位置），说明 需要借助后继节点进行删除
+            if (findTheTarget(currentNode, passedKey)) {
                 // 则：借助“后继结点的方式” 来 实现物理删除; - 类似于BST中的删除
                 deleteViaReplaceWithSuccessor(currentNode);
             }
 
-            // Ⅱ-③：如果 当前节点 并不是 待删除的结点...
+            // Ⅱ-③：如果 当前节点 并不是 待删除的结点，说明 待删除节点 存在于右子树中，
             // 则：在 当前子树（右子树）中 来 继续查询 并 “声明式删除”预期的结点
             else currentNode.rightSubNode = deleteNodeFrom(currentNode.rightSubNode, passedKey);
         }
@@ -568,7 +568,7 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
         return fixMightBreaches(currentNode);
     }
 
-    // 在红黑树中 删除 任意位置的结点 - 手段：归约到 “删除最小结点”的操作
+    // 在红黑树中 删除 任意位置的结点 - 手段：简化为 “删除最小结点”的操作
     private void deleteViaReplaceWithSuccessor(Node currentNode) {
         // Ⅰ 找到 当前节点 右子树中的最小结点，作为 ”后继结点“
         Node successorNode = findNodeWithMinKey(currentNode.rightSubNode);
@@ -579,12 +579,12 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
         currentNode.rightSubNode = deleteNodeOfMinKeyFrom(currentNode.rightSubNode);
     }
 
-    private boolean findTheWantedAtBottom(Node currentNode, Key passedKey) {
-        return findWantedNode(currentNode, passedKey)
+    private boolean findTheTargetWithoutRightChild(Node currentNode, Key passedKey) {
+        return findTheTarget(currentNode, passedKey)
                 && reachToBottomOnRightSpine(currentNode);
     }
 
-    private boolean findWantedNode(Node currentNode, Key passedKey) {
+    private boolean findTheTarget(Node currentNode, Key passedKey) {
         return passedKey.compareTo(currentNode.key) == 0;
     }
 
