@@ -252,7 +252,7 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
     private Node deletePairOfMaxKeyFrom(Node currentNode) {
         // Ⅰ 递归调用之前（沿着树从上往下）在查询路径中，引入红链接👇
         // Ⅰ-①：如果当前结点存在有一个红色的左链接，则 把左链接右旋转 来 为maxPath中引入红链接
-        if (isA3NodeIn23Tree(currentNode))
+        if (isTheUpperNodeOf3Node(currentNode))
             currentNode = rotateItsRedSubLinkToRight(currentNode);
 
         // Ⅱ 执行删除操作
@@ -284,7 +284,7 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
 
 
     // 判断红黑树的当前节点 在其对应的2-3树中是否为一个3-结点
-    private boolean isA3NodeIn23Tree(Node currentNode) {
+    private boolean isTheUpperNodeOf3Node(Node currentNode) {
         return isRed(currentNode.leftSubNode);
     }
 
@@ -458,7 +458,7 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
         // ① 获取 maxPath路径上的 incoming结点的兄弟结点 aka “当前节点的左子结点”;
         Node siblingNodeOfIncomingNode = currentNode.leftSubNode;
         // ② 如果 该兄弟结点是一个非2-结点, 说明 存在有红色的左链接可以借用，
-        if (isA3NodeIn23Tree(siblingNodeOfIncomingNode)) {
+        if (isTheUpperNodeOf3Node(siblingNodeOfIncomingNode)) {
             // 则：把该左链接 借用到 maxPath中
             // 从2-3树的角度来说，相当于 从sibling node中借一个键值，得到一个3-结点 - 从而维护了 “路径中的当前结点不是2-结点”的不变性
             currentNode = borrowRedFromSiblingToMaxPath(currentNode);
@@ -534,9 +534,9 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
 
             /* Ⅰ 保证不变性：向下查找过程中，路径的当前节点不会是 2-结点；*/
             // Ⅰ-①： 如果 当前节点 是 红黑树中标准的3-结点，说明 存在有红色的左链接 可以引入到 当前路径中，
-            if (isA3NodeIn23Tree(currentNode))
+            if (isTheUpperNodeOf3Node(currentNode))
                 // 则：把 红色的左链接 推到右边 - 具体做法：右旋转 当前节点
-                // 原因👆：维护不变性 - 当前节点不是一个2-节点
+                // 原因👆：避免删除了一个黑节点 这会导致黑高的失衡
                 currentNode = rotateItsRedSubLinkToRight(currentNode);
 
             /* Ⅱ 删除结点 */

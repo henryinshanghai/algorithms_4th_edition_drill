@@ -9,7 +9,7 @@ public class SeparateChainingSymbolTable<Key, Value> {
 
     private int pairAmount;
     private int tableSize;
-    // 由链表组成的数组
+    // 由链表作为基本元素，所组成的数组
     private LinkedNodeSymbolTable<Key, Value>[] linkedListArray;
 
     public SeparateChainingSymbolTable() {
@@ -38,6 +38,7 @@ public class SeparateChainingSymbolTable<Key, Value> {
     }
 
     public void putInto(Key passedKey, Value associatedValue) {
+        // #1 先计算传入的key所散列到的数组索引👇；#2 再从数组中获取到该索引对应的链表，并在链表上执行添加entry(key, value)的操作
         linkedListArray[hash(passedKey)].putInPairOf(passedKey, associatedValue);
     }
 

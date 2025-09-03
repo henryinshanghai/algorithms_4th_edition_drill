@@ -13,34 +13,34 @@ import edu.princeton.cs.algs4.StdIn;
  */
 public class LookupCSV {
     public static void main(String[] args) {
-        // 读取并接受 命令行中的参数
-        In in = new In(args[0]); // args[0]是一个文件名。根据文件名 得到文件的流对象
-        int keyField = Integer.parseInt(args[1]); // args[1]是一个数字   1
-        int valueFiled = Integer.parseInt(args[2]); // args[2]也是一个数字    0
+        // 读取命令行参数(文件名??)，并 以之作为参数来构造一个文件流in对象
+        In in = new In(args[0]);
+        int keyField = Integer.parseInt(args[1]); // args[1]是一个数字 用作键的位置序号
+        int valueFiled = Integer.parseInt(args[2]); // args[2]也是一个数字 用作值的位置序号
         /* 以上，建立起 从1th个字符串 -> 第0th个字符串的映射 */
 
-        // 使用标准输入中的信息 来 构造符号表
+        // 使用 in对象(文件中的信息) 来 构造符号表（symbol table）
         ST<String, String> st = new ST<>();
-        while (in.hasNextLine()) { // 判断文件流是否存在下一行
-            // 读取当前行的字符串
+        while (in.hasNextLine()) { // 判断文件流 是否存在下一行
+            // 读取 当前行的字符串
             String line = in.readLine();
-            // 分割字符串，得到字符串数组
+            // 分割 当前字符串，得到 各个字符串所组成的数组
             String[] tokens = line.split(",");
-            // 从特定的位置，得到需要的元素
+            // 从 特定的位置获取到需要的元素 来 作为符号表的键、值
             String key = tokens[keyField];
             String value = tokens[valueFiled];
 
-            // 把拾取到的键值 添加到 符号表中
+            // 把 拾取到的键值 添加到 符号表中
             st.put(key, value);
         }
 
-        // 从构造的符号表中，读取指定key所关联的值
+        // 从 构造的符号表 中，读取 指定key所关联的值
         while (!StdIn.isEmpty()) {
-            // 读取标准输入中的input
+            // 读取 标准输入中的input
             String passedKey = StdIn.readString();
-            // 如果input已经在符号表中了，则：
+            // 如果 input 已经存在于 符号表中了，则：
             if (st.contains(passedKey)) {
-                // 打印它所关联的值
+                // 打印 它所关联的值
                 System.out.println(st.get(passedKey));
             }
         }

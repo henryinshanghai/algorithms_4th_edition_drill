@@ -9,30 +9,30 @@ import edu.princeton.cs.algs4.StdOut;
 import java.io.File;
 
 // 可以使用 key -> SET的符号表 来 表示反向索引(一个键 关联多个值)
-// 比如 所有出现过指定单词的文件
+// 比如 所有”出现过指定单词“的文件
 public class FileIndex {
     public static void main(String[] args) {
-        // 建立 从word -> word出现的files 的映射（符号表）
+        // 建立 从word -> 出现了该word的files 的映射（符号表）
         ST<String, SET<File>> wordToFilesST = new ST();
 
         // 命令行参数 是一系列的文件名
         for (String filename : args) {
             // 得到文件的文件流 - 作用：能够方便地对文件逐行读取、对文件判空...
-            File file = new File(filename);
-            In in = new In(file);
+            File currentFile = new File(filename);
+            In currentFileStream = new In(currentFile);
 
-            while (!in.isEmpty()) {
+            while (!currentFileStream.isEmpty()) {
                 // 逐个读取文件中的单词字符串
-                String word = in.readString();
+                String currentWord = currentFileStream.readString();
                 // 如果单词还没有被添加到集合中, 则：
-                if (!wordToFilesST.contains(word)) {
+                if (!wordToFilesST.contains(currentWord)) {
                     // 为它添加一个集合
-                    wordToFilesST.put(word, new SET<File>());
+                    wordToFilesST.put(currentWord, new SET<File>());
                 }
 
                 // 为当前单词的文件列表 添加当前文件
-                SET<File> set = wordToFilesST.get(word);
-                set.add(file);
+                SET<File> currentWordMappedFilesSet = wordToFilesST.get(currentWord);
+                currentWordMappedFilesSet.add(currentFile);
             }
         }
 
@@ -41,8 +41,8 @@ public class FileIndex {
             String passedWord = StdIn.readString();
             // 获取到 与该关键字所关联的所有文件，并打印文件名
             if (wordToFilesST.contains(passedWord)) {
-                for (File file : wordToFilesST.get(passedWord)) {
-                    StdOut.println(" " + file.getName());
+                for (File currentMappedFile : wordToFilesST.get(passedWord)) {
+                    StdOut.println(" " + currentMappedFile.getName());
                 }
             }
         }

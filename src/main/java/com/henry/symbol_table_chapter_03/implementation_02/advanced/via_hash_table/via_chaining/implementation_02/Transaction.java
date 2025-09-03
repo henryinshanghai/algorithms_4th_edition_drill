@@ -2,7 +2,9 @@ package com.henry.symbol_table_chapter_03.implementation_02.advanced.via_hash_ta
 
 import java.util.Date;
 
+// 用于验证 使用hashCode()方法 来 求取对象散列值的对象
 public class Transaction {
+    // 交易的三要素：时间、人物、金额
     private final String who;
     private final Date when;
     private final double amount;

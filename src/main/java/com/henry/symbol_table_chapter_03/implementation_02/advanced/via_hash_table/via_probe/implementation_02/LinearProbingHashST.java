@@ -1,7 +1,8 @@
 package com.henry.symbol_table_chapter_03.implementation_02.advanced.via_hash_table.via_probe.implementation_02;
 
 // 验证：可以使用 基于探测的散列表 来 实现符号表
-// 特征：使用null来标识一次未命中的查找
+// 原理：使用独立的数组 来 分别存储key、value
+// 特征：使用null 来 标识一次未命中的查找
 public class LinearProbingHashST<Key, Value> {
 
     private int pairAmount;
@@ -56,11 +57,11 @@ public class LinearProbingHashST<Key, Value> {
             }
         }
 
-        // 未命中中，直接向数组中插入对应的值
+        // 如果散列表位置上的元素为null，说明未命中，则：直接 向散列表数组中 插入对应的值
         keys[hashedSpot] = passedKey;
         values[hashedSpot] = associatedValue;
 
-        // 键值对数量+1
+        // 更新键值对数量+1
         pairAmount++;
     }
 
