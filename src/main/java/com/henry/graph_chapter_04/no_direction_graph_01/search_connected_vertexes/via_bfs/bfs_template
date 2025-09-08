@@ -16,7 +16,7 @@ bfs(graph, start_vertex) { // mark_accessible_vertexes_from(current_vertex)
 process(vertex_to_process) {
     for(current_neighbor_vertex : graph.adjacentVertexes(vertex_to_process)) {
         if(!vertexToIsMarked[current_neighbor_vertex]) {
-            // mark it
+            // mark it as 'process it'
             vertexToIsMarked[current_neighbor_vertex] = true;
             // enlist it to queue
             vertexes_queue.enqueue(current_neighbor_vertex);

@@ -15,33 +15,36 @@ public class PathToConnectedVertexesInGraph {
     private boolean[] vertexToIsMarked;
     // 记录路径 - 手段：一个记录节点的数组
     private int[] terminalVertexToDepartVertex;
-    // 起始顶点 - 为什么这里的起点s需要作为成员变量？   因为路径中需要这个顶点s，而且使用成员变量方便在方法中使用它
+    // 起始顶点 - 为什么这里的 起点s 需要作为 成员变量？   因为路径中 需要 这个顶点s，而且 使用成员变量 方便在方法中直接使用它
     private final int startVertex;
 
-    // 构造方法的语法中不能够添加返回值类型
+    // 🐖 构造方法的语法中 不能够添加 返回值类型
     public PathToConnectedVertexesInGraph(Graph graph, int startVertex) {
-        // 初始状态都是未标记
+        /* #1 初始化需要的成员变量 */
+        // 初始状态 都是 ”未标记“
         vertexToIsMarked = new boolean[graph.vertexAmount()];
-        // 数组中所有位置的值初始都是0 -  路径的长度 不会超过 图中总节点的数量
+        // 数组中 所有位置上的值 初始都是0 -  路径的长度 不会超过 图中总节点的数量
         terminalVertexToDepartVertex = new int[graph.vertexAmount()];
         // 初始化起点s
         this.startVertex = startVertex;
 
-        // 处理“单点路径”的任务
+        /* #2 处理“单点路径”的任务 */
         markVertexesAndRecordVertexInPathViaDFS(graph, startVertex);
     }
 
-    // 作用：标记节点 + 记录路径中的节点
+    // 作用：标记节点 + 记录路径中的顶点间的指向关系
     private void markVertexesAndRecordVertexInPathViaDFS(Graph graph, int currentVertex) {
-        // 标记当前顶点
+        // #1 标记当前顶点
         vertexToIsMarked[currentVertex] = true;
-        // 对于当前顶点的所有相邻节点
+
+        // 对于 当前顶点的 所有相邻顶点
         for (int currentAdjacentVertex : graph.adjacentVertexesOf(currentVertex)) {
-            // 如果相邻节点还没有被标记过...
+            // #2 如果 该相邻节点 还没有被标记过...
             if (isNotMarked(currentAdjacentVertex)) {
-                // 记录 当前路径中的结点    手段：记录下"当前邻居节点"(terminalVertex) 到 “当前结点”(departVertex)的连接关系
+                // 记录下 "当前邻居节点"(terminalVertex) 与 “当前结点”(departVertex)的连接/指向关系
                 terminalVertexToDepartVertex[currentAdjacentVertex] = currentVertex;
-                // 对当前节点进行同样的操作
+
+                // 对 该邻居节点 递归地执行 同样的操作
                 markVertexesAndRecordVertexInPathViaDFS(graph, currentAdjacentVertex);
             }
         }
