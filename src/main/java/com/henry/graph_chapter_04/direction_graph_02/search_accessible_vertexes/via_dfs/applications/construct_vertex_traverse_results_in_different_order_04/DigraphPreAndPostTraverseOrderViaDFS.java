@@ -58,20 +58,20 @@ import edu.princeton.cs.algs4.StdOut;
  * @author Robert Sedgewick
  * @author Kevin Wayne
  */
-// 结论：对于有向图这种非线性的数据结构，在DFS算法中，能够以各种顺序来收集图中的结点（前序、后序、逆后序）
-// 原理#1：图的前序遍历中结点的顺序 即为DFS中访问结点的顺序，后序遍历中结点的顺序 即为 DFS中节点处理完成(DFS调用完成)的顺序，逆后序 是后序的相反顺序
-// 原理#2：使用DFS对图中的所有结点进行标记时，DFS能够保证 每个结点都只会被访问一次 & 处理完成一次
+// 结论：对于 有向图 这种非线性的数据结构，在 DFS算法 中，能够 以各种顺序 来 收集图中的结点（前序、后序、逆后序）
+// 原理#1：图的前序遍历中 结点的顺序 即为 DFS中访问结点的顺序，后序遍历中 结点的顺序 即为 DFS中 节点处理完成(DFS调用完成)的顺序，逆后序 则是后序的相反顺序
+// 原理#2：使用DFS 对 图中的所有结点 进行标记时，DFS能够保证 每个结点 都只会被访问一次 & 处理完成一次
 // 手段：使用一个名叫 vertexesInPreOrder的队列 来 收集前序遍历序列中的当前结点...
-// 🐖 记录结点在序列中的位置 会是一个好主意 - 这样能够从另一个方面提供图的信息给用例使用
+// 🐖 记录“结点在序列中的位置” 会是一个好主意 - 这样能够 从另一个方面 提供图的信息 给用例使用
 public class DigraphPreAndPostTraverseOrderViaDFS {
-    private boolean[] vertexToIsMarked;          // marked[v] = has v been marked in dfs?
-    private Queue<Integer> vertexesInPreOrder;   // vertices in preorder
-    private Queue<Integer> vertexesInPostOrder;  // vertices in postorder
+    private boolean[] vertexToIsMarked;          // 节点 -> 是否已经被DFS算法标记?
+    private Queue<Integer> vertexesInPreOrder;   // 对图进行前序遍历 所得到的节点集合
+    private Queue<Integer> vertexesInPostOrder;  // 对图进行后序遍历 所得到的节点集合
 
-    private int[] vertexToItsSpotInPreSequence;                 // pre[v]    = preorder  number of v
-    private int[] vertexToItsSpotInPostSequence;                // post[v]   = postorder number of v
-    private int cursorOfPreSequence;            // counter or preorder numbering
-    private int cursorOfPostSequence;           // counter for postorder numbering
+    private int[] vertexToItsSpotInPreSequence;                 // 节点 -> 其在前序遍历结果集合中的位置
+    private int[] vertexToItsSpotInPostSequence;                // 节点 -> 其在后序遍历结果集合中的位置
+    private int cursorOfPreSequence;            // 前序序列 所使用的游标指针
+    private int cursorOfPostSequence;           // 后序序列 所使用的游标指针
 
     /**
      * Determines a depth-first order for the digraph {@code G}.
@@ -79,7 +79,9 @@ public class DigraphPreAndPostTraverseOrderViaDFS {
      * @param digraph the digraph
      */
     public DigraphPreAndPostTraverseOrderViaDFS(Digraph digraph) {
+        // 顶点在前序序列中的位置
         vertexToItsSpotInPreSequence = new int[digraph.getVertexAmount()];
+        // 顶点在后序序列中的位置
         vertexToItsSpotInPostSequence = new int[digraph.getVertexAmount()];
 
         vertexesInPostOrder = new Queue<Integer>();
@@ -87,9 +89,11 @@ public class DigraphPreAndPostTraverseOrderViaDFS {
 
         vertexToIsMarked = new boolean[digraph.getVertexAmount()];
 
-        // 🐖 DFS中标准的结点遍历方式 - 按照自然数的顺序 来 遍历 有向图中的结点
+        // 顺序遍历所有顶点...
         for (int currentVertex = 0; currentVertex < digraph.getVertexAmount(); currentVertex++)
+            // 如果当前节点 没有被标记，说明 其所属的子图还没有被处理过，则：
             if (isNotMarked(currentVertex))
+                // 以当前节点作为起始节点，开始在图中执行DFS
                 markVertexesAndPickToSequenceViaDFS(digraph, currentVertex);
 
         assert check();
@@ -115,7 +119,7 @@ public class DigraphPreAndPostTraverseOrderViaDFS {
 //            if (!vertexToIsMarked[v]) dfs(G, v);
 //    }
 
-    // run DFS in digraph G from vertex v and compute preorder/postorder
+    // 在有向图G中，以指定节点作为起始节点 执行DFS，并 计算出其 前序节点序列 以及 后序节点序列
     private void markVertexesAndPickToSequenceViaDFS(Digraph digraph, int currentVertex) {
         // 标记结点
         vertexToIsMarked[currentVertex] = true;

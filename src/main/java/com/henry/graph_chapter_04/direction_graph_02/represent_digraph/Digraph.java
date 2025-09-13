@@ -3,9 +3,9 @@ package com.henry.graph_chapter_04.direction_graph_02.represent_digraph;
 import edu.princeton.cs.algs4.Bag;
 import edu.princeton.cs.algs4.In;
 
-// 结论：可以使用邻接表 来 实现有向图这种逻辑结构；
-// 用法：在构造方法中，读取 结点数量、边的数量、构成每条边的两个结点，然后使用 addEdge()来构造出完整的图
-// 特征：相比于无向图，新增了一个 reverseEdgeDirection()的API，用于 得到原始有向图的反向图
+// 结论：可以使用 邻接表 来 实现 有向图 这种逻辑结构；
+// 用法：在构造方法中，读取 结点数量、边的数量、构成每条边的两个结点，然后使用 addEdge() 来 构造出完整的图
+// 特征：相比于 无向图的APIs，新增了一个 reverseEdgeDirection()的API，用于 得到”原始有向图“的反向图
 public class Digraph {
     private final int vertexAmount;
     private int edgeAmount;
@@ -54,12 +54,15 @@ public class Digraph {
         return vertexToAdjacentVertexes[vertexV];
     }
 
-    // 反转有向图中边的方向，得到其反向图
+    // 反转 有向图中 边的方向，得到 其反向图 作用：???
     public Digraph reverseEdgeDirection() {
         Digraph edgeReversedGraph = new Digraph(vertexAmount);
-        // 🐖 DFS中标准的结点遍历方式 - 按照自然数的顺序 来 遍历 有向图中的结点
+        // 🐖 DFS中 标准的 结点遍历方式 - 按照 自然数的顺序 来 遍历 有向图中的结点
+        // 对于图中的每一个顶点...
         for (int currentVertex = 0; currentVertex < vertexAmount; currentVertex++) {
+            // 对于 该顶点的 所有邻居顶点...
             for (Integer currentAdjacentVertex : adjacentVertexesOf(currentVertex)) {
+                // 向图中 添加边(邻居顶点 -> 该顶点)
                 edgeReversedGraph.addEdge(currentAdjacentVertex, currentVertex);
             }
         }

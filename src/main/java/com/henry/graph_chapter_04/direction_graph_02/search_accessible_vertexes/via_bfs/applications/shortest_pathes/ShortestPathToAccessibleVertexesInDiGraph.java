@@ -60,13 +60,13 @@ import edu.princeton.cs.algs4.StdOut;
 // 核心步骤：#1 标记结点； #2 入队结点；
 public class ShortestPathToAccessibleVertexesInDiGraph {
     private static final int INFINITY = Integer.MAX_VALUE;
-    private boolean[] vertexToHasMarked;  // marked[v] = is there an s->v path?
-    private int[] terminalVertexToDepartVertex;      // edgeTo[v] = last edge on shortest s->v path
-    private int[] vertexToItsMinPathLength;      // distTo[v] = length of shortest s->v path
+    private boolean[] vertexToHasMarked;  // 节点 -> 图中是否存在有 从起始节点到该节点 的路径
+    private int[] terminalVertexToDepartVertex;      // 节点 -> 从起始节点到该节点的路径的最后一条边??
+    private int[] vertexToItsMinPathLength;      // 节点 -> 从起始节点到该节点的最短路径的长度
 
     /**
      * Computes the shortest path from {@code s} and every other vertex in graph {@code G}.
-     *
+     * 计算图中 从s到 其每一个可达节点的最短路径
      * @param digraph     the digraph
      * @param startVertex the source vertex
      * @throws IllegalArgumentException unless {@code 0 <= v < V}
@@ -76,8 +76,10 @@ public class ShortestPathToAccessibleVertexesInDiGraph {
         vertexToItsMinPathLength = new int[digraph.getVertexAmount()];
         terminalVertexToDepartVertex = new int[digraph.getVertexAmount()];
 
+        // 初始化 起始节点到每一个节点的距离 都是 无穷大
         for (int currentVertex = 0; currentVertex < digraph.getVertexAmount(); currentVertex++)
             vertexToItsMinPathLength[currentVertex] = INFINITY;
+
         validateVertex(startVertex);
         markAdjacentVertexesViaBFS(digraph, startVertex);
     }
@@ -85,6 +87,7 @@ public class ShortestPathToAccessibleVertexesInDiGraph {
     /**
      * Computes the shortest path from any one of the source vertices in {@code sources}
      * to every other vertex in graph {@code G}.
+     * 计算图中 给定的起始节点集合 到其可达节点的最短路径
      *
      * @param digraph       the digraph
      * @param startVertexes the source vertices
@@ -106,50 +109,66 @@ public class ShortestPathToAccessibleVertexesInDiGraph {
         markAdjacentVertexesViaBFS(digraph, startVertexes);
     }
 
-    // BFS from single source
+    // 单个起始顶点的BFS过程
     private void markAdjacentVertexesViaBFS(Digraph digraph, int startVertex) {
+        // 准备 队列 用于存储节点
         Queue<Integer> vertexQueue = new Queue<Integer>();
+        // 标记节点
         vertexToHasMarked[startVertex] = true;
+        // 初始化 起始节点 到 当前节点的 距离为0
         vertexToItsMinPathLength[startVertex] = 0;
 
+        // 入队起始节点
         vertexQueue.enqueue(startVertex);
 
         while (!vertexQueue.isEmpty()) {
+            // 出队队首节点
             int currentVertex = vertexQueue.dequeue();
 
+            // 对于节点的所有邻居节点...
             for (int currentAdjacentVertex : digraph.adjacentVertexesOf(currentVertex)) {
+                // 如果 该邻居节点 还没有被标记，说明还没有搜索到此节点，则：
                 if (!vertexToHasMarked[currentAdjacentVertex]) {
-                    // #1 标记结点
+                    // #1 标记 该邻居结点
                     vertexToHasMarked[currentAdjacentVertex] = true;
-                    // #2 更新结点对应的底层成员变量
+                    // #2 更新 该邻居结点 所对应的底层成员变量
                     terminalVertexToDepartVertex[currentAdjacentVertex] = currentVertex;
                     vertexToItsMinPathLength[currentAdjacentVertex] = vertexToItsMinPathLength[currentVertex] + 1;
 
-                    // #3 把节点添加到队列中
+                    // #3 把 该邻居节点 添加到队列中
                     vertexQueue.enqueue(currentAdjacentVertex);
                 }
             }
         }
     }
 
-    // BFS from multiple sources
+    // 多个起始节点的BFS过程
     private void markAdjacentVertexesViaBFS(Digraph digraph, Iterable<Integer> startVertexes) {
+        // 准备节点队列
         Queue<Integer> vertexSequence = new Queue<Integer>();
 
+        // 对于起始节点集合中的每一个起始节点..
         for (int startVertex : startVertexes) {
+            // 初始化 该起始节点 所对应的成员变量
             vertexToHasMarked[startVertex] = true;
             vertexToItsMinPathLength[startVertex] = 0;
+            // 把 该起始顶点 入队
             vertexSequence.enqueue(startVertex);
         }
 
         while (!vertexSequence.isEmpty()) {
+            // 出队 队首元素
             int currentVertex = vertexSequence.dequeue();
+            // 对于 其每一个邻居节点...
             for (int currentAdjacentVertex : digraph.adjacentVertexesOf(currentVertex)) {
+                // 如果 该邻居节点 还没有被标记...
                 if (!vertexToHasMarked[currentAdjacentVertex]) {
+                    // 标记它 && 更新其所对应的成员变量
                     terminalVertexToDepartVertex[currentAdjacentVertex] = currentVertex;
                     vertexToItsMinPathLength[currentAdjacentVertex] = vertexToItsMinPathLength[currentVertex] + 1;
                     vertexToHasMarked[currentAdjacentVertex] = true;
 
+                    // 入队该邻居节点
                     vertexSequence.enqueue(currentAdjacentVertex);
                 }
             }
@@ -237,27 +256,33 @@ public class ShortestPathToAccessibleVertexesInDiGraph {
      * @param args the command-line arguments
      */
     public static void main(String[] args) {
+        // 文件名 -> 文件流 -> 有向图
         In in = new In(args[0]);
         Digraph digraph = new Digraph(in);
         // StdOut.println(digraph);
 
+        // 起始节点
         int startVertex = Integer.parseInt(args[1]);
+        // 经过BFS标记后的有向图
         ShortestPathToAccessibleVertexesInDiGraph markedDigraph = new ShortestPathToAccessibleVertexesInDiGraph(digraph, startVertex);
 
+        // 对于当前顶点...
         for (int currentVertex = 0; currentVertex < digraph.getVertexAmount(); currentVertex++) {
+            // 如果 从起始顶点可以到达它
             if (markedDigraph.doesStartVertexHasPathTo(currentVertex)) {
+                // 打印 最短路径的长度
                 StdOut.printf("%d to %d (%d):  ", startVertex, currentVertex, markedDigraph.pathLengthTo(currentVertex));
+                // 打印出 具体的最短路径
                 for (int currentVertexInPath : markedDigraph.pathFromStartVertexTo(currentVertex)) {
                     if (currentVertexInPath == startVertex) StdOut.print(currentVertexInPath);
                     else StdOut.print("->" + currentVertexInPath);
                 }
                 StdOut.println();
             } else {
+                // 打印 此节点由起始顶点不可达
                 StdOut.printf("%d to %d (-):  not connected\n", startVertex, currentVertex);
             }
 
         }
     }
-
-
 }

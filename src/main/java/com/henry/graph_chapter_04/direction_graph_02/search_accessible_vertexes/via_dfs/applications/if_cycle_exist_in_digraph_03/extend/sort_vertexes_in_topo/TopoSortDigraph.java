@@ -62,10 +62,10 @@ import edu.princeton.cs.algs4.StdOut;
  * @author Robert Sedgewick
  * @author Kevin Wayne
  */
-// 结论：有向图的拓扑排序结果(如果存在的话)，就是 图的逆后序遍历的结点顺序
-// 拓扑排序的应用：优先级限制下的调度问题（比如 在多个课程中，存在先导课程的限制。而学生一次只能修一门课）
+// 结论：有向图的 拓扑排序结果(如果存在的话)，就是 图的 逆后序遍历的结点顺序
+// 拓扑排序的应用：优先级限制下的 调度问题（比如 在多个课程中，存在“先导课程”的限制。而学生一次 只能修一门课）
 // 证明：见 introduce
-// 🐖 记录“结点在序列中的位置”是一个好主意 - 这样能够从另一个方面提供图的信息给用例使用
+// 🐖 记录 “结点在序列中的位置” 是一个好主意 - 这样能够 从另一个方面 提供图的信息 给用例使用
 public class TopoSortDigraph {
     private Iterable<Integer> vertexesInTopoOrder;  // topological order
     private int[] vertexToItsSpotInTopoSequence;               // rank[v] = rank of vertex v in order
@@ -77,10 +77,14 @@ public class TopoSortDigraph {
      * @param digraph the digraph
      */
     public TopoSortDigraph(Digraph digraph) {
+        // 先判断 有向图中 是否存在有环 - 如果有环的话，则：其 不存在拓扑排序结果
         CycleExistInDiGraph cycleFoundDigraph = new CycleExistInDiGraph(digraph);
+
+        // 如果 有向图中没有 环，说明 其存在有 拓扑排序，则：
         if (!cycleFoundDigraph.findACycle()) {
+            // 获取到 有向图 多种遍历方式 所得到的顶点序列结果
             DigraphPreAndPostTraverseOrderViaDFS vertexesTraversedDigraph = new DigraphPreAndPostTraverseOrderViaDFS(digraph);
-            // 图中结点的拓扑排序结果 就是 图中结点的逆后序遍历的结果
+            // 而 图中结点的拓扑排序结果 就是 图中结点的逆后序遍历的结果
             vertexesInTopoOrder = vertexesTraversedDigraph.vertexesInReversePostOrder();
 
             // 初始化 vertex在拓扑排序结果中的位置/排名

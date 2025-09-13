@@ -8,7 +8,7 @@ import edu.princeton.cs.algs4.StdOut;
 
 // 结论：使用Kosaraju算法（按照反向图的逆后序序列来对结点执行DFS），其构造函数中的每一次dfs()递归调用，所标记的结点 都会在“同一个强连通分量”之中
 // 原理：#1 反向图 与 原始图 具有完全相同的强连通分量； #2 ??
-// 算法步骤：#1 获取原始有向图的反向图; #2 获取到反向图G'的逆后序遍历的结点序列; #3 顺序遍历#2序列中的结点，使用DFS对结点进行标记&分组；
+// 算法步骤：#1 获取 原始有向图的反向图; #2 获取到 反向图G'的 逆后序遍历的结点序列; #3 顺序遍历#2序列中的结点，使用DFS 对结点进行标记&分组；
 // 手段：使用一个名叫 vertexToItsComponentId的数组 来 指明“结点所属的强连通分量的id”（使用componentAmount来赋值）
 public class KosarajuSCCLite {
 
@@ -22,12 +22,12 @@ public class KosarajuSCCLite {
 
         // #1 获取到 有向图的反向图 G'
         Digraph reversedDigraph = digraph.reverseEdgeDirection();
-        // #2 获取到该反向图的 结点遍历所得到的结点序列 - PreOrder, PostOrder, ReversedPostOrder
-        DigraphPreAndPostTraverseOrderViaDFS markedDigraph = new DigraphPreAndPostTraverseOrderViaDFS(reversedDigraph);
+        // #2 获取到 该反向图的 结点遍历所得到的结点序列 - PreOrder, PostOrder, ReversedPostOrder
+        DigraphPreAndPostTraverseOrderViaDFS reversedDigraphVertexesSequence = new DigraphPreAndPostTraverseOrderViaDFS(reversedDigraph);
 
         // #3 ① 获取到 反向图的“逆后序遍历序列(ReversedPostOrder)”，然后 ② 在“原始有向图”中，顺序遍历“序列中的结点” 来 对结点进行标记和收集
         // 🐖 “逆后序遍历序列”的作用 - 用于确定 遍历“有向图中结点”的顺序 VS. DFS中标准的结点遍历方式（自然数顺序）
-        for (Integer currentVertex : markedDigraph.vertexesInReversePostOrder()) {
+        for (Integer currentVertex : reversedDigraphVertexesSequence.vertexesInReversePostOrder()) {
             if (isNotMarked(currentVertex)) {
                 // 标记当前结点 & 为其指定其所属的componentId
                 markVertexesAndCollectToComponentViaDFS(digraph, currentVertex);
@@ -40,13 +40,18 @@ public class KosarajuSCCLite {
         return !vertexToIsMarked[currentVertex];
     }
 
+    // 标准的DFS流程
     private void markVertexesAndCollectToComponentViaDFS(Digraph digraph, Integer currentVertex) {
+        // 标记当前节点
         vertexToIsMarked[currentVertex] = true;
+        // 为当前节点指定正确的分组ID
         vertexToItsComponentId[currentVertex] = componentAmount;
 
+        // 对于其所有的可达节点...
         for (Integer currentAdjacentVertex : digraph.adjacentVertexesOf(currentVertex)) {
+            // 如果尚未被标记，则：
             if (isNotMarked(currentAdjacentVertex)) {
-                // 标记结点 & 收集结点到component（组）中
+                // 继续递归地 标记结点 & 收集结点到component（组）中
                 markVertexesAndCollectToComponentViaDFS(digraph, currentAdjacentVertex);
             }
         }

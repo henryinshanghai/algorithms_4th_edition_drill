@@ -24,7 +24,7 @@ package com.henry.graph_chapter_04.direction_graph_02.search_accessible_vertexes
  ******************************************************************************/
 
 import com.henry.graph_chapter_04.direction_graph_02.represent_digraph.Digraph;
-import com.henry.graph_chapter_04.direction_graph_02.search_accessible_vertexes.via_dfs.applications.if_vertex_accessible_from_startVertex_01.extend.if_two_vertex_access_each_other.TransitiveClosure;
+import com.henry.graph_chapter_04.direction_graph_02.search_accessible_vertexes.via_dfs.applications.if_vertex_accessible_from_startVertex_01.extend.if_2vertex_reach_each_other.TransitiveClosure;
 import com.henry.graph_chapter_04.direction_graph_02.search_accessible_vertexes.via_dfs.applications.strong_connected_components_in_digraph_05.kosaraju.KosarajuSCCLite;
 import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.Queue;
@@ -60,21 +60,25 @@ import edu.princeton.cs.algs4.StdOut;
  * @author Robert Sedgewick
  * @author Kevin Wayne
  */
-// 结论：使用 Tarjan算法，其构造函数中的每一次dfs()递归调用，所标记的结点 都会在“同一个强连通分量”之中??
+// 验证：使用 Tarjan算法 能够通过一次对图的DFS操作 来 得到有向图中所有的强连通分量
+// Tarjan算法原理：
+// ① 对于一个SCC来说，进行DFS搜索时，其 入口节点的搜索次序 总是要 小于 其他节点的搜索次序；
+// ② 对于 节点的minTraverseId，可以使用 其邻居节点的minTraverseId 来 更新它，从而得到 正确的值；
+// ③ 使用一个栈 在DFS调用开始时 不断存储节点，并在 当前节点是SCC的入口节点时，从中弹出节点 来 得到当前SCC的节点。
 public class TarjanSCC {
 
-    private boolean[] vertexToIsMarked;        // marked[v] = has v been visited?
-    private int[] vertexToComponentId;                // id[v] = id of strong component containing v
+    private boolean[] vertexToIsMarked;        // 节点 -> 节点是否已经被访问
+    private int[] vertexToComponentId;                // 节点 -> 节点所属的强连通分量的id
 
-    // Tarjan算法 为图中的每个结点所维护的2个变量
-    private int[] vertexToItsTraverseId;    // 结点->结点的traverseId
-    private int[] vertexToItsMinTraverseId;  // vertexToMinTraverseIdOfItsAccessibleVertexes 结点->结点及其所有可达结点中的minTraverseId
-    /* 隐藏变量 vertexToItsCompleteOrder 结点->结点的“完成次序” */
+    // Tarjan算法 为 “图中的每个结点” 所维护的2个变量
+    private int[] vertexToItsTraverseId;    // 结点 -> 结点的traverseId
+    private int[] vertexToItsMinTraverseId;  //  结点 -> 结点及其所有可达结点中的minTraverseId vertexToMinTraverseIdOfItsAccessibleVertexes
+    /* 隐藏变量 vertexToItsCompleteOrder 结点 -> 结点的“完成次序” */
 
-    private int counterOfPreSequence;                 // preorder number counter
-    private int SCCAmount;               // number of strongly-connected components
+    private int counterOfPreSequence;                 // 前序序列的游标指针
+    private int SCCAmount;               // 有向图中 强连通分量的数量
 
-    private Stack<Integer> accessedVertexesStack;
+    private Stack<Integer> accessedVertexesStack; // 由已访问的节点 所构成的栈??
 
 
     /**
@@ -93,7 +97,7 @@ public class TarjanSCC {
         for (int currentVertex = 0; currentVertex < digraph.getVertexAmount(); currentVertex++) {
             // 如果结点还没有被标记...
             if (isNotMarked(currentVertex)) {
-                // 则：标记结点，并更新结点的minTraverseId的值 来 决定是否继续查找SCC中的结点
+                // 则：标记结点，并 更新“结点的minTraverseId的值” 来 决定 是否继续查找 SCC中的结点
                 markVertexAndUpdateVertexesMinTraverseIdToDecideSCCViaDFS(digraph, currentVertex);
             }
         }
@@ -113,54 +117,74 @@ public class TarjanSCC {
         /* Tarjan算法的准备操作👇 */
         setup(currentVertex);
 
-        // #1 设置一个变量，用于记录 “当前节点”的 所有可达结点（以及 它自己）中的 最小的traverseId - 初始值设置为“当前结点自己的traverseId”
+        // #1 设置一个变量，用于记录 “当前节点”的 所有可达结点（以及 它自己）中的 最小的traverseId - 初始值 设置为 “当前结点自己的traverseId”
         int minTraverseIdOfCurrentVertex = vertexToItsMinTraverseId[currentVertex];
 
         // 遍历 “当前结点”的所有邻居结点(aka 直接可达的子节点)
         for (int currentAdjacentVertex : digraph.adjacentVertexesOf(currentVertex)) {
-            // 如果“当前邻居节点”还没有被标记，则：对它递归地执行DFS进行标记 - DFS的标准操作
+            // 如果“当前邻居节点” 还没有被标记...
             if (isNotMarked(currentAdjacentVertex)) {
+                // 则：对它递归地执行DFS进行标记 - DFS的标准操作
                 markVertexAndUpdateVertexesMinTraverseIdToDecideSCCViaDFS(digraph, currentAdjacentVertex);
             }
 
             /* Tarjan算法的实际操作👇 */
-            // #2 在DFS返回后，按照实际情况 使用“当前邻居结点”的minTraverseId 来 尝试更新minTraverseIdOfCurrentVertex变量的值
+            // #2 在 DFS返回 后，按照实际情况 使用 “当前邻居结点”的minTraverseId 来 尝试更新 minTraverseIdOfCurrentVertex变量的值
             minTraverseIdOfCurrentVertex = update(minTraverseIdOfCurrentVertex, currentAdjacentVertex);
         }
 
-        // #3 根据traverseId是否被更新 来 决定：① 是 继续收集SCC中的结点 还是 ② 开始从栈中弹出SCC的结点
+        // #3 根据 minTraverseId是否被更新 来 决定：① 是 继续收集SCC中的结点 还是 ② 开始从栈中弹出SCC的结点
         /* ① 继续收集SCC中的结点 */
-        // 如果 “当前节点”的minTraverseId 被更新，说明 当前节点及其子节点中 存在能够返回 “当前节点的祖先结点”的边（返祖边），
-        // 进一步说明 它是SCC中的一个结点，则：更新 “当前节点”的minTraverseId后，当前节点 即“处理完成”，直接处理 路径中的下一个结点
+        // 如果 “当前节点”的minTraverseId 被更新，说明 当前节点及其子节点中 存在有 能够返回到“当前节点的祖先结点”的边（返祖边），
+        // 进一步说明 它是SCC中的一个结点，则：在 更新 “当前节点”的minTraverseId 后，当前节点 即“处理完成”，直接return 以 处理 路径中的下一个结点
         if (isAnIntermediateSCCVertex(currentVertex, minTraverseIdOfCurrentVertex)) return;
 
-        /* ② 开始从栈中弹出SCC的结点 */
-        // 如果 minTraverseId 没有被更新，说明 当前节点（及其子节点）无法返回到 它的祖先结点（返祖边），进一步说明 当前节点是 SCC的“桥接结点”
-        // 则：从stack中获取到SCC中的所有结点
-        collectVertexesInSCC(digraph, currentVertex);
+        /* ② 开始 从栈中弹出 SCC的结点 */
+        // 如果 minTraverseId 没有被更新，说明 当前节点（及其子节点）无法返回到 它的祖先结点（返祖边），进一步说明 当前节点是 SCC的“入口结点”
+        // 则：从stack中 获取到 SCC中的所有结点
+        collectVertexesInCurrentSCC(digraph, currentVertex);
 
         SCCAmount++;
     }
 
     private boolean isAnIntermediateSCCVertex(int currentVertex, int minTraverseIdOfCurrentVertex) {
+        // 如果 当前节点的minTraverseId 比起 其初始值 更小，说明 它存在有指向其祖先节点的边(这是它变小的原因)，
         if (minTraverseIdOfCurrentVertex < vertexToItsMinTraverseId[currentVertex]) {
+            // 因此 它是SCC的一个中间节点，则：
+            // ① 更新 节点的minTraverseId；② 返回true 表示 它是SCC的中间节点
             vertexToItsMinTraverseId[currentVertex] = minTraverseIdOfCurrentVertex;
             return true;
         }
         return false;
     }
 
-    private void collectVertexesInSCC(Digraph digraph, int currentVertex) {
+    int callTime = 1;
+    private void collectVertexesInCurrentSCC(Digraph digraph, int currentVertex) {
+        System.out.println("第" + (callTime++) + "次调用 当前栈中所有的节点（栈顶->栈底）为： ");
+        printVertexesInStack(accessedVertexesStack);
+
+        System.out.println("触发弹栈的当前节点为：" + currentVertex);
+        System.out.println();
         int currentVertexInStack;
 
-        // 从栈中弹出当前SCC中的结点 - 手段：不断弹出结点，直到遇到 当前节点
+        /* 从栈中弹出 当前SCC中的结点，并 为其归组 */
+        // 手段：不断 弹出结点，直到遇到 当前节点
         do {
+            // 弹出栈顶节点
             currentVertexInStack = accessedVertexesStack.pop();
+            // 为 栈顶节点 归组
             vertexToComponentId[currentVertexInStack] = SCCAmount;
-            // #3 弹出栈中SCC的结点时，把结点的low值 设置为 图中的结点数（来 防止对其他的SCC产生干扰）
+            // #3 弹出 栈中SCC的结点 时，把 结点的low值 设置为 图中的结点数（来 防止 对其他的SCC产生干扰）
             // 作用：避免 在从 所有“相邻结点”中，找到“当前节点”的minTraverseId时，其他SCC中结点的干扰
             vertexToItsMinTraverseId[currentVertexInStack] = digraph.getVertexAmount(); // or anything that larger
         } while (currentVertexInStack != currentVertex);
+    }
+
+    private void printVertexesInStack(Stack<Integer> accessedVertexesStack) {
+        for (Integer currentVertex : accessedVertexesStack) {
+            System.out.print(currentVertex  + " ");
+        }
+        System.out.println();
     }
 
     private int update(int minTraverseIdOfCurrentVertex, int currentAdjacentVertex) {
@@ -172,13 +196,13 @@ public class TarjanSCC {
     }
 
     private void setup(int currentVertex) {
-        // #1 初始化当前结点的traverseId / minTraverseIdOfItsAccessibleVertexes
-        // 特征：在从结点返回之前，祖先节点的traverseId 总是会小于 后代结点的traverseId
-        // 🐖 这里使用同一个变量 来 表示“结点的所有可达结点中”最小的traverseId
+        // #1 初始化 当前结点的traverseId && minTraverseIdOfItsAccessibleVertexes
+        // 特征：在 从结点返回之前，“祖先节点”的traverseId 总是会小于 后代结点的traverseId
+        // 🐖 这里使用 同一个变量 来 表示“结点的所有可达结点中”最小的traverseId
         vertexToItsTraverseId[currentVertex] = counterOfPreSequence++;
         vertexToItsMinTraverseId[currentVertex] = vertexToItsTraverseId[currentVertex]; // 初始化时，两者的值相同
 
-        // #2 把“当前结点” 添加到一个显式的栈中 - 作用：记录所有已经访问过的“当前结点”，并在特定场景下 弹出结点 来 组成SCC。
+        // #2 把“当前结点” 添加到 一个显式的栈中 - 作用：记录所有 已经访问过的“当前结点”，并 在特定场景下 弹出结点 来 组成SCC。
         accessedVertexesStack.push(currentVertex);
     }
 
@@ -252,28 +276,35 @@ public class TarjanSCC {
      * @param args the command-line arguments
      */
     public static void main(String[] args) {
+        // 文件名 -> 文件流 -> 有向图对象 -> SCC对象
         In in = new In(args[0]);
         Digraph digraph = new Digraph(in);
         TarjanSCC scc = new TarjanSCC(digraph);
 
-        // number of connected components
+        // 有向图中 强连通分量的数量
         int componentAmount = scc.componentAmount();
         StdOut.println(componentAmount + " components");
 
-        // compute list of vertices in each strong component
+        // 每一个强连通分量中的 节点列表
         Queue<Integer>[] components = (Queue<Integer>[]) new Queue[componentAmount];
         for (int currentComponentId = 0; currentComponentId < componentAmount; currentComponentId++) {
+            // 强连通分量的id -> 强连通分量中的节点
             components[currentComponentId] = new Queue<Integer>();
         }
 
+        // 对于每一个节点...
         for (int currentVertex = 0; currentVertex < digraph.getVertexAmount(); currentVertex++) {
+            // 获取到 节点所属的 强连通分量id
             int componentIdOfCurrentVertex = scc.componentId(currentVertex);
+            // 把节点 添加到 正确的强连通分量中
             components[componentIdOfCurrentVertex].enqueue(currentVertex);
         }
 
-        // print results
+        // 对于每一个强连通分量...
         for (int currentComponentId = 0; currentComponentId < componentAmount; currentComponentId++) {
+            // 对于 当前强连通分量中的每一个节点...
             for (int currentVertex : components[currentComponentId]) {
+                // 打印 节点 -> 该节点(及其所有可达节点)的最小traverseId
                 StdOut.print(currentVertex + " " + "(minTraverseId:" +
                         scc.vertexToItsMinTraverseId[currentVertex] + ") ");
             }
