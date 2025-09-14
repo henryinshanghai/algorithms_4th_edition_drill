@@ -61,7 +61,7 @@ import edu.princeton.cs.algs4.StdOut;
 public class ShortestPathToAccessibleVertexesInDiGraph {
     private static final int INFINITY = Integer.MAX_VALUE;
     private boolean[] vertexToHasMarked;  // 节点 -> 图中是否存在有 从起始节点到该节点 的路径
-    private int[] terminalVertexToDepartVertex;      // 节点 -> 从起始节点到该节点的路径的最后一条边??
+    private int[] terminalVertexToDepartVertex;      // 有向边的终点 -> 有向边的起点
     private int[] vertexToItsMinPathLength;      // 节点 -> 从起始节点到该节点的最短路径的长度
 
     /**
