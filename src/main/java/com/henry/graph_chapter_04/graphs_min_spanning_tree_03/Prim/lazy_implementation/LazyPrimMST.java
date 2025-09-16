@@ -80,12 +80,8 @@ import edu.princeton.cs.algs4.StdOut;
  * @author Robert Sedgewick
  * @author Kevin Wayne
  */
-// 目标：计算 图的最小生成树；
-// 原理：对于任意切分结果中，最小横切边 总是属于MST；
-// 思想：对于一个连通图，在对图结点进行BFS的过程中，标记结点为MST顶点&&向MST中添加其所关联的有效横切边
-// 步骤：#1 把结点标记为”MST结点“ && 向”横切边优先队列“中添加横切边； #2 获取最小横切边，并添加到MST中； #3 对于横切边的“非树节点”，继续#1的操作。
-// 一句话描述：在BFS的过程中，把图结点标记成为MST结点&&把它所关联的所有横切边添加到PQ中。然后把PQ中的最小横切边添加到MST中。当PQ为空时，算法就得到了图的MST
-// 为什么叫做 延迟实现? 因为 有些无效的边(连接两个MST结点的边)会被添加到PQ中，需要等到(that's why)要删除它们的时候，才会检查边的有效性 - 对边的有效性进行延迟检查?!
+// 延迟实现：在获取“最小横切边”时，才去判断 队列中的边 是否是 有效横切边；
+// 特征：会在队列中保存 已经失效的边。在处理稠密图时，队列中无效边的数量会很大
 public class LazyPrimMST {
     private static final double FLOATING_POINT_EPSILON = 1.0E-12;
 
@@ -107,7 +103,7 @@ public class LazyPrimMST {
         // option01 - 直接从结点0开始在加权图中进行BFS（因为BFS的方式能够遍历 连通图中的每一个结点）
         prim(weightedGraph, 0);
 
-        // option02 - 对于每一个结点，对其执行Prim算法 来 得到“图的最小生成树”
+        // option02 - 对于每一个结点，对其执行Prim算法 来 得到 各个无向加权图的MST 所组成的森林
 //        for (int currentVertex = 0; currentVertex < weightedGraph.getVertexAmount(); currentVertex++)
 //            if (isNotMSTVertex(currentVertex))
 //                prim(weightedGraph, currentVertex);
@@ -122,68 +118,56 @@ public class LazyPrimMST {
 
     // run Prim's algorithm
     private void prim(EdgeWeightedGraph weightedGraph, int startVertex) {
-        // #0 把当前顶点 标记为”MST结点“ && 把当前顶点相关联的横切边 添加到优先队列中
         markVertexAsMSTAndAddItsCrossEdgesIntoPQ(weightedGraph, startVertex);
 
         while (!crossEdgesPQ.isEmpty()) {
-            // #1 从”横切边优先队列“中，获取到 当前最小的横切边
             Edge minWeightEdge = crossEdgesPQ.delMin();
-            // 如果”此最小横切边“已经是”MST边“了(因为先前添加的边导致后继横切边的两个顶点都已经变成MST顶点了)，则 跳过此横切边
-            // 🐖 这里就是进行 延迟检查的地方 - 在从PQ中弹出最小边后，需要检查 这个边是不是一个有效的横切边
-            if (isMSTEdge(minWeightEdge)) continue;
+            // 🐖 随着MST节点的添加，原本的横切边可能变得无效（连接了两个MST顶点）。需要跳过这样无效的边
+            if (bothEndsAreMSTVertex(minWeightEdge)) continue;
 
-            // #2 把 “最小的横切边” 添加到 MST中（切分定理：最小横切边总是会属于MST）
             addEdgeInMST(minWeightEdge);
 
             // #3 把 最小横切边中所有的“非MST结点/图结点” 都添加到树中，成为”MST结点“
-            addNonMSTVertexToMST(weightedGraph, minWeightEdge);
+            repeatOnNonMSTVertex(weightedGraph, minWeightEdge);
         }
     }
 
-    private void addNonMSTVertexToMST(EdgeWeightedGraph weightedGraph, Edge minWeightEdge) {
+    private void repeatOnNonMSTVertex(EdgeWeightedGraph weightedGraph, Edge minWeightEdge) {
         int oneVertex = minWeightEdge.eitherVertex(),
             theOtherVertex = minWeightEdge.theOtherVertexAgainst(oneVertex);
 
-        // 如果顶点不是MST结点，说明它还没有被BFS处理过，则：#1 把它添加为MST顶点； #2 把它所有的横切边添加到优先队列中
         if (isNotMSTVertex(oneVertex)) {
             markVertexAsMSTAndAddItsCrossEdgesIntoPQ(weightedGraph, oneVertex);
         }
 
         if (isNotMSTVertex(theOtherVertex)) {
-            markVertexAsMSTAndAddItsCrossEdgesIntoPQ(weightedGraph, theOtherVertex);               // theOtherVertex becomes part of tree
+            markVertexAsMSTAndAddItsCrossEdgesIntoPQ(weightedGraph, theOtherVertex);
         }
     }
 
     private void addEdgeInMST(Edge minWeightEdge) {
-        // #1 把横切边添加到表示MST的edge队列中
-        // 切分定理：把 当前权值最小的横切边 作为 最小生成树中的边。
         edgesInMSTQueue.enqueue(minWeightEdge);
-
-        // #2 为新添加的边 累计其权值
         weightOfMST += minWeightEdge.weight();
     }
 
-    private boolean isMSTEdge(Edge minWeightEdge) {
+    private boolean bothEndsAreMSTVertex(Edge minWeightEdge) {
         int oneVertex = minWeightEdge.eitherVertex(),
-                theOtherVertex = minWeightEdge.theOtherVertexAgainst(oneVertex);        // two endpoints
-        assert vertexToIsMSTVertex[oneVertex] || vertexToIsMSTVertex[theOtherVertex];
+            theOtherVertex = minWeightEdge.theOtherVertexAgainst(oneVertex);        // two endpoints
 
+        assert vertexToIsMSTVertex[oneVertex] || vertexToIsMSTVertex[theOtherVertex];
         return vertexToIsMSTVertex[oneVertex] && vertexToIsMSTVertex[theOtherVertex];
     }
 
-    // add all edges e incident to v onto pq if the other endpoint has not yet been scanned
-    private void markVertexAsMSTAndAddItsCrossEdgesIntoPQ(EdgeWeightedGraph weightedGraph, int currentVertex) { // scan?? visit??
-        // #1 把 当前顶点 标记为 “MST顶点”
+    // 把 当前节点所关联的所有横切边 都添加到 横切边优先队列 中
+    private void markVertexAsMSTAndAddItsCrossEdgesIntoPQ(EdgeWeightedGraph weightedGraph, int currentVertex) {
         assert !vertexToIsMSTVertex[currentVertex];
         vertexToIsMSTVertex[currentVertex] = true;
 
-        // #2 把 与当前节点相关联的所有graphEdge中的“横切边” 添加到 “横切边队列 crossEdgeQueue”中
-        // 横切边的概念：连接 分属于两个集合(MSTVertex & graphVertex)的顶点的边
         for (Edge currentAssociatedGraphEdge : weightedGraph.getAssociatedEdgesOf(currentVertex)) {
             int theOtherVertex = currentAssociatedGraphEdge.theOtherVertexAgainst(currentVertex);
 
-            // 如果当前graphEdge是一个横切边(手段：它的另一个顶点 不是“MST顶点”)，则：把它添加到 ”横切边优先队列“中
-            // 🐖 这里为 currentVertex所添加的横切边，并不一定最终用来构造MST。因为有些边已经不再是有效的横切边
+            // 🐖 在这里添加时，currentAssociatedGraphEdge是一条 有效的横切边。但随着MST节点的添加，它可能会变成 连接MST节点的边 而失效
+            // 所以 从优先队列中 取出边后，需要额外 添加对边是否是 连接两个MST节点的边 的校验
             if (isNotMSTVertex(theOtherVertex)) {
                 crossEdgesPQ.insert(currentAssociatedGraphEdge);
             }
@@ -212,62 +196,86 @@ public class LazyPrimMST {
     // check optimality conditions (takes time proportional to E V lg* V)
     private boolean check(EdgeWeightedGraph weightedGraph) {
 
-        // #1 check weight
+        // #1 检查图的权重
         double totalWeight = 0.0;
+        // 累加得到 MST树中各个边（手段：edgesOfMST()）的权重之和
         for (Edge currentEdge : edgesOfMST()) {
             totalWeight += currentEdge.weight();
         }
+        // 验证 weightOfMST() 返回的值 是否 与上述累计的结果 相等
         if (Math.abs(totalWeight - weightOfMST()) > FLOATING_POINT_EPSILON) {
             System.err.printf("Weight of edges does not equal weight(): %f vs. %f\n", totalWeight, weightOfMST());
             return false;
         }
 
-        // #2 check that it is acyclic(非循环的??)
+        /* #2 检查MST是非循环的(acyclic) */
+        // 初始化 得到一个 分散的森林
         QuickFind forest = new QuickFind(weightedGraph.getVertexAmount());
 
+        /* 按照MST的特征(不存在环)可知：在被添加到同一组之前，任何边的两个顶点应该都分属于不同的组 */
+        // 对于MST树中的每一条边..
         for (Edge currentEdge : edgesOfMST()) {
+            // 得到 边的两个端点
             int oneVertex = currentEdge.eitherVertex(),
                 theOtherVertex = currentEdge.theOtherVertexAgainst(oneVertex);
-            if (isInSameTree(forest, oneVertex, theOtherVertex)) {
+
+            /* 在把端点添加到同一组中之前，检查 它们是不是 已经在同一个组中了 */
+            // 如果 边的两个端点 属于同一个组，说明 MST中存在有环，则：
+            if (isInSameGroup(forest, oneVertex, theOtherVertex)) {
+                // 算法生成的MST 不是有效的MST，返回false 表示 检查未通过
                 System.err.println("Not a forest");
                 return false;
             }
+
+            // 把 边的两个端点 添加到 同一个组中
             forest.unionToSameComponent(oneVertex, theOtherVertex);
         }
+        /* 如果MST是正确的，则：在for循环结束后，所有的节点 会都已经在 同一个组中了 */
 
-        // #3 check that it is a spanning(展开) forest
+        // #3 check that it is a “spanning forest”(展开的森林)
         for (Edge currentEdge : weightedGraph.edges()) {
+            // 获取到 当前边的两个端点
             int oneVertex = currentEdge.eitherVertex(),
                 theOtherVertexAgainst = currentEdge.theOtherVertexAgainst(oneVertex);
 
-            if (notInSameTree(forest, oneVertex, theOtherVertexAgainst)) {
+            // 如果 其两个端点 不在同一个组中，说明???
+            if (notInSameGroup(forest, oneVertex, theOtherVertexAgainst)) {
+                // 则：返回false 来 表示其不是一个 spanning tree
                 System.err.println("Not a spanning forest");
                 return false;
             }
         }
 
         // #4 check that it is a minimal spanning forest (cut optimality conditions)
+        // 检查 它是“最小展开森林”（cut最优条件??）
         for (Edge currentMSTEdge : edgesOfMST()) {
 
             // all edges in MST except currentMSTEdge
+            // 重新创建一片森林 森林中都是分散的树节点
             forest = new QuickFind(weightedGraph.getVertexAmount());
 
             for (Edge currentEdgeInMST : edgesInMSTQueue) {
+                // 获取到MST边的两个端点
                 int oneVertex = currentEdgeInMST.eitherVertex(),
                     theOtherVertex = currentEdgeInMST.theOtherVertexAgainst(oneVertex);
 
+                // 如果 这两条边 不相同，说明 ???，则：
                 if (currentEdgeInMST != currentMSTEdge) {
+                    // 把两个端点 合并到同一个组中
                     forest.unionToSameComponent(oneVertex, theOtherVertex);
                 }
             }
 
-            // #5 check that currentMSTEdge is min weight edge in crossing cut
+            // 检查 currentMSTEdge 是 横切边中的最小权重边
             for (Edge currentEdge : weightedGraph.edges()) {
                 int oneVertex = currentEdge.eitherVertex(),
                     theOtherVertex = currentEdge.theOtherVertexAgainst(oneVertex);
 
-                if (notInSameTree(forest, oneVertex, theOtherVertex)) {
+                // 如果xxx，说明 当前边 是一条横切边，则：
+                if (notInSameGroup(forest, oneVertex, theOtherVertex)) {
+                    // 比较 该横切边 与 MST中的横切边的权重大小，如果 该横切边更小，说明 MST的横切边 错误，则：
                     if (currentEdge.weight() < currentMSTEdge.weight()) {
+                        // 返回false 来 表示MST边的错误
                         System.err.println("Edge " + currentEdge + " violates cut optimality conditions");
                         return false;
                     }
@@ -278,11 +286,12 @@ public class LazyPrimMST {
         return true;
     }
 
-    private boolean isInSameTree(QuickFind forest, int oneVertex, int theOtherVertex) {
+    // 判断 节点v 和 节点w 是否在同一个组中
+    private boolean isInSameGroup(QuickFind forest, int oneVertex, int theOtherVertex) {
         return forest.findGroupIdOf(oneVertex) == forest.findGroupIdOf(theOtherVertex);
     }
 
-    private boolean notInSameTree(QuickFind groups, int oneVertex, int theOtherVertexAgainst) {
+    private boolean notInSameGroup(QuickFind groups, int oneVertex, int theOtherVertexAgainst) {
         return groups.findGroupIdOf(oneVertex) != groups.findGroupIdOf(theOtherVertexAgainst);
     }
 
@@ -293,10 +302,15 @@ public class LazyPrimMST {
      * @param args the command-line arguments
      */
     public static void main(String[] args) {
+        // 文件名 -> 文件流
         In in = new In(args[0]);
+        // 文件流 -> 无向加权图对象
         EdgeWeightedGraph weightedGraph = new EdgeWeightedGraph(in);
+        // 图对象 -> 图中的MST
         LazyPrimMST graphsMST = new LazyPrimMST(weightedGraph);
 
+        // 打印图的MST的所有边
+        // 问：一幅 无向加权连通图 就只有一个MST吗？
         for (Edge currentEdge : graphsMST.edgesOfMST()) {
             StdOut.println(currentEdge);
         }

@@ -83,33 +83,34 @@ import edu.princeton.cs.algs4.StdOut;
  * @author Robert Sedgewick
  * @author Kevin Wayne
  */
-// 目标：计算出 图的最小生成树MST(minimum spanning tree)
-// 原理：对于MST来说，原始图中的每一个结点，都会有它的“距离MST的最小边”。
-// 思想：通过记录每个结点 距离MST的最小边(如果有的话)，就能够得到MST本身
-// 步骤：#1 把某一个结点的“距离MST的最小边”设置为0 & 把vertex -> itsMinEdge添加到优先队列中；#2 从队列中获取“最小的”结点；
-// #3 把结点更新为“树结点” & 更新“theOtherVertex结点“ 它”距离MST的最小边”。
-// 一句话描述算法：在BFS的过程中，对于MST结点所关联的所有边中的所有图结点，按需更新结点的属性(结点到MST的最短边&权重)，并把图结点添加到PQ中。当PQ为空时，就得到了图的MST
+// 目标：计算出 加权无向连通图 的最小生成树MST(minimum spanning tree)
+// 原理：对于MST来说，原始图中的每一个结点，都会有 它的“距离MST的最小边”。
+// 思想：通过记录 每个结点 距离MST的最小边(如果有的话)，就能够得到 MST本身
+// 步骤：#1 把某一个结点的“距离MST的最小边”设置为0 & 把 vertex -> itsMinEdge 添加到 优先队列中；#2 从队列中获取 “最小的”结点；
+// #3 把 结点 更新为 “树结点” & 更新“theOtherVertex结点“ 它”距离MST的最小边”。
 // 即时实现：在把结点添加到 结点PQ前，先验证结点的有效性
 public class PrimMST {
     private static final double FLOATING_POINT_EPSILON = 1.0E-12;
 
-    private Edge[] vertexToItsMinEdgeToMST;     // 用于维护 结点->“其连接到MST的最小边”的映射    应用：获取到MST本身
-    private double[] vertexToItsMinEdgeWeightToMST;      // 用于维护 结点->“其连接到MST的最小边”的权重值 的映射   手段：数组
+    private Edge[] vertexToItsMinCrossEdgeToMST;     // 用于维护 结点->“其连接到MST的最小边”的映射    应用：获取到MST本身
+    private double[] vertexToItsMinCrossEdgeWeightToMST;      // 用于维护 结点->“其连接到MST的最小边”的权重值 的映射   手段：数组
     private boolean[] vertexToIsMSTVertex;     // 用于记录 结点->结点是不是MST结点 的映射
-    private IndexMinPQ<Double> vertexToItsMinEdgeWeightPQ; // 用于记录 结点->“其连接到MST的最小边”的权重值 的映射 手段：索引优先队列 应用：快速获取到minEdgeWeight
+    private IndexMinPQ<Double> vertexToItsMinCrossEdgeWeightPQ; // 用于记录 结点->“其连接到MST的最小边”的权重值 的映射 手段：索引优先队列 应用：快速获取到minEdgeWeight
 
-    // 计算出 加权图的一个MST或森林
+    // 作用：① 初始化成员变量；② 计算出 加权图的一个MST或森林
     // 参数：加权图
     public PrimMST(EdgeWeightedGraph weightedGraph) {
+        // ① 初始化所有的成员变量
         instantiateVariables(weightedGraph);
 
+        // 对 vertex -> itsMinCrossEdgeWeight 的数组 进行 元素初始化
         initVertexToMinEdgeWeightArr(weightedGraph);
 
         // 对于图中的每一个顶点
         for (int currentVertex = 0; currentVertex < weightedGraph.getVertexAmount(); currentVertex++)
-            // 如果它还不是MST结点，说明它所在的连通分量还没有被BFS过，则：
+            // 如果它还不是MST结点，说明 它所在的连通分量 还没有 被BFS过，则：
             if (isNotMSTVertex(currentVertex)) {
-                // 以它作为“起始顶点”，执行prim算法 来 得到它所在的连通分量图的一个MST
+                // 以它作为 “起始顶点”，执行prim算法 来 得到 它所在的连通分量图的一个MST
                 prim(weightedGraph, currentVertex);
             }
 
@@ -119,34 +120,39 @@ public class PrimMST {
 
     private void initVertexToMinEdgeWeightArr(EdgeWeightedGraph weightedGraph) {
         for (int currentVertex = 0; currentVertex < weightedGraph.getVertexAmount(); currentVertex++)
-            // 从 当前“树节点” 到 “非树节点”的最短边 - 初始化为 正无穷大
-            vertexToItsMinEdgeWeightToMST[currentVertex] = Double.POSITIVE_INFINITY;
+            // 从 当前“树节点” 到 MST的权重最小的边的权重 - 初始化为 正无穷大
+            vertexToItsMinCrossEdgeWeightToMST[currentVertex] = Double.POSITIVE_INFINITY;
     }
 
+    // 完成 数组成员变量的 容量初始化
     private void instantiateVariables(EdgeWeightedGraph weightedGraph) {
-        vertexToItsMinEdgeToMST = new Edge[weightedGraph.getVertexAmount()];
-        vertexToItsMinEdgeWeightToMST = new double[weightedGraph.getVertexAmount()];
+        vertexToItsMinCrossEdgeToMST = new Edge[weightedGraph.getVertexAmount()];
+        vertexToItsMinCrossEdgeWeightToMST = new double[weightedGraph.getVertexAmount()];
         vertexToIsMSTVertex = new boolean[weightedGraph.getVertexAmount()];
-        vertexToItsMinEdgeWeightPQ = new IndexMinPQ<Double>(weightedGraph.getVertexAmount());
+        vertexToItsMinCrossEdgeWeightPQ = new IndexMinPQ<Double>(weightedGraph.getVertexAmount());
     }
 
     private boolean isNotMSTVertex(int currentVertex) {
         return !vertexToIsMSTVertex[currentVertex];
     }
 
-    // 在加权图中，以指定顶点作为起始顶点 来 执行prim算法
+    // 在 无向加权连通图 中，以 指定顶点 作为 起始顶点 来 执行prim算法
     private void prim(EdgeWeightedGraph weightedGraph, int startVertex) {
-        // #1 初始化 当前顶点的 ”到MST的最小边的权重值“为0
-        vertexToItsMinEdgeWeightToMST[startVertex] = 0.0;
-        // #2 初始化 当前顶点 在索引优先队列中的entry
-        vertexToItsMinEdgeWeightPQ.insert(startVertex, vertexToItsMinEdgeWeightToMST[startVertex]);
+        /* 对成员变量 做必要的初始化 */
+        // 初始化 起始节点 ”到MST的最小边的权重值“ 为0
+        vertexToItsMinCrossEdgeWeightToMST[startVertex] = 0.0;
+        // 初始化 起始节点 在索引优先队列中的 条目：节点 -> 节点到MST的最小边的权重
+        vertexToItsMinCrossEdgeWeightPQ.insert(startVertex, vertexToItsMinCrossEdgeWeightToMST[startVertex]);
 
-        while (!vertexToItsMinEdgeWeightPQ.isEmpty()) {
-            // #3 从优先队列中，获取到拥有最小的“距离MST最小边的权重值”权重值的 那个结点
-            // 这里从PQ中出队 “最小权重的结点”后，不需要进行校验 aka 即时实现 - 因为在添加到PQ之前，已经校验了结点的有效性
-            int vertexWithMinEdgeWeight = vertexToItsMinEdgeWeightPQ.delMin();
+        // 如果 横切边优先队列中 还存在有“横切边”（可能已经无效），说明 仍旧存在有 图节点，则：
+        // 需要 ① 把 最小横切边 添加为 MST的边；② 继续把 图节点 添加为 MST树节点；
+        while (!vertexToItsMinCrossEdgeWeightPQ.isEmpty()) {
+            // 获取到 队列所有节点中，拥有最小的“距离MST最小边的权重值”权重值的 那个节点
+            // 🐖 这里从PQ中出队 “距离MST最小权重的节点”后，不需要像 lazyPrim那样进行校验
+            // 因为 minPQ 只会 为每个非MST顶点保存一条边，并且 这条边始终是 与MST相连的 权重最小的边。因此 队列中不存在无效边
+            int vertexWithMinEdgeWeight = vertexToItsMinCrossEdgeWeightPQ.delMin();
 
-            // #4 对于此结点：① 标记为“树结点”； ② 对于其所有相邻的“图结点”，更新其 属性值，并将之添加/更新到优先队列中
+            // 对于此结点：① 标记为“树结点”； ② 对于其所有相邻的“图结点”，更新其 属性值，并将之添加/更新到优先队列中
             markVertexAsMSTAndUpdateNeighborGraphVertex(weightedGraph, vertexWithMinEdgeWeight);
         }
     }
@@ -157,49 +163,47 @@ public class PrimMST {
         vertexToIsMSTVertex[passedVertex] = true;
 
         // #2 对于 结点 所有关联的边...
-        for (Edge currentAssociatedGraphEdge : weightedGraph.getAssociatedEdgesOf(passedVertex)) {
-            // 获取到 当前graphEdge的另一个顶点
-            int theGraphVertex = currentAssociatedGraphEdge.theOtherVertexAgainst(passedVertex);
+        for (Edge currentAssociatedEdge : weightedGraph.getAssociatedEdgesOf(passedVertex)) {
+            // 获取到 该关联边的另一个端点
+            int theOtherVertexInEdge = currentAssociatedEdge.theOtherVertexAgainst(passedVertex);
 
-            // ① 如果 另一个顶点 也是 MSTVertex，说明 当前graphEdge已经是一个MSTEdge，则：
-            // 即时实现 - 校验图结点的有效性
-            if (isMSTVertex(theGraphVertex)) {
+            // 如果 另一个端点 也是 MSTVertex，说明 无需再 更新该节点的属性，则：
+            if (isMSTVertex(theOtherVertexInEdge)) {
                 // 直接跳过它
                 continue;
             }
 
-            /* 否则，说明 当前graphEdge是一个横切边 */
-            // ② 如果 当前边的权值 小于 vertexToItsMinEdgeWeight数组中所记录的 此结点的“连接MST的最小边”的权重，说明 当前边是“连接MST的更小边”，则：
-            if (hasSmallerWeightThanRecorded(theGraphVertex, currentAssociatedGraphEdge)) {
-                // 更新 此图结点(theGraphVertex)的所有属性
-                updateGraphVertexProperties(currentAssociatedGraphEdge, theGraphVertex);
+            /* 否则，另一个节点 会是一个图节点，说明 当前关联边是一个横切边，则：尝试更新 该图节点到MST的最小边(及权重) - 因为MST中刚刚添加了新的节点 */
+            // 如果 当前边的权重 小于 vertexToItsMinEdgeWeight数组中所记录的 此结点的“连接MST的最小边”的权重，说明 当前边是“连接到MST的更小边”，则：
+            if (hasSmallerWeightThanRecorded(theOtherVertexInEdge, currentAssociatedEdge)) {
+                // 更新 此图结点(theOtherVertexInEdge)的所有属性
+                updateGraphVertexProperties(theOtherVertexInEdge, currentAssociatedEdge);
             }
         }
     }
 
-    private void updateGraphVertexProperties(Edge currentAssociatedGraphEdge, int theGraphVertex) {
-        // Ⅰ 更新 图结点(theOtherVertex)的 “其连接到MST的最小边”
-        vertexToItsMinEdgeToMST[theGraphVertex] = currentAssociatedGraphEdge;
-        // Ⅱ 更新 图结点的 “连接到MST的最小边”的权值
-        vertexToItsMinEdgeWeightToMST[theGraphVertex] = currentAssociatedGraphEdge.weight();
-        // Ⅲ 更新 图结点 在索引优先队列中所对应的entry
+    private void updateGraphVertexProperties(int theGraphVertex, Edge newMinCrossEdge) {
+        /* #1 更新 图结点(theOtherVertex)在数组中对应的元素值 */
+        vertexToItsMinCrossEdgeToMST[theGraphVertex] = newMinCrossEdge;
+        vertexToItsMinCrossEdgeWeightToMST[theGraphVertex] = newMinCrossEdge.weight();
+        // #2 更新 图结点 在索引优先队列中所对应的entry
         updatePQEntryFor(theGraphVertex);
     }
 
+    // 🐖 即时实现的特征：对于每一个图节点，minPQ 只为其维护了 单一的一条 到MST的最小边
     private void updatePQEntryFor(int passedVertex) {
-        // 如果此结点 已经存在于 优先队列中...
-        if (vertexToItsMinEdgeWeightPQ.contains(passedVertex))
-            // 则：更新优先队列中 此结点所对应的 最小边的权重值
-            // 🐖 使用索引优先队列，是为了能够 方便地更新 结点所对应的“连接到MST的最小边”的权重
-            // 这里使用 vertex 来 作为索引（vertex -> weight）
-            vertexToItsMinEdgeWeightPQ.decreaseKey(passedVertex, vertexToItsMinEdgeWeightToMST[passedVertex]);
+        // 如果 此结点 已经存在于 优先队列中...
+        if (vertexToItsMinCrossEdgeWeightPQ.contains(passedVertex))
+            // 则：更新 优先队列中 此结点所对应的 最小边的权重值
+            // 🐖 使用 索引优先队列，是为了能够 方便地更新 结点（作为索引）所对应的“连接到MST的最小边”的权重
+            vertexToItsMinCrossEdgeWeightPQ.changeKey(passedVertex, vertexToItsMinCrossEdgeWeightToMST[passedVertex]);
         else // 如果 此结点还不存在于 优先队列中...
             // 则：把 结点 -> 结点对应的 最小边的权重值 添加到 优先队列中
-            vertexToItsMinEdgeWeightPQ.insert(passedVertex, vertexToItsMinEdgeWeightToMST[passedVertex]);
+            vertexToItsMinCrossEdgeWeightPQ.insert(passedVertex, vertexToItsMinCrossEdgeWeightToMST[passedVertex]);
     }
 
     private boolean hasSmallerWeightThanRecorded(int neighborGraphVertex, Edge currentAssociatedGraphEdge) {
-        return vertexToItsMinEdgeWeightToMST[neighborGraphVertex] > currentAssociatedGraphEdge.weight();
+        return vertexToItsMinCrossEdgeWeightToMST[neighborGraphVertex] > currentAssociatedGraphEdge.weight();
     }
 
     private boolean isMSTVertex(int theOtherVertex) {
@@ -215,8 +219,8 @@ public class PrimMST {
     public Iterable<Edge> edgesInMST() {
         Queue<Edge> edgesInMST = new Queue<Edge>();
 
-        for (int currentVertex = 0; currentVertex < vertexToItsMinEdgeToMST.length; currentVertex++) {
-            Edge minEdgeToMST = vertexToItsMinEdgeToMST[currentVertex];
+        for (int currentVertex = 0; currentVertex < vertexToItsMinCrossEdgeToMST.length; currentVertex++) {
+            Edge minEdgeToMST = vertexToItsMinCrossEdgeToMST[currentVertex];
             if (minEdgeToMST != null) {
                 edgesInMST.enqueue(minEdgeToMST);
             }
