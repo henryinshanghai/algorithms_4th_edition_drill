@@ -6,4 +6,4 @@ IndexMinPQ 能够用于 #1 把索引与键（优先级）关联起来； #2 删�
 具体到 Dijkstra算法中，我们只需要 把顶点v 与 vertexToItsPathWeight[v]关联起来，
 就能够得到 Dijkstra算法的实现。
 
-推论：vertexToItsTowardsEdge[]中元素所对应的可达顶点，构成了 一棵最短路径树。
+推论：vertexToItsTowardsEdge[]中 元素所对应的可达顶点，构成了 一棵最短路径树。

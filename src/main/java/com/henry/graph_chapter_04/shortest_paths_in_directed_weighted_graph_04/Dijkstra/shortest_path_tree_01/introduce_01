@@ -1,58 +1,12 @@
 Prim算法：用于 寻找 加权无向图中的最小生成树；
-步骤：构造最小生成树的每一个步骤，都会向 这棵树中添加一条新的边。
+步骤：构造最小生成树的 每一个步骤，都会 向这棵树中 添加一条新的边。
 
-Dijkstra算法 使用了 类似的方式 来 计算“图中指定起始结点到其所有可达结点的最短路径树”。
+Dijkstra算法 使用了 类似的方式 来 计算“图中 指定起始结点 到 其所有可达结点的最短路径树”。
 
-首先，把 vertexToItsPathWeight[s]初始化为0，
-并把 vertexToItsPathWeight[]的其他元素 初始化为 正无穷大。
+#1 首先，把 vertexToItsPathWeight[s] 初始化为0，
+并 把 vertexToItsPathWeight[]的其他元素 初始化为 正无穷大。
 
-然后，把 vertexToItsPathWeight[]中 最小的“非树顶点” 放松，并 把该结点 添加到树中。
+#2 然后，把 vertexToItsPathWeight[]中 最小的“非树顶点” 放松，并 把该结点 添加到树中。
 
-重复操作，直到 所有的顶点 都被添加到树中，或者
+#3 重复操作，直到 所有的顶点 都被添加到树中，或者
 所有的 非树顶点的vertexToItsPathWeight[]值 都为无穷大。
-
-===
-命题R Dijkstra算法 能够解决 边的权重非负的加权有向图 的 “单点最短路径问题”。
-
-证明：
-如果v是从起点可达的，那么 所有v->w的边 都只会被放松一次。
-当v被放松时，必然有 vertexToItsPathWeight[w] <= vertexToItsPathWeight[v] + e.weight().
-
-这个不等式 在算法结束之前 都会成立，所以 vertexToItsPathWeight[w]只会逐渐变小。
-🐖 放松操作 只会减少 vertexToItsPathWeight[]元素的值。
-而 vertexToItsPathWeight[v]不会改变（因为 #1 边的权重为非负；#2 在每一步中，算法都会选择
-vertexToItsPathWeight[]中的最小顶点，所以之后的操作 不可能会导致 任何vertexToItsPathWeight[]的值 小于 vertexToItsPathWeight[v]）
-
-综上，在 由s可达的所有顶点 都被添加到树中 后，“最短路径的最优性条件”成立，即 命题P成立。
-
-== 数据结构 ==
-为了实现 Dijkstra算法，除了 vertexToItsPathWeight[] 与 vertexToItsTowardsEdge[]之外，
-还需要一条 索引优先队列pq 来 保存“需要被放松的顶点”，并 确认“下一个被放松的顶点”。
-
-IndexMinPQ 能够用于 #1 把索引与键（优先级）关联起来； #2 删除并返回 优先级最低的索引。
-具体到 Dijkstra算法中，我们只需要 把顶点v 与 vertexToItsPathWeight[v]关联起来，
-就能够得到 Dijkstra算法的实现。
-
-推论：vertexToItsTowardsEdge[]中元素所对应的可达顶点，构成了 一棵最短路径树。
-
-== 换个角度看问题 ==
-根据算法的证明，我们可以 从另一个角度 来 理解它。
-我们可以确信地说，对于 所有树结点，它们所对应的vertexToItsPathWeight[]值，都是 最短路径的长度/成本。
-
-对于优先队列中的任意顶点x，vertexToItsPathWeight[x] 表示 从s->x的最短路径的长度，
-这条路径的“中间节点”在树中，并且 路径结束于 “横切边 vertexToItsTowardsEdge[x]”。
-
-“优先级最小”的顶点的 vertexToItsPathWeight[]值，就是 “最短路径”的权重：
-它不会小于 已经被放松过的 任意顶点的 最短路径的权重，也不会大于
-还未被放松过的 任意顶点的 最短路径的权重。
-所以 这个顶点 就是下一个 要被放松的顶点。
-
-所有 由s可达的顶点 都会按照 最短路径的权重顺序 被放松。
-
-算法构造 最短路径树的过程 描述 👇
-略
-
-算法按照 当前顶点到起始顶点的 最短路径的长度/权重的正序 来 把他们呢添加到 最短路径树中。
-
-Dijkstra算法的实现，每次都会为 最短路径树添加一条边，这条边 由树中的一个顶点 指向 一个“非树顶点”w，
-并且它是 “到s最近的顶点”。
