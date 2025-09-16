@@ -81,17 +81,19 @@ import java.util.Arrays;
  * @author Kevin Wayne
  */
 
-// 目标：获取到图的最小生成树MST
-// 原理：最小横切边一定属于MST
-// 思想：向MST中添加边，MST被完全构建
-// 步骤：#1 对边按照权重排序； #2 创建一个forest对象（每个结点都是一棵树）； #3 判断当前边是否为横切边。如果是，则：添加到MST（队列）中，并合并边的两个顶点
-// 一句话描述：对于排序后的图中的边序列，如果当前边是一个横切边，则 #1 合并由横切边连接的两个分量； #2 把横切边添加到MST中 - 直到MST中的结点数量 = 图中的结点数量
+// 目标：获取到 加权无向图的最小生成树MST
+// 原理：最小横切边 一定属于MST
+// 思想：向MST中 逐个地、分散地 添加 当前权重最小的边，直到 MST被完全构建
+// 步骤：#1 把边 按照权重排序； #2 创建一个forest对象（N个节点，每个结点都是一棵树）；
+// #3 判断 引入当前边是否会导致环 。如果不会，则：添加到MST（队列）中，并 合并边的两个顶点
+// 一句话描述：对于 排序后的图中的边序列，如果 当前边添加到MST中不会引入环，则
+// #1 合并 由该边连接的两个分量； #2 把 该最小边 添加到MST中 - 直到MST中的结点数量 = 图中的结点数量，此时的分量就是我们想要的MST
 // 特征：算法其实依赖于一个forest对象，以及它的 unionToSameComponent()的操作
 public class KruskalMST {
     private static final double FLOATING_POINT_EPSILON = 1.0E-12;
 
-    private double weightOfMST;                        // 最小展开树的权重
-    private Queue<Edge> edgesInMSTQueue = new Queue<Edge>();  // MST中的边所构成的队列
+    private double weightOfMST;                        // 最小展开树的总权重
+    private Queue<Edge> edgesInMSTQueue = new Queue<Edge>();  // 由 MST中的边 所构成的队列
 
     /**
      * Compute a minimum spanning tree (or forest) of an edge-weighted graph.
@@ -102,15 +104,15 @@ public class KruskalMST {
         // #1 获取 加权图的所有边（以可迭代集合的形式），然后 转换为数组形式
         Edge[] edges = getEdgesIn(weightedGraph);
 
-        // #2 根据 Edge对象compareTo()方法的定义，来 对数组中的Edge对象 进行排序
+        // #2 根据 Edge对象compareTo()方法所定义的规则，来 对数组中的Edge对象 进行排序
         Arrays.sort(edges);
 
-        // #3 执行贪心算法 遍历边集合中的每一条边
+        /* #3 执行 贪心算法，遍历边集合中的每一条边 */
         QuickFind forest = new QuickFind(weightedGraph.getVertexAmount());
         for (int currentEdgeCursor = 0; withinLegitRange(weightedGraph, currentEdgeCursor); currentEdgeCursor++) {
-            // 对于当前边
+            // 对于 当前权重最小的边
             Edge currentEdge = edges[currentEdgeCursor];
-            // 使用它来构建出MST
+            // 尝试使用它 来 构建出MST
             constructMST(forest, currentEdge);
         }
 
@@ -118,23 +120,23 @@ public class KruskalMST {
         assert check(weightedGraph);
     }
 
-    private void constructMST(QuickFind forest, Edge currentEdge) {
-        // #1 从排序后的数组中，获取到 当前边 & 当前边的两个端点
-        int oneVertex = currentEdge.eitherVertex();
-        int theOtherVertex = currentEdge.theOtherVertexAgainst(oneVertex);
+    private void constructMST(QuickFind forest, Edge currentMinEdge) {
+        // #1 获取到 最小边的两个端点
+        int oneVertex = currentMinEdge.eitherVertex();
+        int theOtherVertex = currentMinEdge.theOtherVertexAgainst(oneVertex);
 
-        // #2 如果 边的两个端点 不在同一个连通分量中，说明 这条边 能够把两棵树连接成一棵更大的树（这是一个横切边?），则：
+        // #2 如果 边的两个端点 不在同一个连通分量中，说明 添加此边到MST中不会形成环，则：
         // 原理：连接同一个连通分量中的两个顶点 会形成一个环
         if (notInSameComponent(forest, oneVertex, theOtherVertex)) {
-            // ① 把两个顶点 合并到 同一个连通分量中,得到一个更大的连通分量
+            // ① 把两个顶点 合并到 同一个连通分量中（这个连通分量最终会扩展得到MST）
             forest.unionToSameComponent(oneVertex, theOtherVertex);     // merge oneVertex and theOtherVertex components
-            // ② 使用当前边来更新MST
-            updateMSTVia(currentEdge);
+            // ② 使用 当前边 来 更新MST中的边 与 总权重
+            updateMSTVia(currentMinEdge);
         }
     }
 
     private void updateMSTVia(Edge currentEdge) {
-        // ① 把这条边添加到“MST边队列”中(因为它连接了两个连通分量，所以它一定是一条横切边 而最小横切边一定属于MST)
+        // ① 把 这条边 添加到“MST边队列”中(最小横切边一定属于MST)
         edgesInMSTQueue.enqueue(currentEdge);     // add edge currentEdge to mst
         // ② 更新MST的权重值
         weightOfMST += currentEdge.weight();
@@ -142,6 +144,8 @@ public class KruskalMST {
 
     private Edge[] getEdgesIn(EdgeWeightedGraph weightedGraph) {
         Edge[] edges = new Edge[weightedGraph.getEdgeAmount()];
+
+        // 把 图中的每一条边 都添加到数组中
         int currentSpot = 0;
         for (Edge currentEdge : weightedGraph.edges()) {
             edges[currentSpot++] = currentEdge;
@@ -157,10 +161,12 @@ public class KruskalMST {
         return withinLegitAmount(weightedGraph, currentEdgeCursor) && withinLegitSize(weightedGraph);
     }
 
+    // MST中 边的数量的有效性
     private boolean withinLegitSize(EdgeWeightedGraph weightedGraph) {
         return edgesInMSTQueue.size() < weightedGraph.getVertexAmount() - 1;
     }
 
+    // 原始图中 边的指针大小(数量)的有效性
     private boolean withinLegitAmount(EdgeWeightedGraph weightedGraph, int currentEdgeCursor) {
         return currentEdgeCursor < weightedGraph.getEdgeAmount();
     }
