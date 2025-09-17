@@ -122,7 +122,7 @@ public class DijkstraSP {
 
     private void instantiateVertexProperties(int graphVertexAmount) {
         vertexToLightestPathWeightTowardsIt = new double[graphVertexAmount];
-        vertexToItsTowardsEdge = new DirectedEdge[graphVertexAmount];
+        vertexToItsTowardsEdge = new DirectedEdge[graphVertexAmount]; // startVertex所对应的 “由起始节点到它的最轻路径的最后一条边”为null
     }
 
     private void validateEdgeWeightIn(EdgeWeightedDigraph weightedDigraph) {
