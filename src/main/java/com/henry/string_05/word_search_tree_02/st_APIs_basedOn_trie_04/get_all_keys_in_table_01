@@ -1,19 +1,19 @@
-因为 字符和键 被隐式地表示在 单词查找树中，所以
-用例 想要能够 遍历符号表中所有的键 就会变得有些困难。
+因为 字符和键 都被隐式地表示在 单词查找树 中，所以
+如果 用例 想要 遍历符号表中所有的键 就会变得 有些困难。
 
-在二叉查找树中，我们把所有的字符串键 都保存在了一个队列中。
-但对于单词查找树来说，不但需要 在数据结构中找到这些字符串键，还需要显式地把它们展示出来（因为树本身不存储任何字符串）
+在 二叉查找树 中，我们 把 所有的字符串键 都保存在了 一个队列 中。
+但对于 单词查找树 来说，不但需要 在数据结构中 找到 这些字符串键，还需要 显式地 把它们 展示出来（因为 树本身 没有存储 任何字符串）
 
-手段：我们使用一个 类似于size()的私有递归方法 collect() 来 完成这个任务。
-原理：它维护了一个字符串 用来保存 从根结点出发的路径上的一系列字符。
-用法描述：收集  以指定结点作为根结点的 单词查找子树中，存在的所有“键”；
-用法：第一个参数 “待查结点”， 第二个参数 “与该结点相关联的字符串”(aka 从根结点到此节点路径上的所有字符所组成的字符串)
+手段：我们 使用一个 类似于size()的、私有、递归方法 collect() 来 完成 这个任务。
+原理：它 维护了 一个字符串 用来保存 ”从根结点出发的路径上“的 一系列字符。
+用法描述??：收集 ”以 指定结点 作为 根结点 的“ 单词查找子树 中，所存在的 所有“键”；
+用法：第一个参数 是 “待查结点”，第二个参数 “与该结点相关联的 字符串”(aka 从 根结点 到 此节点路径上的 所有字符 所组成的字符串)
 算法步骤：
-    #1 在访问第一个结点时，如果它的值非空，我们把 与它相关联的字符串 添加到队列中；
-    #2 再递归地访问 当前节点的链接数组 所指向的所有可能的字符结点。
-    🐖 每次调用之前，都 把“链接对应的字符” 附加到 当前键的末尾，然后把它作为 递归调用的参数键。
+    #1 在 访问第一个结点 时，如果 它的值 非空，我们 把 与它相关联的字符串 添加到队列中；
+    #2 再 递归地访问 当前节点的链接数组 所指向的 所有可能的 字符结点。
+    🐖 每次调用 之前，都 把“链接对应的字符” 附加到 当前键的末尾，然后 把它作为 递归调用的参数键。
 应用：
-    支持 keys()、keysWithPrefix()这些个API - 收集符号表中的所有键。
+    支持 keys()、keysWithPrefix()这些个API - 收集 符号表中的所有键。
 
 ===
 实现keys()
@@ -22,49 +22,17 @@
 ===
 实现 keysWithPrefix()
 手段：
-    #1 先使用get()方法 来 找出给定的前缀 所对应的单词查找树（不存在时，返回null）；
-    #2 再使用collect()方法 来 收集单词查找树中，以#1中的单词查找树的指定叶子结点 作为根结点的所有子树的数量。
-
-
-===
-在单词查找树中，collect()方法的调用轨迹（直观地图像）：略
-调用collect()方法时，第二个参数的值 & 队列的内容（客观地数值变化）：略
+    #1 先 使用get()方法 来 找出 给定的前缀 所对应的单词查找树（不存在时，返回null）；
+    #2 再 使用collect()方法 来 收集 单词查找树中，以 #1中的单词查找树的 指定叶子结点 作为 根结点 的 所有子树的数量。
 
 ===
-代码: 收集一棵树中所有的键集合（即便那些没有绑定值的键???）
+在 单词查找树 中，collect()方法的调用轨迹（直观的 图像）：略
+调用collect()方法 时，第二个参数的值 & 队列的内容（客观的 数值变化）：略
+
+===
+代码: 收集 一棵树中 所有键 的集合（即便 那些 没有绑定值的键???）
 
 public Iterable<String> getIterableKeys() {
-    // 等价于 以空字符串作为前缀的所有键
+    // 等价于 以 空字符串 作为前缀的所有键
     return keysWithPrefix("");
-}
-
-// 返回 符号表中，所有 以指定字符串作为前缀的键
-public Iterable<String> keysWithPrefixOf(String passedPrefix) {
-    // 准备一个集合，用于收集所有的 “有效的键”
-    Queue<String> keysCollection = new Queue<String>();
-
-    // get() - 在树中，查询 “前缀字符串键”所对应的路径，并返回路径上的最后一个结点(字符串中的尾字符)
-    // 使用get()方法返回的结点 作为根结点，收集 以之作为根结点的所有子树中，???
-    Node lastNodeOfPrefixStr = getLastNodeOfPathThatStartFrom(root, passedPrefix, 0);
-    collectKeysStartWithPrefixInto(lastNodeOfPrefixStr, passedPrefix, keysCollection);
-
-    // 返回 已经收集了所有key的集合
-    return keysCollection;
-}
-
-// 收集 以当前节点作为根结点的子树中，所存在的所有的 以prefix作为前缀的 键。并把完整的键 添加到队列中
-public void collectKeysStartWithPrefixInto(Node currentNode, String currentPrefix, Queue<String> keysCollection) {
-    // 递归的终结条件：查询路径 终止于null，说明当前路径中，不存在有任何的键,则：直接return 不做任何操作
-    if(currentNode == null) return;
-
-    // 在当前递归中：如果当前结点 存储有value的话，说明它是一个字符串键的尾字符所对应的结点，则：把 “当前查询所的字符串” 添加到队列中
-    if(currentNode.val != null) {
-        String currentKey = currentPrefix;
-        keysCollection.enqueue(currentKey);
-    }
-
-    // 子问题：对于当前节点的所有子节点/链接/字符...
-    for(char currentCharacter = 0; currentCharacter < R; currentCharacter++)
-        // 收集以其为根结点的子树中，所存在的所有 以prefix+当前字符作为前缀的 键的数量
-        collect(currentNode.nodesSuccessorNodes[currentCharacter], currentPrefix + currentCharacter, keysCollection);
 }

@@ -1,27 +1,28 @@
-和第3章中的二叉查找树一样，实现keysAmount()方法 有以下几种选择：
-#1 即时实现：使用一个实例变量N 来 保存键的数量。
-#2 更加即时的实现：使用 结点的实例变量 来 保存 子单词查找树中的 键的数量，并且
-    在递归的put() 与 delete()方法 调用后，更新它们。
+和 第3章中的二叉查找树 一样，实现keysAmount()方法 有 以下几种选择：
+#1 即时实现：使用一个 实例变量N 来 保存 键的数量。
+#2 更加即时的实现：
+    ① 使用 结点的实例变量 来 保存 子单词查找树中的 键的数量，并且
+    ② 在递归的put() 与 delete()方法 调用后，更新它们。
 #3 延迟的递归实现：
-    如下所示，它会遍历 单词查找树中的所有结点，并记录非空值结点的总数量。
+    如下所示，它会 遍历 单词查找树中的所有结点，并 记录 非空值结点的总数量。
 
-public int keysAmount() {
-    return size(root);
-}
+    public int keysAmount() {
+        return size(root);
+    }
 
-private int size(node x) {
-    if (x == null) return 0;
+    private int size(node x) {
+        if (x == null) return 0;
 
-    int count = 0;
-    if(x.val != null) count++;
+        int count = 0;
+        if(x.val != null) count++;
 
-    for(char c = 0; c < R; c++)
-        count += size(next[c]);
+        for(char c = 0; c < R; c++)
+            count += size(next[c]);
 
-    return count;
-}
+        return count;
+    }
 
-🐖 和二叉查找树一样，延时实现 很有指导意义，但是应该尽量避免。
-因为它会 给用例造成性能上的问题。
+🐖 和 二叉查找树 一样，延时实现 很有指导意义，但是 应该 尽量避免。
+因为它 会 给用例造成 性能上的问题。
 
-基于单词查找树的符号表：TrieSymbolTableLite
+”基于单词查找树“ 所实现的符号表：TrieSymbolTableLite
