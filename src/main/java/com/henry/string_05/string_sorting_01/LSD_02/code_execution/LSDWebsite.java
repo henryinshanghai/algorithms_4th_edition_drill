@@ -1,4 +1,4 @@
-package com.henry.string_05.string_sorting_01.LSD_02;
+package com.henry.string_05.string_sorting_01.LSD_02.code_execution;
 
 /******************************************************************************
  *  Compilation:  javac LSD.java

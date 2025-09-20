@@ -1,10 +1,10 @@
-package com.henry.string_05.string_sorting_01.key_index_counting_01;
+package com.henry.string_05.string_sorting_01.key_index_counting_01.code_execution;
 
-// 验证：可以使用 “键索引计数法” 来 实现一堆字符串集合的组间排序&组内排序（非完全有序）；
-// 基础原理：组号按照自然数顺序排列，因此组号本身是有序的
-// 手段：对“索引相同”的键，进行计数 来 得到 该键在最终排序结果序列中的位置；
-// 特征：最终排序结果中，#1 索引按序排列（组间有序）； #2 键之间的相对顺序 与 在原始序列中相同（组内未必有序）
-// 键：学生的名字； 索引：学生的组号； 对“索引相同的键”（组号相同的学生）进行计数 来 得到“任意键”（学生）在最终序列中的位置
+// 验证：可以使用 “键索引计数法” 来 实现一堆字符串集合的 组间排序&组内元素相对顺序不变（元素非完全有序）；
+// 基础原理：组号 按照 自然数顺序 排列，因此 组号本身是有序的
+// 手段：对“索引相同”的键，进行计数 来 得到 该键在“最终排列结果序列”中的位置；
+// 特征：最终“排列结果”中，#1 索引按序排列（组间有序）； #2 键之间的相对顺序 与 在原始序列中相同（组内未必有序）
+// 键：学生的组号； 索引：学生元素在结果序列中的位置； 对“键相同的元素”（组号相同的学生）进行计数 来 得到任意元素（学生）在最终序列中的位置
 // 一句话描述：为了从无序元素序列，得到“组间有序、组内相对顺序与原始序列相同”的结果序列，可以通过对组中元素计数，并据此累加出“组内第一个元素”的排定位置
 public class ArrangeKeysViaCountingKeysWithinIndex {
     public static void main(String[] args) {
@@ -14,36 +14,55 @@ public class ArrangeKeysViaCountingKeysWithinIndex {
         int biggestGroupNo = 5;
 
         Student[] aux = new Student[studentAmount];
-        // 这里之所以记录 groupNo+1 -> groupSize的映射关系，纯粹是为了 之后能够方便地转化为 groupNo->itsStartSpot
+        // 这里 之所以记录 groupNo+1 -> groupSize的映射关系，纯粹是为了 之后能够 方便地转化为 groupNo->itsStartSpot
         int[] groupNoPlus1ToGroupSizeArr = new int[biggestGroupNo + 1];
         int[] groupNoToItsStartSpotInResultSequence = new int[biggestGroupNo + 1];
 
-        // #1 统计各个组号出现的频率,得到 groupNoPlus1ToGroupSizeArr[]
+        // #1 统计 各个组号 出现的频率,得到 groupNoPlus1ToGroupSizeArr[]
         for (int currentSpot = 0; currentSpot < studentAmount; currentSpot++) {
             int groupNoOfCurrentStudent = studentArr[currentSpot].getGroupNo();
-            // 统计 当前组号中元素的总数量，并把结果 放置在 groupNo+1的位置上 - 为了方便地在#2中把频率转化为索引
+            // 统计 当前组号中元素的总数量，并 把结果放置在 groupNo+1的位置上 - 为了方便地在#2中 把 频率 转化为 索引
             groupNoPlus1ToGroupSizeArr[groupNoOfCurrentStudent + 1]++;
         }
 
-        // #2 把“组号出现的频率”转化为“该组号在最终排序结果中的起始索引”, 得到 groupNoPlus1ToGroupSizeArr[]
-        // 手段：从左往右，把当前groupNo上的groupSize给累加到下一个groupNo上；
+        printFrequencyArr(groupNoPlus1ToGroupSizeArr);
+
+        // #2 把 组号出现的频率 转化为 该组号 在最终排列结果中的起始索引位置, 得到 groupNoPlus1ToGroupSizeArr[]
+        // 手段：从左往右，把 当前groupNo上的groupSize 给累加到 下一个groupNo上；
         calculateGroupsStartSpotArr(groupNoPlus1ToGroupSizeArr, groupNoToItsStartSpotInResultSequence);
 
-        // #3 得到有序的辅助数组aux
-        // 手段：对于原始数组a[]的当前元素，使用 groupNoPlus1ToGroupSizeArr[] 来 确定 它会具体被排定到 aux[]的什么位置；
+        // #3 得到 有序的辅助数组aux
+        // 手段：对于 原始数组a[]的当前元素，使用 groupNoPlus1ToGroupSizeArr[] 来 确定 它具体会被排定到 aux[]的什么位置；
         for (int currentSpot = 0; currentSpot < studentAmount; currentSpot++) {
-            // #3-1 在辅助数组aux中，排定 当前位置上的元素。并返回 被排定元素所属的组
+            // ① 在 辅助数组aux 中，排定 当前位置上的元素。并返回 被排定元素所属的组
             int groupNoOfCurrentStudent = arrangeCurrentItemInto(aux, groupNoToItsStartSpotInResultSequence, studentArr[currentSpot]);
 
-            // #3-2 然后更新“组号中的元素在最终结果序列中的位置”（+1） 来 能够正确地排定 组中的下一个元素
+            // ② 然后 更新“该组号中的元素 在最终结果序列中的位置”（+1） 以便能够 正确地排定 组中的下一个元素
+            // 🐖 这里的startSpot就是所谓的“索引”
             groupNoToItsStartSpotInResultSequence[groupNoOfCurrentStudent]++;
         }
 
-        // #4 把辅助数组中的数据回写到原数组
+        printTransformedArr(groupNoToItsStartSpotInResultSequence);
+
+        // #4 把 辅助数组中的数据 回写到 原数组
         copyItemBackTo(studentArr, aux);
 
         // 打印数组中的元素
         printItemIn(studentArr);
+    }
+
+    private static void printFrequencyArr(int[] groupNoPlus1ToGroupSizeArr) {
+        System.out.println("~ 打印 组号->组中元素数量 的映射关系~");
+        for (int currentGroupNo = 0; currentGroupNo < groupNoPlus1ToGroupSizeArr.length - 1; currentGroupNo++) {
+            System.out.println("key为" + currentGroupNo + "的组中，有" + groupNoPlus1ToGroupSizeArr[currentGroupNo + 1] + "个元素");
+        }
+    }
+
+    private static void printTransformedArr(int[] groupNoToItsStartSpotInResultSequence) {
+        System.out.println("= 打印关键数组 count[]中的元素 =");
+        for (int currentGroupNo = 0; currentGroupNo < groupNoToItsStartSpotInResultSequence.length; currentGroupNo++) {
+            System.out.println("key为" + (currentGroupNo + 1) + "的元素，它们 在结果序列中所排定的开始位置 为：" + groupNoToItsStartSpotInResultSequence[currentGroupNo]);
+        }
     }
 
     private static void calculateGroupsStartSpotArr(int[] groupNoPlus1ToGroupSizeArr, int[] groupNoToItsStartSpotInResultSequence) {
@@ -80,21 +99,21 @@ public class ArrangeKeysViaCountingKeysWithinIndex {
     private static void updateGroupStartSpot(int[] groupNoToItsStartSpotInResultSequence) {
         int biggestGroupNo = groupNoToItsStartSpotInResultSequence.length - 1;
         for (int currentGroupNo = 0; currentGroupNo < biggestGroupNo; currentGroupNo++) { // biggestGroupNo
-            // 计算当前元素值的递推公式：当前元素的值 = “当前元素”的当前值 + “其前一个元素”的值
+            // 计算 当前元素值 的递推公式：当前元素的值 = “当前元素”的当前值 + “其前一个元素”的值
             groupNoToItsStartSpotInResultSequence[currentGroupNo + 1] += groupNoToItsStartSpotInResultSequence[currentGroupNo];
         }
     }
 
     private static void initGroupStartSpot(int[] groupNoPlus1ToGroupSizeArr, int[] groupNoToItsStartSpotInResultSequence) {
         for (int currentGroupNo = 0; currentGroupNo < groupNoToItsStartSpotInResultSequence.length; currentGroupNo++) {
-            // 初始化 “当前组”->“当前组的第一个元素在最终结果中的起始位置”的映射关系 🐖 初始值并不正确
+            // 初始化 “当前组” -> “当前组的第一个元素 在最终排列结果中的起始位置”的映射关系 🐖 这里的初始值 并不正确
             groupNoToItsStartSpotInResultSequence[currentGroupNo] = groupNoPlus1ToGroupSizeArr[currentGroupNo];
         }
     }
 
-    private static void copyItemBackTo(Student[] studentArr, Student[] aux) {
-        for (int currentSpot = 0; currentSpot < studentArr.length; currentSpot++) {
-            studentArr[currentSpot] = aux[currentSpot];
+    private static void copyItemBackTo(Student[] originalArr, Student[] auxArr) {
+        for (int currentSpot = 0; currentSpot < originalArr.length; currentSpot++) {
+            originalArr[currentSpot] = auxArr[currentSpot];
         }
     }
 

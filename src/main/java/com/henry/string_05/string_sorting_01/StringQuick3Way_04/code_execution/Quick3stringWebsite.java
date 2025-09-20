@@ -1,4 +1,4 @@
-package com.henry.string_05.string_sorting_01.StringQuick3Way_04; /******************************************************************************
+package com.henry.string_05.string_sorting_01.StringQuick3Way_04.code_execution; /******************************************************************************
  *  Compilation:  javac Quick3string.java
  *  Execution:    java Quick3string < input.txt
  *  Dependencies: StdIn.java StdOut.java

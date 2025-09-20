@@ -1,4 +1,4 @@
-package com.henry.string_05.string_sorting_01.MSD_03;
+package com.henry.string_05.string_sorting_01.MSD_03.code_execution;
 
 import edu.princeton.cs.algs4.StdIn;
 import edu.princeton.cs.algs4.StdOut;

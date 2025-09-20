@@ -1,20 +1,21 @@
-package com.henry.string_05.string_sorting_01.MSD_03;
+package com.henry.string_05.string_sorting_01.MSD_03.code_execution;
 
-// MSD算法：对于特定区间内的字符串序列，从左往右地，以当前字符作为索引、以字符串本身作为键 进行 键索引计数排序的操作；
-// 原理：把原始任务（把所有的字符串按照字母表顺序 完全排序） 分解成为 #1 对首字符执行键索引计数操作（得到有序的首字符）; #2 对各个子组进行同样的操作。
-// 特征：每次执行 键索引计数排序时，都需要设置正确的 字符串序列范围；
-// 递归方法：将 指定闭区间中的所有字符串，从 指定字符开始 完全排序；
-// 手段：使用 字符串中的字符 来 作为”键索引计数法“中的”索引“，使用 字符串本身 作为”键“
+// MSD算法：对于 “特定区间内”的 字符串序列，从左往右地，以 当前字符 作为键、以 字符串本身 作为元素 进行 键索引计数排序的操作；
+// 原理：把 原始任务（把 所有的字符串 按照字母表顺序 完全排序） 分解成为👇
+// ① 对 首字符 执行 键索引计数操作（得到 有序的首字符）; ② 对 各个子组 递归地进行 同样的操作。
+// 特征：每次执行 键索引计数排序 时，都需要 设置正确的“字符串序列范围”；
+// 递归方法：把 指定闭区间范围中的 所有字符串，从 “指定位置”开始（到末尾位置） 完全地排序；
+// 手段：使用 字符串中的字符 来 作为”键索引计数法“中的”键“，使用 字符串本身 作为”元素“
 // 可以使用递归的特征：更小规模问题的答案 能够帮助解决 原始问题。
 public class MSDLite {
-    private static int biggestIndexPlus1 = 256;
+    private static int allKeyOptionsAmount = 256;
     private static final int thresholdToSwitch = 15;
     private static String[] aux;
 
-    // 字符 -> 字符的数字表示    手段：把字符以int类型的值返回
+    // 字符 -> 字符的数字表示    手段：把 字符 以int类型的值返回
     private static int charAt(String word, int characterSlot) {
-        if (characterSlot < word.length()) // 如果参数 在有效的字符范围内
-            return word.charAt(characterSlot); // 返回对应的字符
+        if (characterSlot < word.length()) // 如果 位置参数 在 有效的位置范围 内
+            return word.charAt(characterSlot); // 返回 对应的字符 所对应的int类型的值
         else // 否则
             return -1; // 返回-1
     }
@@ -25,30 +26,52 @@ public class MSDLite {
         sortWordRangesFromGivenCharacter(wordsArr, 0, wordsAmount - 1, 0);
     }
 
-    // 将 [a[wordLeftBar], a[wordRightBar]]这个区间中的所有字符串，从 currentCharacterCursor个字符开始 完全排序
+    /**
+     * 方法作用：把 [a[wordLeftBar], a[wordRightBar]]这个区间内 的所有字符串，从 currentCharacterCursor个字符开始（到结束位置） 完全地排序
+     * 参数说明：
+     * originalWordArr 原始的字符串数组
+     * wordLeftBar 待排序字符串集合 区间的左边界
+     * wordRightBar 待排序字符串集合 区间的右边界
+     * currentStartCharacterCursor 字符串排序的伊始位置
+     */
+
     private static void sortWordRangesFromGivenCharacter(String[] originalWordArr, int wordLeftBar, int wordRightBar, int currentStartCharacterCursor) {
-        // 〇 当区间比较小时: #1 切换到 插入排序（更新版）; #2 递归结束，表示排序工作完成
+        // 〇 当 区间比较小 时: ① 切换到 插入排序（更新版）; ② 递归结束，表示 当前排序工作完成，返回给上一级调用
         if (wordRightBar <= wordLeftBar + thresholdToSwitch) {
             insertion(originalWordArr, wordLeftBar, wordRightBar, currentStartCharacterCursor);
             return;
         }
 
-        // Ⅰ 以当前位置上的字符作为索引 来 对字符串序列执行 键索引计数操作 - 得到 组间有序、组内元素相对顺序同原始序列的结果序列
-        // 🐖 每次 以“指定的index”对“指定区间”中的字符串序列 来 执行键索引计数的操作，都会产生一个新的 indexToItsStartSpotInResultSequence[]数组
-        int[] indexToItsStartSpotInResultSequence = performKeyIndexCountingOperation(originalWordArr, wordLeftBar, wordRightBar, currentStartCharacterCursor);
+        // Ⅰ 以 当前位置上的字符 作为索引 来 对 字符串序列 执行 键索引计数操作 作用：得到 “组间有序、组内元素相对顺序同原始序列”的结果序列
+        // 🐖 每次 以 指定的key 对 指定区间中的字符串序列 执行键索引计数的操作 时，都会产生 一个新的 currentKeyToIsStartSpotInResultSequence[]数组
+        int[] currentKeyToIsStartSpotInResultSequence = performKeyIndexCountingOperation(originalWordArr, wordLeftBar, wordRightBar, currentStartCharacterCursor);
 
-        // Ⅱ 对于”使用首字符进行键索引计数操作后“所得到的 多个 索引不同的子集合/子组，对各个子组中的字符串序列 以下一个位置的字符作为索引 来 执行键索引计数的操作
-        // 特征：结果序列中，存在有多个index，且不确定具体是哪些index（字符）；
-        // 手段：对所有可能的字符index 进行遍历，找到那些个 能够产生有效子集合的index
-        // 🐖 原始数组根据”首字符“产生了几个分组/子集合，这里就会对应的 有多少次循环（需要排序的次数）
-        for (int currentIndex = 0; currentIndex < biggestIndexPlus1; currentIndex++) {
-            // ① 对于当前index，计算 其所对应的 字符串区间👇
+        // Ⅱ 对于 ”使用首字符 作为键 进行键索引计数操作后“ 所得到的 多个 groupNo不同的子集合/子组(组间有序，组内无序)，执行如下操作
+        // 对 各个子组中的字符串序列 以 下一个位置的字符 作为groupNo/key 来 继续执行 键索引计数的操作
+        // 特征：得到的结果序列中 会存在有多个key，但 不确定具体是 哪些key/groupNo/字符，因为这取决于 原始数组中的字符串元素集合
+        // 手段：对 所有可能的key 都进行遍历，找到那些个 能够产生有效子集合的index
+        // 🐖 原始数组 根据”首字符“产生了 多少个 分组/子集合，这里就会 对应地 有多少次循环（需要执行 键索引计数操作的次数）
+        for (int currentKey = 0; currentKey < allKeyOptionsAmount; currentKey++) {
+            // ① 对于 当前key/groupNo，计算 其分组 所对应的 字符串区间（由上往下）👇
             // 区间的左边界&&右边界
-            int wordLeftBarForCurrentIndex = wordLeftBar + indexToItsStartSpotInResultSequence[currentIndex];
-            int wordRightBarForCurrentIndex = wordLeftBar + indexToItsStartSpotInResultSequence[currentIndex + 1] - 1;
+            int currentKeysStartSpot = currentKeyToIsStartSpotInResultSequence[currentKey];
+            int wordLeftBarForCurrentIndex = wordLeftBar + currentKeysStartSpot;
 
-            // ② 使用当前index 来 对其对应的字符串序列 执行键索引计数操作 - 组间有序、组内元素相对顺序不变
-            // 🐖 如果index对应的区间[leftBar, rightBar] 不是一个有效区间，说明 index不存在对应的子集合，则：sort()会直接return
+            /*
+                疑问：这个值这么计算对吗? currentKey+1 在count[]数组中一定对应有值的吗？
+                比如 如果 b组中存在有元素，c组、d组...r组 都没有元素存在，那么：① 这些key在count[]中对应的值是什么呢？② 下面代码的计算方式能得到正确的结果吗？
+                答：
+                    ① 由于 count[]初始时的错位记录特性 + count[i+1]的计算方式，即便c组不存在元素，count[c]也是有值的； count[c] = count[c] + count[b];
+                    ② 计算出 s组中有多少个元素？itemAmount(s) = count[r] - count[s];
+                    所以，如果 nextKeysStartSpot - currentKeysStartSpot <= 1的话，说明 当前组中不存在任何元素，则：递归调用会提前return
+                    而如果 nextKeysStartSpot - currentKeysStartSpot > 1的话，说明 当前组中至少存在有一个元素，则：可以使用公式 (nextKeysStartSpot - currentKeysStartSpot - 1) 来 表示当前组中的元素数量
+                    这个 当前组中的元素数量 就是 我们所需要的 字符串区间！
+             */
+            int nextKeysStartSpot = currentKeyToIsStartSpotInResultSequence[currentKey + 1];
+            int wordRightBarForCurrentIndex = wordLeftBar + nextKeysStartSpot - 1;
+
+            // ② 使用 当前key 来 对 其对应的字符串序列 执行 键索引计数操作 - 组间有序、组内元素相对顺序不变
+            // 🐖 如果 key所对应的区间[leftBar, rightBar] 不是一个有效区间，说明 该key 不存在 对应的子集合，则：sort() 会 直接return
             sortWordRangesFromGivenCharacter(originalWordArr, wordLeftBarForCurrentIndex, wordRightBarForCurrentIndex, currentStartCharacterCursor + 1);
         }
     }
@@ -100,14 +123,14 @@ public class MSDLite {
 
     private static void updateIndexesStartSpotArr(int[] indexToItsStartSpotInResultSequence) {
         // 更新 index -> itsStartSpot 为正确的值   原理：index对应的size 累加后的结果 就是 startSpot的值
-        for (int currentIndex = 0; currentIndex < biggestIndexPlus1 + 1; currentIndex++) {
+        for (int currentIndex = 0; currentIndex < allKeyOptionsAmount + 1; currentIndex++) {
             // 递推公式：当前元素的值 = 当前元素的“当前值” + “其前一个元素”的值
             indexToItsStartSpotInResultSequence[currentIndex + 1] += indexToItsStartSpotInResultSequence[currentIndex];
         }
     }
 
     private static int[] initIndexesStartSpotArr(String[] originalWordArr, int wordLeftBar, int wordRightBar, int currentStartCharacterCursor) {
-        int[] indexToItsStartSpotInResultSequence = new int[biggestIndexPlus1 + 2];
+        int[] indexToItsStartSpotInResultSequence = new int[allKeyOptionsAmount + 2];
 
         // 对于每一个index索引，使用 index中的元素数量 来 初始化 itsStartSpot的值
         for (int currentWordCursor = wordLeftBar; currentWordCursor <= wordRightBar; currentWordCursor++) {
