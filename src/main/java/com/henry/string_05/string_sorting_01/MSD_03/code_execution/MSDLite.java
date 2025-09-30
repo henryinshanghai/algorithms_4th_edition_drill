@@ -34,8 +34,10 @@ public class MSDLite {
      * wordRightBar 待排序字符串集合 区间的右边界
      * currentStartCharacterCursor 字符串排序的伊始位置
      */
-
-    private static void sortWordRangesFromGivenCharacter(String[] originalWordArr, int wordLeftBar, int wordRightBar, int currentStartCharacterCursor) {
+    private static void sortWordRangesFromGivenCharacter(String[] originalWordArr,
+                                                         int wordLeftBar,
+                                                         int wordRightBar,
+                                                         int currentStartCharacterCursor) {
         // 〇 当 区间比较小 时: ① 切换到 插入排序（更新版）; ② 递归结束，表示 当前排序工作完成，返回给上一级调用
         if (wordRightBar <= wordLeftBar + thresholdToSwitch) {
             insertion(originalWordArr, wordLeftBar, wordRightBar, currentStartCharacterCursor);
@@ -53,9 +55,9 @@ public class MSDLite {
         // 🐖 原始数组 根据”首字符“产生了 多少个 分组/子集合，这里就会 对应地 有多少次循环（需要执行 键索引计数操作的次数）
         for (int currentKey = 0; currentKey < allKeyOptionsAmount; currentKey++) {
             // ① 对于 当前key/groupNo，计算 其分组 所对应的 字符串区间（由上往下）👇
-            // 区间的左边界&&右边界
+            // 计算出 区间的左边界 && 右边界
             int currentKeysStartSpot = currentKeyToIsStartSpotInResultSequence[currentKey];
-            int wordLeftBarForCurrentIndex = wordLeftBar + currentKeysStartSpot;
+            int wordLeftBarForCurrentKey = wordLeftBar + currentKeysStartSpot;
 
             /*
                 疑问：这个值这么计算对吗? currentKey+1 在count[]数组中一定对应有值的吗？
@@ -68,37 +70,50 @@ public class MSDLite {
                     这个 当前组中的元素数量 就是 我们所需要的 字符串区间！
              */
             int nextKeysStartSpot = currentKeyToIsStartSpotInResultSequence[currentKey + 1];
-            int wordRightBarForCurrentIndex = wordLeftBar + nextKeysStartSpot - 1;
+            int wordRightBarForCurrentKey = wordLeftBar + nextKeysStartSpot - 1;
 
             // ② 使用 当前key 来 对 其对应的字符串序列 执行 键索引计数操作 - 组间有序、组内元素相对顺序不变
             // 🐖 如果 key所对应的区间[leftBar, rightBar] 不是一个有效区间，说明 该key 不存在 对应的子集合，则：sort() 会 直接return
-            sortWordRangesFromGivenCharacter(originalWordArr, wordLeftBarForCurrentIndex, wordRightBarForCurrentIndex, currentStartCharacterCursor + 1);
+            sortWordRangesFromGivenCharacter(originalWordArr,
+                                            wordLeftBarForCurrentKey,
+                                            wordRightBarForCurrentKey,
+                                            currentStartCharacterCursor + 1);
         }
     }
 
-    // 键索引计数操作：pick the item in original sequence, and arrange it into correct spot.
-    // originalWordArr, 原始的字符串序列    wordLeftBar, 待操作的字符串序列区间的左边界
-    // wordRightBar, 待操作字符串序列区间的右边界     currentStartCharacterCursor, 作为索引的字符的位置
-    private static int[] performKeyIndexCountingOperation(String[] originalWordArr, int wordLeftBar, int wordRightBar, int currentStartCharacterCursor) {
-        // Ⅰ 准备 indexToItsStartSpotInResultSequence[] - #1 index = 字符的数字表示 + 1; 用于避免出现值为-1的index  #2 多预留出一个位置，用于 累加得到 startSpot
-        int[] indexToItsStartSpotInResultSequence = initIndexesStartSpotArr(originalWordArr, wordLeftBar, wordRightBar, currentStartCharacterCursor);
+    /**
+     * 按照键索引计数的规则，把 原始数组中的元素 排定到 结果序列中的正确位置
+     * @param originalWordArr   原始的字符串序列
+     * @param wordLeftBar   区间的左边界
+     * @param wordRightBar  区间的右边界
+     * @param currentStartCharacterCursor   作为key的字符指针（位置）
+     * @return
+     */
+    private static int[] performKeyIndexCountingOperation(String[] originalWordArr,
+                                                          int wordLeftBar,
+                                                          int wordRightBar,
+                                                          int currentStartCharacterCursor) {
+        // Ⅰ 准备 keyToItsStartSpotInResultSequence[] - #1 index = 字符的数字表示 + 1; 用于避免出现值为-1的index  #2 多预留出一个位置，用于 累加得到 startSpot
+        int[] keyToItsStartSpotInResultSequence
+                = initKeysStartSpotArr(originalWordArr, wordLeftBar, wordRightBar, currentStartCharacterCursor);
 
-        // Ⅱ 把index->itsSize 转换为 index->itsStartSpot
-        updateIndexesStartSpotArr(indexToItsStartSpotInResultSequence);
+        // Ⅱ 把key->itsSize 转换为 key->itsStartSpot
+        updateKeysStartSpotArr(keyToItsStartSpotInResultSequence);
 
         // Ⅲ 从[a[wordLeftBar], a[wordRightBar]]区间中的所有字符串中，构造出 第currentCharacterCursor个字符有序的 aux[]
         for (int currentWordCursor = wordLeftBar; currentWordCursor <= wordRightBar; currentWordCursor++) {
             String currentWord = originalWordArr[currentWordCursor];
-            int indexOfCurrentWord = arrangeWordToCorrectSpot(currentWord, currentStartCharacterCursor, indexToItsStartSpotInResultSequence);
+            int keyOfCurrentWord =
+                    arrangeWordToCorrectSpot(currentWord, currentStartCharacterCursor, keyToItsStartSpotInResultSequence);
 
-            // 把startSpot的位置+1，来 为排定组中的下一个单词做准备
-            indexToItsStartSpotInResultSequence[indexOfCurrentWord]++;
+            // 把startSpot的位置+1，来 为 排定组中的下一个单词 做准备
+            keyToItsStartSpotInResultSequence[keyOfCurrentWord]++;
         }
 
         // Ⅳ 把aux[]中的字符串，逐个写回到 原始数组wordArr[]中
         writeItemBackTo(originalWordArr, wordLeftBar, wordRightBar);
 
-        return indexToItsStartSpotInResultSequence;
+        return keyToItsStartSpotInResultSequence;
     }
 
     private static void writeItemBackTo(String[] originalWordArr, int wordLeftBar, int wordRightBar) {
@@ -121,28 +136,32 @@ public class MSDLite {
         return indexOfCurrentWord;
     }
 
-    private static void updateIndexesStartSpotArr(int[] indexToItsStartSpotInResultSequence) {
-        // 更新 index -> itsStartSpot 为正确的值   原理：index对应的size 累加后的结果 就是 startSpot的值
-        for (int currentIndex = 0; currentIndex < allKeyOptionsAmount + 1; currentIndex++) {
+    private static void updateKeysStartSpotArr(int[] keyToItsStartSpotInResultSequence) {
+        // 更新 key -> itsStartSpot 为正确的值   原理：key所对应的size 累加后的结果 就是 startSpot的值
+        for (int currentKey = 0; currentKey < allKeyOptionsAmount + 1; currentKey++) {
             // 递推公式：当前元素的值 = 当前元素的“当前值” + “其前一个元素”的值
-            indexToItsStartSpotInResultSequence[currentIndex + 1] += indexToItsStartSpotInResultSequence[currentIndex];
+            keyToItsStartSpotInResultSequence[currentKey + 1] += keyToItsStartSpotInResultSequence[currentKey];
         }
     }
 
-    private static int[] initIndexesStartSpotArr(String[] originalWordArr, int wordLeftBar, int wordRightBar, int currentStartCharacterCursor) {
-        int[] indexToItsStartSpotInResultSequence = new int[allKeyOptionsAmount + 2];
+    private static int[] initKeysStartSpotArr(String[] originalWordArr,
+                                              int wordLeftBar,
+                                              int wordRightBar,
+                                              int currentStartCharacterCursor) {
 
-        // 对于每一个index索引，使用 index中的元素数量 来 初始化 itsStartSpot的值
+        int[] keyToItsStartSpotInResultSequence = new int[allKeyOptionsAmount + 2];
+
+        // 对于每一个key，使用 key中的元素数量 来 初始化 itsStartSpot的值
         for (int currentWordCursor = wordLeftBar; currentWordCursor <= wordRightBar; currentWordCursor++) {
             // #1 获取到 字符的整数表示
             String currentWord = originalWordArr[currentWordCursor];
             int currentStartCharacter = charAt(currentWord, currentStartCharacterCursor);
-            // #2 计算出单词的索引值     🐖 单词的索引值 与 当前字符 之间的关系: index = currentCharacter + 1（避免出现负数） + 1（方便运算）
-            int indexOfCurrentWord = currentStartCharacter + 2;
+            // #2 计算出 单词的key     🐖 单词的索引值 与 当前字符 之间的关系: index = currentCharacter + 1（避免出现负数） + 1（方便运算）
+            int keyOfCurrentWord = currentStartCharacter + 2;
             // #3 把 当前单词(计数为1) 累计到 它的索引值 对应的startSpot中
-            indexToItsStartSpotInResultSequence[indexOfCurrentWord]++;
+            keyToItsStartSpotInResultSequence[keyOfCurrentWord]++;
         }
-        return indexToItsStartSpotInResultSequence;
+        return keyToItsStartSpotInResultSequence;
     }
 
     // 对 [a[leftBar], a[rightBar]]闭区间中的元素，从 startPointToCompare个字符开始 完全排序
@@ -168,7 +187,7 @@ public class MSDLite {
     private static boolean less(String word1, String word2, int startPointToCompare) {
         // assert v.substring(0, d).equals(w.substring(0, d));
 
-        // 对于当前位置上的字符...
+        // 对于当前位置上的字符...g
         for (int currentCursor = startPointToCompare; currentCursor < Math.min(word1.length(), word2.length()); currentCursor++) {
             // 如果 word1中的字符 比起 word2中的字符更小，则：返回true 表示word1是较小的那个
             if (word1.charAt(currentCursor) < word2.charAt(currentCursor)) return true;
