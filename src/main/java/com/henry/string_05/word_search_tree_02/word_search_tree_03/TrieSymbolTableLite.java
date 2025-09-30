@@ -111,7 +111,11 @@ public class TrieSymbolTableLite<Key, Value> {
         Node correspondingSubNode = currentRootNode.characterToItsSubNode[currentCharacter];
 
         // ② 把 插入了更短路径的 trie子树，绑定回到 当前节点的后继子树 上（#1 + #2）
-        currentRootNode.characterToItsSubNode[currentCharacter] = putInNodesOfPathThatStartFrom(correspondingSubNode, passedKey, associatedValue, currentStartCharacterSpot + 1);
+        currentRootNode.characterToItsSubNode[currentCharacter]
+                = putInNodesOfPathThatStartFrom(correspondingSubNode,
+                                                passedKey,
+                                                associatedValue,
+                                                currentStartCharacterSpot + 1);
 
         // ③ 最终返回 添加了 key所需要的路径 的单词查找树(的根结点)
         return currentRootNode;

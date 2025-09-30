@@ -503,11 +503,11 @@ public class TrieSTWebsite<Value> {
         } else { // 如果 当前结点 不是 路径中的最后一个结点，说明 查询 尚未执行到 最后一个节点，则：
             // 在 子trie树 中 继续 递归地删除key
             char currentCharacter = passedKey.charAt(currentStartCharacterSpot);
-            Node successorNodeForCharacter = currentRootNode.characterToItsSubNode[currentCharacter];
+            Node correspondingSubNode = currentRootNode.characterToItsSubNode[currentCharacter];
 
             // 把 “删除了指定key之后”的 trie子树，绑定回去 原始子树的引用上
             currentRootNode.characterToItsSubNode[currentCharacter] =
-                    deleteNodesOfPathThatStartFrom(successorNodeForCharacter,
+                    deleteNodesOfPathThatStartFrom(correspondingSubNode,
                             passedKey,
                             currentStartCharacterSpot + 1);
         }
