@@ -36,7 +36,7 @@ import java.awt.Color;
  * @author Robert Sedgewick
  * @author Kevin Wayne
  */
-// 作用：以黑白图片的方式 来 展示二进制文件
+// 作用：以 黑白图片的方式 来 展示二进制文件
 public class PictureDump {
 
     // Do not instantiate.
@@ -44,9 +44,9 @@ public class PictureDump {
     }
 
     /**
-     * 从标准输入中读取字节序列，
-     * 并把它们 以一个 宽-高图片的方式 绘制到 标准绘制输出中，
-     * 对于1使用黑色，对于0使用白色（剩下的像素 使用红色）
+     * 从 标准输入 中 读取字节序列，
+     * 并 把 它们 以一个 宽-高图片的方式 绘制到 标准绘制输出 中，
+     * 对于1 使用黑色，对于0 使用白色（剩下的像素 使用红色）
      *
      * @param args the command-line arguments
      */
@@ -55,22 +55,24 @@ public class PictureDump {
         int height = Integer.parseInt(args[1]);
         Picture picture = new Picture(width, height);
 
-        for (int row = 0; row < height; row++) {
-            for (int col = 0; col < width; col++) {
+        for (int currentRow = 0; currentRow < height; currentRow++) {
+            for (int currentCol = 0; currentCol < width; currentCol++) {
                 if (!BinaryStdIn.isEmpty()) {
-                    // 读取标准输入中的比特
+                    // 读取 标准输入中的 当前比特
                     boolean currentBitOfInput = BinaryStdIn.readBoolean();
-                    // 如果比特为1，则 打印黑色像素
-                    if (currentBitOfInput) picture.set(col, row, Color.BLACK);
-                    // 如果比特为0，则 打印白色像素
-                    else picture.set(col, row, Color.WHITE);
+                    // 如果 比特为1，则 打印 黑色像素
+                    if (currentBitOfInput) {
+                        picture.set(currentCol, currentRow, Color.BLACK);
+                    } else { // 如果比特为0，则 打印白色像素
+                        picture.set(currentCol, currentRow, Color.WHITE);
+                    }
                 } else { // 如果标准输入中的比特已经耗尽，则 打印红色像素
-                    picture.set(col, row, Color.RED);
+                    picture.set(currentCol, currentRow, Color.RED);
                 }
             }
         }
 
-        // 把图片绘制到 标准绘制输出中
+        // 把 图片 绘制到 标准绘制输出 中
         picture.show();
     }
 }

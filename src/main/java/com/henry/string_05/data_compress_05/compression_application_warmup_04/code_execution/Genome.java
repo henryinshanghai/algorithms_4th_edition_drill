@@ -39,69 +39,75 @@ public class Genome {
     }
 
     /**
-     * Reads a sequence of 8-bit extended ASCII characters over the alphabet
-     * { A, C, T, G } from standard input; compresses them using two bits per
-     * character; and writes the results to standard output.
-     * <p>
-     * 从标准输入中 读取一个 由8位扩展ASCII字符所构成的序列（字符选项 A, C, T, G）
+     * 从标准输入中 读取一个 由8位扩展ASCII字符所构成的序列（字母表/字符选项 {A, C, T, G}）
      * 以“每个字符两位比特”的方式 来 压缩它们
-     * 并把结果写出到 标准输出中
+     * 并 把 结果 写出到 标准输出中
      */
     public static void compress() {
-        Alphabet baseOptionAlphabet = Alphabet.DNA;
-        String inputBaseSequence = BinaryStdIn.readString();
-        int baseAmountOfInput = inputBaseSequence.length();
-        // 向标准输出中输出 碱基序列中碱基的数量 - 作用:???
-        BinaryStdOut.write(baseAmountOfInput);
+        Alphabet baseOptions = Alphabet.DNA; // base 碱基
+        // 从 标准输入 中 读取 字节数据，并 以 字符串 返回
+        String baseSequence = BinaryStdIn.readString();
+        int baseAmount = baseSequence.length();
 
-        // Write two-bit code for char.
-        for (int currentBaseSpot = 0; currentBaseSpot < baseAmountOfInput; currentBaseSpot++) {
-            // 获取到当前的碱基字符
-            char currentBaseChar = inputBaseSequence.charAt(currentBaseSpot);
-            // 对当前碱基字符进行编码  手段：使用碱基字符在“碱基字母表”中的位置 来 对碱基进行编码
-            int basesIndexInAlphabet = baseOptionAlphabet.toIndex(currentBaseChar);
-            // 向标准输出中输出 当前碱基字符编码后的结果（以两个比特表示的int值）
-            BinaryStdOut.write(basesIndexInAlphabet, 2);
+        // #1 向 标准输出 中 输出 碱基序列中 碱基的数量 - 作用:用于 在解码时，提供解码 所需要的 碱基数量的信息
+        BinaryStdOut.write(baseAmount);
+
+        // #2 向 标准输出 中，写入 各个字符的 两位编码
+        for (int currentBaseSpot = 0; currentBaseSpot < baseAmount; currentBaseSpot++) {
+            // 获取到 当前的碱基字符
+            char currentBaseChar = baseSequence.charAt(currentBaseSpot);
+            // 对 当前碱基字符 进行编码  手段：使用 该碱基字符 在“碱基字母表”中的位置 来 对 碱基 进行编码
+            int currentBaseEncodedResult = baseOptions.toIndex(currentBaseChar);
+            // 向 标准输出 中 输出 当前碱基字符 编码的结果（以 两个比特 表示的 int值）
+            BinaryStdOut.write(currentBaseEncodedResult, 2);
         }
 
+        // #3 刷新并关闭 标准输出流
         BinaryStdOut.close();
     }
 
     /**
-     * Reads a binary sequence from standard input; converts each two bits
-     * to an 8-bit extended ASCII character over the alphabet { A, C, T, G };
-     * and writes the results to standard output.
-     * 从标准输入中读取一个二进制序列；
-     * 把每两个bit都转化成为一个8bit的扩展ASCII字符（基于字母表 A,C,T,G）
-     * 并且把转换结果 写入到标准输出中去
+     * 从 标准输入 中读取一个 二进制序列；
+     * 把 每两个bit都 转化成为 一个8bit的 扩展ASCII字符（基于字母表 A,C,T,G）
+     * 并且 把 转换结果 写入到 标准输出 中
+     * 🐖 解码时，会对 编码结果中的各个部分 依次 解码，并 预期 各个部分 有特定的含义。因此：
+     * ① 解码次序 需要 与 编码时的次序 相同；
+     * ② 解码的规则 需要 与 编码时的规则 相同；
+     * ③ 解码的正确性 依赖于 编码的正确性（各个部分的次序&正确性）
      */
     public static void expand() {
-        Alphabet baseOptionAlphabet = Alphabet.DNA;
-        // 从标准输入中读取一个int值 - 读取到的结果预期是 这段比特序列解码结果中的碱基数量
+        Alphabet baseOptions = Alphabet.DNA;
+        // #1 先从 标准输入 中 读取一个int值 - 读取到的结果 预期是 这段比特序列 解码结果中的 碱基数量
         int expectedBaseAmount = BinaryStdIn.readInt();
-        // Read two bits; write char.
+
+        // #2 每次 读取两个比特，并把 这两个比特 解码成为 碱基字符
         for (int currentBaseSpot = 0; currentBaseSpot < expectedBaseAmount; currentBaseSpot++) {
-            // 从标准输入中读取两个比特 来 得到“预期碱基字符的编码结果” aka 碱基字符在碱基字母表中的位置
-            char currentBasesIndexInAlphabet = BinaryStdIn.readChar(2);
-            // 在碱基字母表的对应位置上 获取到 当前碱基字符
-            char currentBase = baseOptionAlphabet.toChar(currentBasesIndexInAlphabet);
-            // 向标准输出中 输出“当前碱基字符”(以8位比特表示的字符)
-            BinaryStdOut.write(currentBase, 8);
+            // 读取到 当前的碱基字符编码结果  手段：从 标准输入 中 读取两个比特
+            char currentBaseEncodedResult = BinaryStdIn.readChar(2);
+            // 对 该编码结果 进行解码       手段：获取到 该编码结果 在”碱基字母表“中 对应的碱基字符
+            char currentBaseChar = baseOptions.toChar(currentBaseEncodedResult);
+            // 向 标准输出 中 输出“当前碱基字符”(以 8位比特 所表示的字符)
+            BinaryStdOut.write(currentBaseChar, 8);
         }
+
+        // #3 刷新并关闭 标准输出
         BinaryStdOut.close();
     }
 
 
     /**
-     * Sample client that calls {@code compress()} if the command-line
-     * argument is "-" an {@code expand()} if it is "+".
-     *
-     * @param args the command-line arguments
+     * 如果 命令行参数 是 -，则：调用 compress()方法 进行压缩/编码；
+     * 如果 命令行参数 是 +，则：调用 expand()方法 进行展开/解码；
+     * @param args 命令行参数
      */
     public static void main(String[] args) {
-        if (args[0].equals("-")) compress();
-        else if (args[0].equals("+")) expand();
-        else throw new IllegalArgumentException("Illegal command line argument");
+        if (args[0].equals("-")) {
+            compress();
+        } else if (args[0].equals("+")) {
+            expand();
+        } else {
+            throw new IllegalArgumentException("Illegal command line argument");
+        }
     }
 
 }

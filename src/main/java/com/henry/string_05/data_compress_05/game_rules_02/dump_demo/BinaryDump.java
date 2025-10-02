@@ -42,7 +42,7 @@ import edu.princeton.cs.algs4.StdOut;
  * @author Robert Sedgewick
  * @author Kevin Wayne
  */
-// 作用：读取标准输入中的字符序列，并得到其对应的二进制表示
+// 作用：读取 标准输入中的 字符序列，并 得到 其对应的 二进制表示
 public class BinaryDump {
 
     // Do not instantiate.
@@ -50,38 +50,33 @@ public class BinaryDump {
     }
 
     /**
-     * Reads in a sequence of bytes from standard input and writes
-     * them to standard output in binary, k bits per line,
-     * where k is given as a command-line integer (defaults
-     * to 16 if no integer is specified); also writes the number
-     * of bits.
-     * 从标准输入读取 字节序列，并以二进制的形式把它们写入到标准输出中（每行k个比特）
-     * k由命令行整数指定（默认值是16）
+     * 从 标准输入 读取 字节（字符）序列，并以 二进制的形式 把它们 写入到 标准输出中（每行k个比特）
+     * k 由 命令行参数 指定（默认值是16）
      * 同时写入 比特数量
      *
-     * @param args the command-line arguments 命令行参数
+     * @param args 命令行参数
      */
     public static void main(String[] args) {
-        // 指定每行所展示的比特数量 - 默认值16
+        // 指定 每行所要展示的 比特数量 - 默认值16
         int bitAmountPerLine = 16;
-        if (args.length == 1) { // 如果只存在有1个命令行参数，则...
-            // 把 参数传入的值 作为“每行的比特数量”
+        if (args.length == 1) { // 如果 只存在有 1个命令行参数，说明 用户指定了 每行展示的比特数量，
+            // 则：把 参数传入的值 作为“每行的比特数量”
             bitAmountPerLine = Integer.parseInt(args[0]);
         }
 
         int bitCounter;
-        // 只要标准输入不为空...
+        // 只要 标准输入 不为空...
         for (bitCounter = 0; !BinaryStdIn.isEmpty(); bitCounter++) {
+            // 如果 每行所要展示的 比特数量为0（用户指定），说明 用户不想展示任何比特，则：
             if (bitAmountPerLine == 0) {
-                // 读取标准输入中的下一个比特值 - 为什么这里只消耗比特，但是不打印任何东西？
-                // 因为如果 开发者指定 “每行所打印的比特数量为0”的话，那么 程序就只能 不打印任何比特，而空消耗输入了
+                // 只是读取 当前比特值，而不打印任何内容
                 BinaryStdIn.readBoolean();
                 continue;
-            } else if (isMeetTheEndOfCurrentLine(bitCounter, bitAmountPerLine))
+            } else if (isMeetTheEndOfCurrentLine(bitCounter, bitAmountPerLine)) // 如果到了需要换行的位置，则：
                 // 打印换行
                 StdOut.println();
 
-            // 读取标准输入中的下一个比特值
+            // 读取 标准输入中的 当前比特值
             // 规则：如果读取结果为true，则打印1；如果为false，则打印0
             if (BinaryStdIn.readBoolean())
                 StdOut.print(1); // 打印1
@@ -89,15 +84,21 @@ public class BinaryDump {
                 StdOut.print(0); // 打印0
         }
 
-        // 在用户指定的“每行的比特数量”不为0的情况下，就需要 手动地在当前行(最后一行)中添加一个换行符
+        // 如果 用户所指定的 “每行的比特数量”不为0，说明??，则：
         if (bitAmountPerLine != 0)
+            // 手动地 在最后一行后 添加一个换行符
             StdOut.println();
 
         // 打印出 具体的比特数量
         StdOut.println(bitCounter + " bits");
     }
 
-    // 判断比特计数器是不是到了该换行的位置
+    /**
+     * 作用：判断 比特计数器 是不是到了 该换行的位置
+     * @param bitCounter    比特计数器
+     * @param bitAmountPerLine  每行想要展示的比特数量
+     * @return 一个boolean值，用于表示 是否到达了 需要换行的位置
+     */
     private static boolean isMeetTheEndOfCurrentLine(int bitCounter, int bitAmountPerLine) {
         return bitCounter != 0 && bitCounter % bitAmountPerLine == 0;
     }
