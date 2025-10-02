@@ -33,7 +33,7 @@ import edu.princeton.cs.algs4.StdOut;
 /**
  * The {@code HexDump} class provides a client for displaying the contents
  * of a binary file in hexadecimal.
- * 以十六进制数字的形式 来 展示二进制文件
+ * 以 十六进制数字的形式 来 展示二进制文件
  * <p>
  * For additional documentation,
  * see <a href="https://algs4.cs.princeton.edu/55compression">Section 5.5</a> of
@@ -47,7 +47,7 @@ import edu.princeton.cs.algs4.StdOut;
  * @author Robert Sedgewick
  * @author Kevin Wayne
  */
-// 作用：读取标准输入中的字符序列，并得到其对应的十六进制表示
+// 作用：读取 标准输入中的 字符序列，并 得到 其对应的十六进制表示
 public class HexDump {
 
     // Do not instantiate.
@@ -55,33 +55,30 @@ public class HexDump {
     }
 
     /**
-     * Reads in a sequence of bytes from standard input and writes
-     * them to standard output using hexadecimal notation, k hex digits
-     * per line, where k is given as a command-line integer (defaults
-     * to 16 if no integer is specified); also writes the number
-     * of bits.
-     *
-     * @param args the command-line arguments
+     * 从 标准输入中 读取 字节序列，并 使用 十六进制数的形式 把它们写入到 标准输出中。
+     * 每行 k个 十六进制数，其中 k是 通过命令行参数指定的整数（如果没有指定，默认为16）
+     * 同事写入 比特数量
+     * @param args 命令行参数
      */
     public static void main(String[] args) {
-        int bytesPerLine = 16;
+        int hexesPerLine = 16;
         if (args.length == 1) {
-            bytesPerLine = Integer.parseInt(args[0]);
+            hexesPerLine = Integer.parseInt(args[0]);
         }
 
-        int i;
-        for (i = 0; !BinaryStdIn.isEmpty(); i++) {
-            if (bytesPerLine == 0) {
+        int currentByteCursor;
+        for (currentByteCursor = 0; !BinaryStdIn.isEmpty(); currentByteCursor++) {
+            if (hexesPerLine == 0) {
                 BinaryStdIn.readChar();
                 continue;
             }
-            if (i == 0) StdOut.printf("");
-            else if (i % bytesPerLine == 0) StdOut.printf("\n", i);
+            if (currentByteCursor == 0) StdOut.printf("");
+            else if (currentByteCursor % hexesPerLine == 0) StdOut.printf("\n", currentByteCursor);
             else StdOut.print(" ");
-            char c = BinaryStdIn.readChar();
-            StdOut.printf("%02x", c & 0xff);
+            char encodedChar = BinaryStdIn.readChar();
+            StdOut.printf("%02x", encodedChar & 0xff);
         }
-        if (bytesPerLine != 0) StdOut.println();
-        StdOut.println((i * 8) + " bits");
+        if (hexesPerLine != 0) StdOut.println();
+        StdOut.println((currentByteCursor * 8) + " bits");
     }
 }

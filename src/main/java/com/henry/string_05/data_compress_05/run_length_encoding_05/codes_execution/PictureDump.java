@@ -36,7 +36,7 @@ import java.awt.*;
  * @author Robert Sedgewick
  * @author Kevin Wayne
  */
-// 作用：以黑白图片的方式 来 展示二进制文件
+// 作用：以 黑白图片的方式 来 展示 二进制文件
 public class PictureDump {
 
     // Do not instantiate.
@@ -44,9 +44,9 @@ public class PictureDump {
     }
 
     /**
-     * 从标准输入中读取字节序列，
-     * 并把它们 以一个 宽-高图片的方式 绘制到 标准绘制输出中，
-     * 对于1使用黑色，对于0使用白色（剩下的像素 使用红色）
+     * 从 标准输入 中 读取 字节序列，
+     * 并 把 它们 以一个 宽-高图片的方式 绘制到 标准绘制输出中，
+     * 对于1 使用黑色，对于0 使用白色（剩下的像素 使用红色）
      *
      * @param args the command-line arguments
      */

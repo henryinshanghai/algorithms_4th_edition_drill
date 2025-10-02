@@ -28,7 +28,7 @@ import edu.princeton.cs.algs4.StdOut;
 /**
  * The {@code BinaryDump} class provides a client for displaying the contents
  * of a binary file in binary.
- * 以二进制数字的形式 来 展示二进制文件
+ * 以 二进制数字的形式 来 展示二进制文件
  * <p>
  * For more full-featured versions, see the Unix utilities
  * {@code od} (octal dump) and {@code hexdump} (hexadecimal dump).
@@ -42,7 +42,7 @@ import edu.princeton.cs.algs4.StdOut;
  * @author Robert Sedgewick
  * @author Kevin Wayne
  */
-// 作用：读取标准输入中的字符序列，并得到其对应的比特序列
+// 作用：读取 标准输入中的 字符序列，并 得到 其对应的比特序列
 public class BinaryDump {
 
     // Do not instantiate.
@@ -50,16 +50,11 @@ public class BinaryDump {
     }
 
     /**
-     * Reads in a sequence of bytes from standard input and writes
-     * them to standard output in binary, k bits per line,
-     * where k is given as a command-line integer (defaults
-     * to 16 if no integer is specified); also writes the number
-     * of bits.
-     * 从标准输入读取 字节序列，并以二进制的形式把它们写入到标准输出中（每行k个比特）
-     * k由命令行整数指定（默认值是16）
+     * 从 标准输入 读取 字节序列，并 以二进制的形式 把它们 写入到 标准输出中（每行k个比特）
+     * k 由 命令行整数 指定（默认值是16）
      * 同时写入 比特数量
      *
-     * @param args the command-line arguments 命令行参数
+     * @param args 命令行参数
      */
     public static void main(String[] args) {
         // 每行的比特数量
