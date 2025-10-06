@@ -65,11 +65,14 @@ public class LZW {
         String unattendedCharacterSequence = BinaryStdIn.readString();
         // 对于 “未处理的输入” unattendedCharacterSequence...
         while (unattendedCharacterSequence.length() > 0) {
+            System.out.println("@@ 当前 待编码的字符序列为：" + unattendedCharacterSequence + " @@");
             /* #1 向 标准输出 中 写入 “当前最长匹配前缀键“的码值（作为 其编码结果） */
             // 获取到 “该未处理输入” 存在于编码表中的 “最长匹配前缀”键 -
             // 🐖 最开始 时，只存在有 单字符键条目，所以 最长前缀 也是 单字符的
             String longestPrefixStr = getLongestPrefixExistInEncodedValueTable(unattendedCharacterSequence, keyToItsEncodedValueTable);
             writeEncodedResultToOutput(keyToItsEncodedValueTable, longestPrefixStr);
+            System.out.println("~~ 当前被编码的字符序列（读取到的最长前缀键）为：" + longestPrefixStr + "，" +
+                    "其编码结果为：" + keyToItsEncodedValueTable.get(longestPrefixStr) + " ~~");
 
             /* #2 向 编码表 中 添加 “多字符”条目 */
             int currentPrefixLength = longestPrefixStr.length();
@@ -80,14 +83,18 @@ public class LZW {
                 String currentMultiCharacterKey = unattendedCharacterSequence.substring(0, currentPrefixLength + 1);
                 // ② 构造 “符号表条目”的 “码值” - 手段：直接使用 编码表中的 未被分配key的码值 即可（用完后++）
                 keyToItsEncodedValueTable.put(currentMultiCharacterKey, currentUnassignedCodeValue++);
+                System.out.println("++ 当前向编码表中添加的条目，键为：" + currentMultiCharacterKey + "，值(编码的码值)为：" + (currentUnassignedCodeValue - 1) + " ++");
             }
 
             /* #3 添加完 “多字符条目” 后，更新 “未处理的输入”变量 */
             unattendedCharacterSequence = updateItAsRequired(unattendedCharacterSequence, currentPrefixLength);
+            System.out.println("-- 更新后的 待编码字符序列 为：" + (unattendedCharacterSequence.equals("") ? "空字符串" : unattendedCharacterSequence) + " --");
+            System.out.println();
         }
 
         // #4 最后，向 标准输出 中 写入 预留的EOF字符
         BinaryStdOut.write(characterOptions, bitWidthLength);
+        System.out.println("** 最后 向编码结果序列中 写入EOF编码：" + characterOptions + " **");
         // 刷新 并 关闭流
         BinaryStdOut.close();
     }
@@ -188,33 +195,44 @@ public class LZW {
         if (currentCodeValueOfInput == characterOptions) return;           // expanded message is empty string
         // #2-② 解码出 “当前码值” 所对应的 字符串
         String currentDecodedStr = codeValueToItsDecodedStr[currentCodeValueOfInput];
+        System.out.println("~~ 解码出 标准输入中第一个码值" + currentCodeValueOfInput + " 所对应的字符序列：" + currentDecodedStr + " ~~");
 
+        int counter = 0;
         while (true) {
             // #2-③ 把 当前码值“ 解码所得到的字符串” 写入到 标准输出 中
+            System.out.println("!!! 当前输入中的码值" + currentCodeValueOfInput + "所解码出的字符序列为：" + currentDecodedStr + " !!!");
             BinaryStdOut.write(currentDecodedStr);
 
-            // #3-① 读取 “输入中的下一个码值”
+            // #3-① 读取 “输入中的下一个码值”  🐖 这个读取的实现貌似有点问题，无法读到EOF编码 来 结束方法
             int nextCodeValueOfInput = BinaryStdIn.readInt(bitWidthLength);
             // 如果 码值 等于 “最大的可选字符选项”，说明 到达EOF，则：解码 结束，跳出 循环
             if (nextCodeValueOfInput == characterOptions) break;
             // #3-② 解码出 “输入中的下一个码值” 所对应的字符串
             String nextDecodedStr = codeValueToItsDecodedStr[nextCodeValueOfInput];
+            System.out.println("@@@ 标准输入中的下一个码值 " + nextCodeValueOfInput + "，根据当前解码表 所解码出的字符序列为：" + nextDecodedStr + " @@@");
 
             // #4 向 “解码表” 中 添加条目👇
             // #4-① 先处理 特殊情况：如果 解码表中的 待填充条目的码值 与 输入中的下一个码值 相同，则..
-            if (currentCodeValueOfDecodedTable == nextCodeValueOfInput)
+            if (currentCodeValueOfDecodedTable == nextCodeValueOfInput) {
                 // 按照规则，构造出 “下一个码值” 所对应的 字符序列👇
                 // “输入中的下一个码值” 所对应的字符串 就等于 “输入中的当前码值” 所对应的字符串(AB) + “当前码值 所对应的 字符串的首字符”(A)
                 nextDecodedStr = currentDecodedStr + currentDecodedStr.charAt(0);
+                System.out.println("### 对于特殊情况(标准输入中的下一个码值 等于 解码表中待填充条目的码值)，更新 解码出的字符序列为：" + nextDecodedStr + " ###");
+            }
             // #4-② 如果 解码表中的 待填充条目的码值 还是 在 “有效码值”的范围 内，则：
-            if (currentCodeValueOfDecodedTable < encodedValueOptions)
+            if (currentCodeValueOfDecodedTable < encodedValueOptions) {
                 /* 构造 解码表条目的 “码值” 与 “字符串”，将 它们 关联起来 */
                 // 构造 码值 - 手段：把 “自然数序列中的当前码值” +1；
                 // 构造“字符串” - 手段：“输入中的 当前编码 所对应的字符串” + “输入中的 下一个编码 所对应的字符串”的首字符(前瞻字符)
-                codeValueToItsDecodedStr[currentCodeValueOfDecodedTable++] = currentDecodedStr + nextDecodedStr.charAt(0);
-
+                String decodedStr = currentDecodedStr + nextDecodedStr.charAt(0);
+                codeValueToItsDecodedStr[currentCodeValueOfDecodedTable++] = decodedStr;
+                System.out.println("$$$ 向解码表中 添加条目 (" + (currentCodeValueOfDecodedTable - 1) + " -> " + decodedStr + ") $$$");
+            }
             // #5 更新 “当前解码出的字符串”变量 为 “下一个解码出的字符串” 来 为 下一个循环 做准备{1 打印 字符序列； 2 添加 解码表条目}
             currentDecodedStr = nextDecodedStr;
+            currentCodeValueOfInput = nextCodeValueOfInput;
+            System.out.println("%%% 更新 当前码值解码出的字符串 变量的值 为：" + nextDecodedStr + " %%%");
+            System.out.println();
         }
 
         // 刷新 并 关闭 流

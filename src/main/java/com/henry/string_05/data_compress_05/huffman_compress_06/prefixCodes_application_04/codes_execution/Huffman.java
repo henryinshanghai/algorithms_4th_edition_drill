@@ -85,12 +85,15 @@ public class Huffman {
 
         // #1 对 “输入字符串中”的 各个字符的出现频率 进行计数
         int[] characterToItsFrequency = buildFrequencyTable(inputCharacterSequence);
+        printArr(characterToItsFrequency);
 
         // #2 根据 #1中的统计结果，构造出 霍夫曼树（它是一种“最优前缀码”方案）
         Node huffmanTrie = buildHuffmanTrie(characterToItsFrequency);
+        printTrieWithNotice(huffmanTrie);
 
         // #3 根据 霍夫曼Trie树 来 构造出“霍夫曼编码表”
         String[] characterToItsEncodedBitStr = buildEncodedBitStrTable(huffmanTrie);
+        printEncodeTable(characterToItsEncodedBitStr);
 
         // #4-1 把 “单词查找树本身” 写入到 标准输出 中 - 用于 后续的解码工作
         writeTrieToOutput(huffmanTrie);
@@ -105,6 +108,44 @@ public class Huffman {
         BinaryStdOut.close();
     }
 
+    private static void printEncodeTable(String[] characterToItsEncodedBitStr) {
+        System.out.println("&& 打印构造出的编码表👇 &&");
+        for (int currentCharacter = 0; currentCharacter < characterToItsEncodedBitStr.length; currentCharacter++) {
+            String encodedBitStr = characterToItsEncodedBitStr[currentCharacter];
+            if (encodedBitStr != null && !encodedBitStr.isBlank()) {
+                System.out.println("当前字符 " + (char)currentCharacter + " 对应的编码结果为：" + encodedBitStr);
+            }
+        }
+        System.out.println();
+    }
+
+    private static void printTrieWithNotice(Node huffmanTrie) {
+        System.out.println("^^ 打印所构造出的二向trie树👇 ^^");
+        printTrie(huffmanTrie);
+        System.out.println();
+        System.out.println();
+    }
+
+    // 二向trie树是非线性结构，所以会有多种遍历方式 这里选择 左-根-右
+    private static void printTrie(Node currentNode) {
+        if (currentNode == null) return;
+
+        printTrie(currentNode.leftSubNode);
+        System.out.print(currentNode.character + " ");
+        printTrie(currentNode.rightSubNode);
+    }
+
+    private static void printArr(int[] characterToItsFrequency) {
+        System.out.println("%% 打印字符序列中 各个字符的出现频率👇 %%");
+        for (int currentCharacter = 0; currentCharacter < characterToItsFrequency.length; currentCharacter++) {
+            int frequency = characterToItsFrequency[currentCharacter];
+            if(frequency > 0) {
+                System.out.println("当前字符" + (char) currentCharacter + "在原始字符序列中 出现的频率为：" + frequency);
+            }
+        }
+        System.out.println();
+    }
+
     private static int[] buildFrequencyTable(char[] inputCharacterSequence) {
         int[] characterToItsFrequency = new int[characterOption];
         for (int currentSpot = 0; currentSpot < inputCharacterSequence.length; currentSpot++) {
@@ -116,10 +157,14 @@ public class Huffman {
     }
 
     private static void writeCharacterAmountToOutput(char[] inputCharacterSequence) {
+        System.out.println("$$ 打印原始字符序列长度值的二进制数值👇 $$");
         BinaryStdOut.write(inputCharacterSequence.length);
+        System.out.println(Integer.toBinaryString(inputCharacterSequence.length));
+        System.out.println();
     }
 
     private static void writeEncodedResultToOutput(char[] inputCharacterSequence, String[] characterToItsEncodedBitStr) {
+        System.out.println("## 打印字符序列编码后的结果👇 ##");
         for (int currentSpot = 0; currentSpot < inputCharacterSequence.length; currentSpot++) {
             // #5-1 对于 当前字符，从 编码表 中找到 其所对应的编码结果
             char currentCharacter = inputCharacterSequence[currentSpot];
@@ -127,7 +172,10 @@ public class Huffman {
 
             // #5-2 然后 把 “编码结果”/“压缩结果” 写入到 标准输出中...
             writeToOutput(encodedBitStr);
+            System.out.print(encodedBitStr);
         }
+        System.out.println();
+        System.out.println();
     }
 
     private static void writeToOutput(String encodedBitStr) {
@@ -148,7 +196,7 @@ public class Huffman {
         // 初始化数组的大小 为 所有字符选项的数量
         String[] characterToEncodedValue = new String[characterOption];
         // 为 当前Trie中的 每一个叶子节点中的字符：#1 生成 其对应的 编码比特结果； #2 并 把 映射 添加到数组中
-        generateEncodedBitStrForAllLeafNodesIn(huffmanTrie, characterToEncodedValue, "");
+        generateEncodedBitStrForAllLeafNodesIn(huffmanTrie, "", characterToEncodedValue);
 
         return characterToEncodedValue;
     }
@@ -157,6 +205,7 @@ public class Huffman {
     private static Node buildHuffmanTrie(int[] characterToItsFrequency) {
         // #1 先创建 一堆的 独立的 单节点树，把 它们 作为 队列元素 来 初始化 优先级队列
         MinPQ<Node> nodesMinPQ = createSeparateNodesToInitPQ(characterToItsFrequency);
+        printQueue(nodesMinPQ);
 
         while (nodesMinPQ.size() > 1) {
             // #2 把 当前“最小的两棵树” 合并起来，得到 一棵更大的树 🐖 会 添加一个 新的结点 作为父节点
@@ -166,6 +215,13 @@ public class Huffman {
 
         // #3 获取到 “所有节点 完全合并 之后 得到的huffman树（树的根结点）” - 手段：从 优先级队列 中 删除以获取到 “当前最小的元素” aka Huffman树的根节点
         return nodesMinPQ.delMin();
+    }
+
+    private static void printQueue(MinPQ<Node> nodesMinPQ) {
+        for (Node currentNode : nodesMinPQ) {
+            System.out.println("优先队列中的当前节点为：" + currentNode.character);
+        }
+        System.out.println();
     }
 
     private static void combineAllNodesIntoOneTrie(MinPQ<Node> nodesMinPQ) {
@@ -188,24 +244,27 @@ public class Huffman {
         MinPQ<Node> nodesMinPQ = new MinPQ<Node>();
         // 对于每一个字符选项...
         for (char currentCharacter = 0; currentCharacter < characterOption; currentCharacter++) {
-            // 获取它在原始字符串中出现的频率
+            // 获取它 在原始字符串中 出现的频率
             int itsFrequency = characterToItsFrequency[currentCharacter];
             if (itsFrequency > 0) {
-                // #1 为它创建一个单独的Trie树节点
+                // #1 为 它 创建一个 单独的Trie树节点
                 Node nodeForCurrentCharacter = new Node(currentCharacter, itsFrequency, null, null);
-                // #2 把创建的Trie树节点添加到 优先级队列中
+                // #2 把 创建的Trie树节点 添加到 优先级队列 中  用于找到所有节点中”最小的”那两个节点
                 nodesMinPQ.insert(nodeForCurrentCharacter);
             }
         }
 
-        // 返回 由所有独立的Trie树节点组成的优先级队列
+        // 返回 由所有 独立的Trie树节点 所组成的 优先级队列（队列元素为 trie树的节点）
         return nodesMinPQ;
     }
 
     // 把 用于编码字符的 单词查找树 写入到 标准输出中 - 用于 后继解码工作的 解码依据
     // 手段：使用 前序遍历的规则（根结点 - 左子树 - 右子树） 来 完全处理 树中的所有结点
     private static void writeTrieToOutput(Node trieRootNode) {
+        System.out.println("** 把二向trie树 打印到 控制台中👇 **");
         processNodesInPreOrder(trieRootNode);
+        System.out.println();
+        System.out.println();
     }
 
     private static void processNodesInPreOrder(Node currentRootNode) {
@@ -214,12 +273,15 @@ public class Huffman {
         if (currentRootNode.isLeaf()) {
             // ① 向 标准输出 中 写入一个1/true
             BinaryStdOut.write(true);
+            System.out.print('1');
             // ② 把 “叶子节点中的字符” 以 8个比特（1个字节） 写入到 标准输出 中...
             BinaryStdOut.write(currentRootNode.character, 8);
+            System.out.print(Integer.toBinaryString(((byte) currentRootNode.character) & 0xFF));
             return;
         }
         // 如果它 是 “内部结点”，则：向 标准输出 中 写入一个0/false
         BinaryStdOut.write(false);
+        System.out.print('0');
 
         // #2 处理左子树 - 把 结点的左子树，继续(递归地)写入到 标准输出 中
         processNodesInPreOrder(currentRootNode.leftSubNode);
@@ -227,24 +289,26 @@ public class Huffman {
         processNodesInPreOrder(currentRootNode.rightSubNode);
     }
 
-    // 构造一个编码表 用于建立 字符(符号) 与 其编码 之间的映射关系 aka a lookup table
-    // 这个方法的主要作用 是什么？副作用 是什么？为什么 可以实现为 一个递归方法？
-    // 方法的作用：根据 当前Trie树中 根结点 到 叶子节点的路径(手段) 来 ① 为 其叶子节点中的字符，生成 对应的编码结果(作用)，② 并 把 编码结果 添加到 数组中
-    // 规模更小的问题：根据”Trie子树“中 根结点 到 叶子结点的路径 来 ① 为 其叶子节点中的字符，生成 其对应的编码结果； ② 把 编码结果 添加到 数组中
-    // 小问题的结果 能否用来 帮助解决 原始问题：子树 叶子节点字符的 编码结果 加上 根结点的链接 所表示的比特 就是 当前树叶子节点字符的编码结果 了
-    // 能够使用递归的原理：子树中 叶子节点的路径(编码结果)，是 原始树中叶子节点路径 的一个子路径（本质上 仍旧是 Trie结构的递归性）
-    // 方法名的规则：what does it do...
+    /**
+     * 从 huffman trie树中，构造出 静态的编码表
+     * 🐖 这是一个 追加类别的问题，其特殊之处在于 字符串、路径、树都有递归性
+     * @param currentRootNode   当前trie树的根节点
+     * @param currentEncodedBitStr  当前编码所得到的比特序列（当遍历到叶子节点时，它就会是编码结果）    初始为空字符串""
+     * @param currentCharToEncodeValueArr   编码表的数组形式
+     */
     private static void generateEncodedBitStrForAllLeafNodesIn(Node currentRootNode,
-                                                               String[] currentCharToEncodeValueArr,
-                                                               String currentEncodedBitStr) {
+                                                               String currentEncodedBitStr,
+                                                               String[] currentCharToEncodeValueArr) {
+        // 如果 当前节点 不是叶子节点，说明 编码的过程还没有结束，则：
         if (!currentRootNode.isLeaf()) {
-            // 路径 走左分支，则：向 编码结果 中 添加比特0
-            generateEncodedBitStrForAllLeafNodesIn(currentRootNode.leftSubNode, currentCharToEncodeValueArr, currentEncodedBitStr + '0');
-            // 路径 走右分支，则：向 编码结果 中 添加比特1
-            generateEncodedBitStrForAllLeafNodesIn(currentRootNode.rightSubNode, currentCharToEncodeValueArr, currentEncodedBitStr + '1');
-        } else {
-            // 方法的主要作用：为 字符 生成一个 比特编码结果
-            currentCharToEncodeValueArr[currentRootNode.character] = currentEncodedBitStr;
+            /* 继续递归地遍历子树，向编码序列中 添加正确的比特 */
+            // 如果 路径 选择走左分支，则：向 编码结果 中 添加比特0
+            generateEncodedBitStrForAllLeafNodesIn(currentRootNode.leftSubNode, currentEncodedBitStr + '0', currentCharToEncodeValueArr);
+            // 如果 路径 选择走右分支，则：向 编码结果 中 添加比特1
+            generateEncodedBitStrForAllLeafNodesIn(currentRootNode.rightSubNode, currentEncodedBitStr + '1', currentCharToEncodeValueArr);
+        } else { // 如果 当前节点 是叶子节点，说明 得到了一个字符的编码结果，则：
+            /* 向编码表中添加 字符 -> 字符的编码结果 条目 */
+            currentCharToEncodeValueArr[currentRootNode.character] = currentEncodedBitStr; // 在遍历了所有的叶子节点后，编码表 也就构造完成了
         }
     }
 
@@ -257,9 +321,13 @@ public class Huffman {
         // 🐖 读取比特序列各部分信息(trie树、字符数量、编码结果)的顺序 与 写入时的顺序 需要相同
         // #1 先 从 输入流 中 读取出 霍夫曼单词查找树(trie)
         Node huffmanTrie = readTrieFromInput();
+        System.out.println("@@ 解码出的Huffman trie树为👇 @@");
+        printTrie(huffmanTrie);
+        System.out.println();
 
         // #2 再 读取出 待写入的字节的数量
         int expectedCharacterAmount = readCharAmountFromInput();
+        System.out.println("!! 解码出的字符数量为：" + expectedCharacterAmount + " !!");
 
         // #3 对于 期待的每一个字符...
         for (int characterOrdinal = 0; characterOrdinal < expectedCharacterAmount; characterOrdinal++) {
