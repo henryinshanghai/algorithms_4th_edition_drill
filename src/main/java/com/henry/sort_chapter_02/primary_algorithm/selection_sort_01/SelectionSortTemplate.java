@@ -62,9 +62,9 @@ public class SelectionSortTemplate {
         int cursorToMinItem = currentSpotToArrange;
 
         int itemAmount = a.length;
-        for (int dynamicCursor = currentSpotToArrange + 1; dynamicCursor < itemAmount; dynamicCursor++) {
-            if (less(a[dynamicCursor], a[cursorToMinItem])) {
-                cursorToMinItem = dynamicCursor;
+        for (int cursorOfItemToCompare = currentSpotToArrange + 1; cursorOfItemToCompare < itemAmount; cursorOfItemToCompare++) {
+            if (less(a[cursorOfItemToCompare], a[cursorToMinItem])) {
+                cursorToMinItem = cursorOfItemToCompare;
             }
         }
         return cursorToMinItem;

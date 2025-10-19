@@ -2,9 +2,9 @@ package com.henry.sort_chapter_02.advanced_algorithm.via_data_structure.priority
 
 import edu.princeton.cs.algs4.StdOut;
 
-// #1 insert item to array's tail;
-// #2 find the maxItem via keep updating the maxItemCursor, then delete maxItem;
-// note - this is the first 'Data Structure' occurs.
+// #1 把 元素 插入到 数组的末尾
+// #2 通过 不断更新 最大元素的指针 来 找到 最大元素，然后 删除最大元素；
+// 🐖 这是第一次出现了 '数据结构' 这个术语
 public class UnorderedArrayMaxPQDrill<Key extends Comparable<Key>> {
 
     private int arrayCapacity;
@@ -17,7 +17,7 @@ public class UnorderedArrayMaxPQDrill<Key extends Comparable<Key>> {
         this.arrayCapacity = arrayCapacity;
     }
 
-    // 实现为 实例方法
+    /* 实现为 实例方法 */
     public void insert(Key item) {
         itemArray[itemAmount++] = item;
     }
@@ -32,10 +32,11 @@ public class UnorderedArrayMaxPQDrill<Key extends Comparable<Key>> {
             }
         }
 
-        // 维持数组的连续性
+        // 维持 数组的连续性
         exch(itemArray, maxItemCursor, itemAmount - 1);
         Key maxItem = itemArray[itemAmount - 1];
-        // 物理删除元素
+
+        // 物理删除 元素
         itemArray[itemAmount - 1] = null;
         itemAmount--;
         return maxItem;

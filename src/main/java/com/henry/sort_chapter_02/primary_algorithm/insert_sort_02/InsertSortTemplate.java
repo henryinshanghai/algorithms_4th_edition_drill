@@ -61,10 +61,10 @@ public class InsertSortTemplate {
         assert isSorted(a);
     }
 
-    // 手段：从后往前地逐个比较“待插入元素”与“其前一个元素”
+    // 手段：从后往前地 逐个比较 “待插入元素” 与 “其前一个元素”
     private static void insertItemToSortedZone(Comparable[] a, int anchorOfItemToInsert) {
         for (int backwardsCursor = anchorOfItemToInsert; backwardsCursor > 0; backwardsCursor--) {
-            // 如果比起前一个元素更小，则 交换元素
+            // 如果 比起前一个元素 更小，则 交换元素
             if (less(a[backwardsCursor], a[backwardsCursor - 1])) {
                 exch(a, backwardsCursor, backwardsCursor - 1);
             }

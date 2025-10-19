@@ -55,14 +55,18 @@ public class QuickSortTemplate {
      */
     public static void sort(Comparable[] originalArr) {
         // 快速排序
+        System.out.println("=== 原始的元素序列为：" + showInStr(originalArr, 0, originalArr.length - 1) + " ===");
         StdRandom.shuffle(originalArr);
+        System.out.println("+++ 打乱后的元素序列为：" + showInStr(originalArr, 0, originalArr.length - 1) + " +++");
+
         sortGivenRangeOf(originalArr, 0, originalArr.length - 1);
     }
 
     /**
      * 对数组进行排序
      * 手段：快速排序
-     *  @param originalArr
+     *
+     * @param originalArr
      * @param leftBar
      * @param rightBar
      */
@@ -74,10 +78,31 @@ public class QuickSortTemplate {
 
         // #2 选择一个切分元素，并把它放到正确的位置
         int arrangedSpot = arrangePivotViaPartition(originalArr, leftBar, rightBar); // 选取一个元素作为切分元素————把该元素放到正确的位置上
-        // #3 对左半区间进行排序
+        System.out.println("~~~ 当前被排定的位置是：" + arrangedSpot + "，排定基准元素后的 当前元素序列 为：" + showInStr(originalArr, leftBar, rightBar) + " ~~~");
+        System.out.println();
+
+        // #3 对左半区间进行排序     当区间中只有一个元素时，对其的排序 也就完成了
+        System.out.println("!!! 对区间[" + leftBar + ", " + (arrangedSpot - 1) + "]中的元素" + showInStr(originalArr, leftBar, arrangedSpot - 1) + " 开始排序 !!!");
         sortGivenRangeOf(originalArr, leftBar, arrangedSpot - 1);
+        System.out.println("!!! 对区间[" + leftBar + ", " + (arrangedSpot - 1) + "]中的元素" + showInStr(originalArr, leftBar, arrangedSpot - 1) + " 排序完成 !!!");
+
         // #4 对右半区间进行排序
+        System.out.println("@@@ 对区间[" + (arrangedSpot + 1) + ", " + rightBar + "]中的元素" + showInStr(originalArr, arrangedSpot + 1, rightBar) + " 开始排序 @@@");
         sortGivenRangeOf(originalArr, arrangedSpot + 1, rightBar);
+        System.out.println("@@@ 对区间[" + (arrangedSpot + 1) + ", " + rightBar + "]中的元素" + showInStr(originalArr, arrangedSpot + 1, rightBar) + " 排序完成 @@@");
+        System.out.println();
+    }
+
+    public static String showInStr(Comparable[] originalArr, int leftBar, int rightBar) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("{");
+        for (int currentSpot = leftBar; currentSpot <= rightBar; currentSpot++) {
+            sb.append(originalArr[currentSpot]).append(", ");
+        }
+        sb.substring(0, sb.length() - 1);
+        sb.append("}");
+
+        return sb.toString();
     }
 
     // 在数组的指定区间（闭区间）中，排定一个切分元素，并返回排定的位置
@@ -87,41 +112,80 @@ public class QuickSortTemplate {
 
         // #2 排定基准元素 aka 把基准元素放到它正确的位置上     手段: 把基准元素 与 greaterZoneBoundary所指向的元素 交换位置
         exch(arrayToSort, leftBar, greaterZoneBoundary);
+        System.out.println("&&& 交换 位置" + (leftBar) + "上的基准元素" + arrayToSort[greaterZoneBoundary] +
+                " 与 大于区左指针所指向位置" + (greaterZoneBoundary) + "上的元素" + arrayToSort[leftBar] +
+                "，基准元素排定后的元素序列为：" + showInStr(arrayToSort, leftBar, rightBar) + " &&&");
 
         return greaterZoneBoundary;
     }
 
-    private static int putItemIntoCorrectZone(Comparable[] arrayToSort, int leftBar, int rightBar) {
-        // #1 准备左右边界的指针
-        int lessZoneBoundary = leftBar;
-        int greaterZoneBoundary = rightBar + 1;
+    /**
+     * 对 指定的元素序列 的 指定闭区间（指定左边界&右边界）中的元素 进行分拣，得到 小于基准元素区域 + 大于基准元素区域
+     * @param arrayToSort   指定的元素序列
+     * @param leftBar   指定区间的左边界
+     * @param rightBar  指定区间的右边界
+     * @return  小于基准元素区域的右边界 aka 基准元素 应该排定到的位置
+     */
+    private static int putItemIntoCorrectZone(Comparable[] arrayToSort,
+                                              int leftBar,
+                                              int rightBar) {
+        // #1 准备 左右边界的指针
+        int lessZoneRightBar = leftBar;
+        int greaterZoneLeftBar = rightBar + 1;
 
-        // #2 准备基准元素
+        // #2 准备 基准元素
         Comparable pivotItem = arrayToSort[leftBar];
+        System.out.println("/// 当前的基准元素为：" + pivotItem + "，小于区右边界指针初始为：" + lessZoneRightBar + "，大于区左边界指针初始为：" + greaterZoneLeftBar + " ///");
 
-        // #3 把剩余的其他元素（除了基准元素）分拣到左半区间、右半区间中  特征：死循环 + 执行体break
+        // #3 把 剩余的其他元素（除了基准元素）分拣到 左半区间、右半区间 中  特征：死循环 + 执行体break
         while (true) {
-            // #3-① 让左指针停在 从左往右第一个比基准元素更大的元素上
-            // 🐖 如果所有元素都比基准元素小的话，则：左指针会一直向右移动，直到等于rightBar 这种情况下，需要停止移动指针
-            while (less(arrayToSort[++lessZoneBoundary], pivotItem)) if (lessZoneBoundary == rightBar) break;
+            // #3-① 让 左指针 停在 从左往右 第一个 比起基准元素更大的元素 上
+            // 🐖 如果 所有元素都 比基准元素小 的话，则：左指针 会一直向右移动，直到 等于rightBar 这种情况下，需要 停止移动指针
+            while (less(arrayToSort[++lessZoneRightBar], pivotItem)) {
+                // 🐖 这里打印的日志 可能会 产生 数组下标越界的异常
+                System.out.println("### 当前元素" + arrayToSort[lessZoneRightBar] + " 比 基准元素" + pivotItem + " 小，" +
+                        "则：把 小于区右边界指针 向右移动一个位置 到 " + (lessZoneRightBar + 1) + ", 指向元素" + arrayToSort[lessZoneRightBar + 1] + " ###");
+                if (lessZoneRightBar == rightBar) {
+                    System.out.println("### 特殊情况1: 所有元素 比起 基准元素 都更小 ###");
+                    break;
+                }
+            }
+            System.out.println(">>> 小于区的右指针 停在 " + lessZoneRightBar + " 的位置上 <<<");
 
-            // #3-② 让右指针停在 从右往左第一个比基准元素小的元素上
-            // 如果基准元素大于其他的任何元素，则：循环条件直接不成立，右指针不会向左移动
-            while (less(pivotItem, arrayToSort[--greaterZoneBoundary])) if (greaterZoneBoundary == leftBar) break;
+            // #3-② 让 右指针 停在 从右往左第一个 比起基准元素更小的元素 上
+            // 如果 基准元素 大于 其他的任何元素，则：循环条件 直接不成立，右指针 不会向左移动
+            while (less(pivotItem, arrayToSort[--greaterZoneLeftBar])) {
+                System.out.println("$$$ 当前元素" + arrayToSort[greaterZoneLeftBar] + " 比 基准元素" + pivotItem + "大，" +
+                        "则：把 大于区左边界指针 向左移动一个位置 到 " + (greaterZoneLeftBar - 1) + ", 指向元素" + arrayToSort[greaterZoneLeftBar - 1] + " $$$");
 
-            // #3-③ 先判断元素的分拣工作是否已经完成
-            // 当左指针与右指针相遇时，说明元素分拣已经完成 - 小于基准元素的元素都在左侧区间、大于基准元素的元素都在右侧区间
-            if (lessZoneBoundary >= greaterZoneBoundary) {
+                if (greaterZoneLeftBar == leftBar) {
+                    System.out.println("$$$ 特殊情况2：所有元素 比起 基准元素 都更大 $$$");
+                    break;
+                }
+            }
+            System.out.println(">>> 大于区的左指针 停在 " + greaterZoneLeftBar + " 的位置上 <<<");
+
+            // #3-③ 先判断 元素的分拣工作 是否已经完成
+            // 当 左指针 与 右指针 相遇时，说明 元素分拣 已经完成 - 小于基准元素的元素 都 在左侧区间、大于基准元素的元素 都 在右侧区间
+            if (lessZoneRightBar >= greaterZoneLeftBar) {
+                System.out.println();
+                System.out.println("*** 当前小于区右指针" + (lessZoneRightBar) + " 与 当前大于区的左指针" + (greaterZoneLeftBar) + " 相遇了，当前切分操作的分拣过程 结束。" +
+                        "当前元素序列为：" + showInStr(arrayToSort, leftBar, rightBar) + " ***");
                 break;
             }
 
-            // #3-④ 对元素进行分拣 手段：交换 两个位置上的元素
-            // 特征：如果左右指针刚好遇到了两个 与pivot相同的元素，那么 这两个元素也会被交换 - 这其实是多余的操作
-            exch(arrayToSort, lessZoneBoundary, greaterZoneBoundary);
+            // #3-④ 对元素 进行分拣 手段：交换 两个位置上的元素
+            // 特征：如果左右指针 刚好遇到了 两个 与pivot相同的元素，那么 这两个元素 也会被交换 - 这其实是 多余的操作
+            System.out.println("^^^ 对 小于区右指针" + lessZoneRightBar + " 所指向的元素" + arrayToSort[lessZoneRightBar] +
+                    " 与 大于区左指针" + greaterZoneLeftBar + " 所指向的元素" + arrayToSort[greaterZoneLeftBar] + " 进行交换 ^^^");
+            exch(arrayToSort, lessZoneRightBar, greaterZoneLeftBar);
+            System.out.println("^^^ " + arrayToSort[greaterZoneLeftBar] + " 与 " + arrayToSort[lessZoneRightBar] +
+                    " 交换后得到的元素序列为：" + showInStr(arrayToSort, leftBar, rightBar) + " ^^^");
+            System.out.println();
         }
 
-        // 分拣完成后，返回“大于区的边界指针” - 它就是 基准元素的排定位置
-        return greaterZoneBoundary;
+        // 分拣完成 后，返回 “大于区的边界指针” - 它就是 基准元素的排定位置
+        return greaterZoneLeftBar;
     }
 
     @SuppressWarnings("unchecked")
@@ -131,7 +195,8 @@ public class QuickSortTemplate {
 
     /**
      * 交换i、j这两个位置的元素
-     *  @param a
+     *
+     * @param a
      * @param spotI
      * @param spotJ
      */

@@ -39,58 +39,65 @@ import edu.princeton.cs.algs4.StdOut;
 public class ShellSortTemplate {
 
     public static void sort(Comparable[] a) {
-        System.out.print("before any operations, the original array's items are : ");
+        System.out.println("在任何操作之前，原始的序列元素为： ");
         show(a);
         System.out.println("====================");
 
         // #0 先把segmentSize初始化成为 一个小于itemAmount的较大值
         int itemAmount = a.length;
-        int segmentSize = initABigSegmentSize(itemAmount); // segment、block、unit
+        int gapSize = initABigGapSize(itemAmount); // segment、block、unit
 
         /*  实现对数组中所有元素的完全排序 */
-        while (segmentSize >= 1) { // 🐖 当segmentSize=1（segment的尺寸为1）时，整个数组排序完成
-            System.out.println("+++ current segmentSize is：" + segmentSize + " +++");
+        while (gapSize >= 1) { // 🐖 当 gapSize=1（gap的尺寸为1）时，整个数组排序完成
+            System.out.println("+++ 当前的gapSize大小为：" + gapSize + ", 因此会得到" + gapSize + "个分组 +++");
 
-            // #1 对于当前的segmentSize，处理它所产生的无序区中的元素，把它们移动到离排定位置更近的地方
-            moveItemsInUnorderedZoneCloserToItsArrangedSpot(a, segmentSize);
+            // #1 对于 当前的gapSize，处理 它所产生的 无序区中的元素，把 它们 移动到 离排定位置更近的地方
+            moveItemsInTheRestZoneCloserToItsArrangedSpot(a, gapSize);
 
-            System.out.print("after this round's insertion, current array's items are：");
-            show(a);
-            System.out.println("~~~~~~~~~~~~~~~~~~");
-
-            // #2 缩小 segmentSize，来 让元素离它的排定位置更近。
-            segmentSize = segmentSize / 3;
+            // #2 缩小 gapSize，来 让元素离它的排定位置更近。
+            gapSize = gapSize / 3;
         }
     }
 
-    private static void moveItemsInUnorderedZoneCloserToItsArrangedSpot(Comparable[] a, int segmentSize) {
+    private static void moveItemsInTheRestZoneCloserToItsArrangedSpot(Comparable[] a, int gapSize) {
+        System.out.println("~~~ gapSize为：" + gapSize + "时，对 剩余区域中的所有元素 执行 其间隔分组中的插入操作 ~~~");
         int itemAmount = a.length;
-        // #1 把 a[segmentSize, itemAmount-1] 区间视为无序区
-        int startPointOfDisorder = segmentSize;
-        System.out.println("--- during process for current segment size: " + segmentSize + " ---");
-        for (int anchorOfItemToInsert = startPointOfDisorder; anchorOfItemToInsert < itemAmount; anchorOfItemToInsert++) {
-            // #2 对于无序区中的每一个元素，使用 跨度为segmentSize的插入排序 来 把元素移动到 更靠近其排定位置的地方
-            // 🐖 虽然元素没有被排定，但是离排定位置更近了
-            insertItemWithStepPitch(a, anchorOfItemToInsert, segmentSize);
+        // #1 把 a[gapSize, itemAmount-1] 区间 视为 剩余区域
+        int startPointOfTheRestZone = gapSize;
+        System.out.println("@@@ 当前剩余区域的起点位置为: " + startPointOfTheRestZone + " @@@");
+        for (int anchorOfItemToInsert = startPointOfTheRestZone; anchorOfItemToInsert < itemAmount; anchorOfItemToInsert++) {
+            // #2 对于 剩余区中的 每一个元素，使用 跨度为gapSize的插入排序 来 把 元素 移动到 更靠近其排定位置的地方
+            // 🐖 虽然元素 没有被排定，但是 离排定位置更近了
+            insertItemWithStepPitch(a, anchorOfItemToInsert, gapSize);
+            System.out.println("当前位置" + anchorOfItemToInsert + " 的插入操作完成后，元素序列为👇");
             show(a);
+            System.out.println();
         }
-        System.out.println("--- process finished for current segment size: " + segmentSize + " ---");
+
+        System.out.println("^^^ 当前剩余区域中的 所有位置的 插入操作 完成后，元素序列为↓ ^^^");
+        show(a);
+        System.out.println();
     }
 
-    // 以stepPitch作为步距，对原始数组中指定位置上的元素 执行插入排序
-    private static void insertItemWithStepPitch(Comparable[] originalArr, int anchorOfItemToInsert, int stepPitch) {
+    // 以stepPitch作为步距，对原始数组中 指定位置上的元素 执行 其插入排序
+    private static void insertItemWithStepPitch(Comparable[] originalArr,
+                                                int anchorOfItemToInsert,
+                                                int stepPitch) {
+        System.out.println("### 对 位置" + anchorOfItemToInsert + "上的元素" +
+                originalArr[anchorOfItemToInsert] + " 执行 步距为" + stepPitch + "的插入排序 ###");
         for (int backwardsCursor = anchorOfItemToInsert; backwardsCursor >= stepPitch; backwardsCursor -= stepPitch) {
-
             // 🐖 比较 与 交换的单位都是 stepPitch（而不是1），这就是 shellsort 高效的原因
             if (less(originalArr[backwardsCursor], originalArr[backwardsCursor - stepPitch])) {
+                System.out.println("$$$ 对 位置" + backwardsCursor + "上的元素" + originalArr[backwardsCursor] +
+                        " 与 位置" + (backwardsCursor - stepPitch) + "上的元素" + originalArr[backwardsCursor - stepPitch] + " 进行交换 $$$");
                 exch(originalArr, backwardsCursor, backwardsCursor - stepPitch);
             }
         }
     }
 
-    private static int initABigSegmentSize(int itemAmount) {
+    private static int initABigGapSize(int itemAmount) {
         // 按照一个公式，生成一个比较大的N值（小于itemAmount） 用于分割原始数组为子数组
-        int blockSize = 1;
+        int blockSize = 0;
         while (blockSize < itemAmount / 3) {
             blockSize = 3 * blockSize + 1; // h序列：1, 4, 13, 40, 121, 364, 1093...
         }
@@ -142,7 +149,7 @@ public class ShellSortTemplate {
 
         // 断言数组元素已经有序了
         assert isSorted(a);
-        System.out.println("=== final sorted result 👇 ===");
+        System.out.println("=== 最终的排序结果 👇 ===");
         show(a);
     }
 }

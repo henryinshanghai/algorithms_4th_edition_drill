@@ -40,38 +40,38 @@ public class IndexMinPQFromWebsite<Element extends Comparable<Element>> implemen
     private int capacity;        // maximum number of elements on PQ
     private int elementAmount;           // number of elements on PQ
 
-    // 难点：逻辑结构 与 物理结构不再严格对应 - 逻辑结构是一个堆，但是没有任何单一个数组是堆
-    // 对于使用者而言，会使用 index -> element的方式把 元素以指定索引插入堆中。
-    // 对于底层存储的数据结构，会使用 spot -> index -> element的方式来存储“index 与 element”信息
-    // 相比于 简单优先队列的信息存储方式 spot -> element, 这里添加了 index
-    // 用来记录 spot -> index的关联信息  f(spot_in_heap/array) = index
-    private int[] spotToIndexArray; // 🐖 只有spot才具有连续性，但spotToIndexArray本身并不是一个“堆”
+    // 难点：逻辑结构 与 物理结构 不再严格对应 - 逻辑结构 是 一个堆，但 底层的物理结构 没有 任何单一个数组 是 堆
+    // 对于 使用者 而言，会使用 index -> element的方式 把 元素 以 指定索引 插入堆中。
+    // 对于 底层存储的数据结构，会使用 spot -> index -> element的方式 来 存储“index 与 element”信息
+    // 相比于 简单优先队列的信息存储方式 spot -> element, 这里 添加了 index
+    // 用来 记录 spot -> index的关联信息  f(spot_in_heap/array) = index
+    private int[] spotToIndexArray; // 🐖 只有 spot 才具有 连续性，但 spotToIndexArray本身 并不是 一个“堆”
 
     // 用来记录 index -> element的关联信息 f(index/priority) = element_value
     private Element[] indexToElementArray;
 
     // 用来记录 index -> spot的关联信息  f(index) = spot_in_heap/array
-    private int[] indexToSpotArray;        // 作用： 辅助数组，用于快速找到 特定index “在逻辑堆中的位置spot”
+    private int[] indexToSpotArray;        // 作用：辅助数组，用于 快速找到 特定index “在逻辑堆中的 位置spot”
 
 
     /**
-     * 以索引范围 [0, capacity - 1] 来 初始化一个空的索引有限队列
-     * 作用：对Client添加索引时的约束 - Client只能使用 [0, capacity-1]这个区间内的值 作为索引值，来初始化一个空的 索引优先队列
+     * 以 索引范围 [0, capacity - 1] 来 初始化 一个空的索引有限队列
+     * 作用：设置 Client添加索引时 的约束 - Client 只能使用 [0, capacity-1]这个区间内的值 作为 索引值，来 初始化一个 空的索引优先队列
      *
-     * @param capacity 声明 优先队列中的元素 所能添加索引的范围是 [0, capacity - 1]
-     * @throws IllegalArgumentException if {@code capacity < 0}
+     * @param capacity 声明 优先队列中的元素 所能够添加的 索引范围是 [0, capacity - 1]
+     * @throws IllegalArgumentException 如果 容量 < 0
      */
     public IndexMinPQFromWebsite(int capacity) {
         if (capacity < 0) throw new IllegalArgumentException();
         this.capacity = capacity;
         elementAmount = 0;
 
-        // 初始化各个数组对象 - 特征：下标为0的位置不使用
+        // 初始化 各个数组对象 - 特征：下标为0的位置 不使用
         spotToIndexArray = new int[capacity + 1];
         indexToElementArray = (Element[]) new Comparable[capacity + 1];    // make this of length maxN??
         indexToSpotArray = new int[capacity + 1];                   // make this of length maxN??
 
-        // 初始化数组元素为-1 - 用于方便地判断 特定的index是不是已经存在了
+        // 初始化 数组元素 为 -1 - 用于 方便地判断 特定的index 在堆中 是不是 已经存在了
         for (int i = 0; i <= capacity; i++)
             indexToSpotArray[i] = -1;
     }
@@ -79,19 +79,19 @@ public class IndexMinPQFromWebsite<Element extends Comparable<Element>> implemen
     /**
      * 当前优先队列是否为空？
      *
-     * @return {@code true} if this priority queue is empty;
-     * {@code false} otherwise
+     * @return {@code true} 如果 优先级队列为空
+     * {@code false} 否则
      */
     public boolean isEmpty() {
         return elementAmount == 0;
     }
 
     /**
-     * 在优先队列中 是不是包含 特定的索引值？ - 由于 允许Client使用的索引值从0开始，所以这里区间的右边界为 capacity-1
+     * 在优先队列中 是不是包含 特定的索引值？ - 由于 允许Client使用的索引值 从0开始，所以这里 区间的右边界 为 capacity-1
      *
-     * @param index an index
-     * @return {@code true} if {@code i} is an index on this priority queue;
-     * {@code false} otherwise
+     * @param index 指定的索引值
+     * @return {@code true} 如果指定的i是优先级队列中的一个索引；
+     * {@code false} 否则
      * @throws IllegalArgumentException unless {@code 0 <= i < maxN}
      */
     public boolean containsElementWhoseIndexIs(int index) {
@@ -102,17 +102,17 @@ public class IndexMinPQFromWebsite<Element extends Comparable<Element>> implemen
     /**
      * 返回优先队列中 元素的数量
      *
-     * @return the number of keys on this priority queue
+     * @return 优先级队列中key(element)的数量
      */
     public int getElementAmount() {
         return elementAmount;
     }
 
     /**
-     * 向优先队列中 添加一个元素 并 为之关联指定索引
+     * 向优先队列中 添加一个元素 并 为 之 关联 指定索引
      *
-     * @param index   an index
-     * @param element the element to associate with index {@code i}
+     * @param index   指定的索引
+     * @param element 与该索引相关联的元素
      * @throws IllegalArgumentException unless {@code 0 <= i < maxN}
      * @throws IllegalArgumentException if there already is an item associated
      *                                  with index {@code i}
@@ -124,10 +124,10 @@ public class IndexMinPQFromWebsite<Element extends Comparable<Element>> implemen
     }
 
     private void performInsertingNewNodeToHeap(int index, Element element) {
-        // 先向堆中添加新的Node
+        // 先 向堆中 添加 新的Node
         addNewNodeAfterLastSpot(index, element);
 
-        // 添加了新Node后，修复由新Node所引入的对堆约束的breach
+        // 添加了 新Node 后，修复 由新Node所引入的 对堆约束的breach
         fixBreachIntroducedByAdding();
     }
 
@@ -155,7 +155,7 @@ public class IndexMinPQFromWebsite<Element extends Comparable<Element>> implemen
         // #1 添加 spot -> index的映射
         spotToIndexArray[elementAmount] = index;
         // #2 添加 index -> element的映射
-        indexToElementArray[index] = element; // 这个数组是对client传入的信息的忠实记录
+        indexToElementArray[index] = element; // 这个数组是对 client传入的信息 的忠实记录
     }
 
     private void expandANewSpot() {
