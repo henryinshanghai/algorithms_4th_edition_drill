@@ -76,10 +76,10 @@ public class RedBlackTreeLiteSymbolTable<Key extends Comparable<Key>, Value> {
             // 如果更小，则：使用左子结点 来 更新当前节点
             if (result < 0)
                 currentNode = currentNode.leftSubNode;
-            // 如果更大，则：使用右子结点 来 更新当前节点
+                // 如果更大，则：使用右子结点 来 更新当前节点
             else if (result > 0)
                 currentNode = currentNode.rightSubNode;
-            // 如果相等，则：返回根结点中 的值
+                // 如果相等，则：返回根结点中 的值
             else
                 return currentNode.value;
         }
@@ -117,35 +117,48 @@ public class RedBlackTreeLiteSymbolTable<Key extends Comparable<Key>, Value> {
             return new Node(passedKey, associatedValue, RED);
         }
 
-        // 为了保证“对称有序性”，按照与根结点的比较结果，在 对应的子树 中 递归地插入结点
-        int result = passedKey.compareTo(currentRootNode.key);
-        if (result < 0) // 在左子树中插入
-            currentRootNode.leftSubNode = putPairInto(currentRootNode.leftSubNode, passedKey, associatedValue);
-        else if (result > 0) // 在右子树中插入
-            currentRootNode.rightSubNode = putPairInto(currentRootNode.rightSubNode, passedKey, associatedValue);
-        else
-            currentRootNode.value = associatedValue; // 如果存在相等的key，则：执行更新操作 更新结点的value
+        /* 为了保证“对称有序性”，按照与根结点的比较结果，在 对应的子树 中 递归地插入结点 */
+        int compareResult = passedKey.compareTo(currentRootNode.key);
 
-        /* 插入结点后，维护得到“合法的红黑树(黑链接平衡约束 && 红链接约束)”     原理：参考 insertion_implementation_04 */
-        // 手段：树中的局部变换 {左旋转、右旋转、颜色翻转}
-        // 具体做法：插入结点后，在 查找路径中的每一个结点（从下往上）上，根据需要 来 进行适当的局部变换
-        // 🐖 在红黑树中插入新结点 时，有5种具体情形(2-结点的插入 && 3-结点的插入) 归约后得到 如下3种情形👇
-        if (isRed(currentRootNode.rightSubNode) && !isRed(currentRootNode.leftSubNode)) // #1 右子结点为红色，而左子结点为黑色
-            // 对应的插入情形：① 2-节点的右链接；② 3-节点的中链接
-            // 则：对当前结点（的红色右链接），进行左旋转 - 得到 红色的左链接（① 得到合法状态； ② 仍不合法，得到连续的红色左链接 👇）
+        // 如果 传入的key 比起 当前节点的key 更小，说明 应该在左子树中 执行插入操作，则：
+        if (compareResult < 0) {
+            // 在左子树中 进行插入
+            currentRootNode.leftSubNode = putPairInto(currentRootNode.leftSubNode, passedKey, associatedValue);
+        } else if (compareResult > 0) { // 如果 更大，说明 应该在右子树中 执行插入操作，则：
+            // 在右子树中 进行插入
+            currentRootNode.rightSubNode = putPairInto(currentRootNode.rightSubNode, passedKey, associatedValue);
+        } else { // 如果 相等，说明 在当前节点处 查找命中，则：
+            // 使用 传入的value 来 更新 当前结点的value
+            currentRootNode.value = associatedValue;
+        }
+
+        /* 插入结点后，维护得到“合法的红黑树(黑链接平衡约束 && 红链接约束)”
+            原理：参考 insertion_implementation_04
+            手段：树中的局部变换 {左旋转、右旋转、颜色翻转}
+            具体做法：插入结点后，在 查找路径中的每一个结点（从下往上）上，根据需要 来 进行适当的局部变换
+            🐖 在红黑树中 插入新结点 时，有5种具体情形(2-结点的插入 && 3-结点的插入) 归约后 得到 如下3种情形👇
+        */
+        // #1 如果 当前节点有 右子结点为红色，而左子结点为黑色（对应的插入情形：① 2-节点的右链接；② 3-节点的中链接），说明 树中出现了 红色的右链接 breach，
+        if (isRed(currentRootNode.rightSubNode) && !isRed(currentRootNode.leftSubNode)) {
+            // 则：对当前结点（的红色右链接），进行左旋转 - 得到 红色的左链接（两种可能：① 得到合法状态； ② 仍不合法，得到连续的红色左链接 👇）
             currentRootNode = rotateItsRedSubLinkToLeft(currentRootNode);
-        if (isRed(currentRootNode.leftSubNode) && isRed(currentRootNode.leftSubNode.leftSubNode)) // #2 左子结点为红色，左子结点的左子结点也为红色
-            // 对应的插入情形：③ 3-节点的左链接
-            // 对 第一层的红色左链接 进行右旋转 - 仍旧不合法，得到 红色的左链接 + 右链接👇
+        }
+
+        // #2 如果 当前节点有 左子结点为红色，左子结点的左子结点也为红色（对应的插入情形：③ 3-节点的左链接），说明 树中出现了 连续的红链接 breach，
+        if (isRed(currentRootNode.leftSubNode) && isRed(currentRootNode.leftSubNode.leftSubNode)) {
+            // 则：对 第一层的红色左链接 进行右旋转 - 结果仍旧不合法，得到 红色的左链接 + 右链接👇
             currentRootNode = rotateItsRedSubLinkToRight(currentRootNode);
-        if (isRed(currentRootNode.leftSubNode) && isRed(currentRootNode.rightSubNode)) // #3 左子结点为红色，且右子结点也为红色（这是一个通用情形）
-            // 对应的插入情形：④ 3-节点的右链接插入
-            // 进行颜色翻转 来 #1 消除breach； #2 把红链接 沿着路径向上传递（维持与2-3树的等价性）
+        }
+
+        // #3 如果 当前节点有 左子结点为红色，且右子结点也为红色（对应的插入情形：④ 3-节点的右链接插入），说明 树中出现了 红色左链接+红色右链接 breach，
+        // 🐖 这是一个最终状态
+        if (isRed(currentRootNode.leftSubNode) && isRed(currentRootNode.rightSubNode))
+            // 则：进行颜色翻转 来 #1 消除breach； #2 把 红链接 沿着路径向上传递（维持与2-3树的等价性）
             flipColorToRed(currentRootNode);
 
         // 返回 “合法的红黑树”
         return currentRootNode;
-}
+    }
 
     /***************************************************************************
      *  Red-black tree helper functions.

@@ -125,7 +125,8 @@ public class QuickSort3WayTemplate {
 
     public static void main(String[] args) {
 //        String[] a = new String[]{"R", "B", "W", "W", "R", "W", "B", "R", "R", "W", "B", "R"};
-        String[] a = new String[]{"H", "E", "N", "R", "Y", "A", "N", "D", "A", "L", "I", "C", "I", "A", "L", "I", "V", "E", "I", "N", "S", "H"};
+//        String[] a = new String[]{"H", "E", "N", "R", "Y", "A", "N", "D", "A", "L", "I", "C", "I", "A", "L", "I", "V", "E", "I", "N", "S", "H"};
+        String[] a = new String[]{"T", "H", "R", "E", "E", "W", "A", "Y", "Q", "U", "I", "C", "K", "S", "O", "R", "T"};
 
         sort(a);
 

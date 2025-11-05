@@ -67,7 +67,8 @@ public class HeapSortTemplate {
 
     // 把 传入的 数组中的元素，按照升序 重新排列 - 升序的规则 就是 自然顺序
     public static void sort(Comparable[] a) {
-        System.out.println("~~~ 原始的元素序列为：{" + showInStr(a) + "} ~~~");
+        System.out.println("~~~ 原始的元素序列为: {" + showInStr(a) + "} ~~~");
+        System.out.println("~~~ 元素的位置为:    {" + showSpots(a) + "} ~~~");
 
         // Ⅰ 把 原始数组 构建成为 一个大顶堆 - 算法Ⅰfloyd建堆法
         System.out.println("!!! 开始 把 原始的元素序列 构造成 一个大顶堆 !!!");
@@ -80,6 +81,15 @@ public class HeapSortTemplate {
         System.out.println("@@@ 开始 对 大顶堆数组中的元素 进行从后往前地 逐个排定 @@@");
         arrangeItemsViaMaxHeap(a);
         System.out.println("@@@ 所有位置都排定后，得到的结果序列为：{" + showInStr(a) + "} @@@");
+    }
+
+    private static String showSpots(Comparable[] itemSeq) {
+        StringBuilder sb = new StringBuilder();
+        for (int currentSpot = 0; currentSpot < itemSeq.length; currentSpot++) {
+            sb.append(currentSpot + ", ");
+        }
+
+        return sb.substring(0, sb.length() - 1);
     }
 
     private static String showInStr(Comparable[] itemSeq) {
@@ -105,7 +115,7 @@ public class HeapSortTemplate {
             // #2 排除 已经排定的 数组元素/位置
             currentSpotToArrange--;
             // #3 使用 剩余的数组元素(使用区间指定) 来 重建一个新的堆；
-            transformToHeapViaItemsIn(heapSortedItemArr, currentSpotToArrange);
+            transformToHeapViaItemsInRange(heapSortedItemArr, currentSpotToArrange);
             System.out.println("### 3 使用除去排定位置" + (currentSpotToArrange + 1) + "后的其他元素 所重建的 堆有序的元素序列为：{" + showInStr(heapSortedItemArr, currentSpotToArrange) + "} ###");
         }
     }
@@ -121,16 +131,14 @@ public class HeapSortTemplate {
 
     /**
      * 由 指定元素序列 的 从起始位置 到 指定结束位置的区间中，构造得到一个堆
-     *
-     * @param itemArr      指定的元素序列
-     * @param lastNodeSpot 指定的结束位置
-     */
-    private static void transformToHeapViaItemsIn(Comparable[] itemArr,
-                                                  int lastNodeSpot) {
+     *  @param itemArr      指定的元素序列
+     * @param lastNodeSpotInHeap 指定的结束位置*/
+    private static void transformToHeapViaItemsInRange(Comparable[] itemArr,
+                                                       int lastNodeSpotInHeap) {
         // 🐖 由于 当前 只有spot=1的元素 违反了 堆的约束，因此 只需要 对spot=1的元素 执行sink 即可
         // aka 一旦 它满足约束，则 整个数组 也就满足 堆的约束
         int spotOfNodeToSink = 1;
-        sinkNodeOn(itemArr, spotOfNodeToSink, lastNodeSpot);
+        sinkNodeOn(itemArr, spotOfNodeToSink, lastNodeSpotInHeap);
     }
 
     private static void arrangeMaxItem(Comparable[] maxHeapArr, int spotOfLastNode) {

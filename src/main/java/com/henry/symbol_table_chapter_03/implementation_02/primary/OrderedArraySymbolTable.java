@@ -123,9 +123,9 @@ public class OrderedArraySymbolTable<Key extends Comparable<Key>, Value> {
     }
 
     /**
-     * 返回符号表中，所有小于值当的key的键的总数量
+     * 返回符号表中，所有值小于 指定的key的 键的总数量
      *
-     * 如果指定的key为null的话，则：抛出异常
+     * 如果 指定的key 为 null的话，则：抛出异常
      */
     private int rankOf(Key passedKey) {
         if (passedKey == null) throw new IllegalArgumentException("argument to rank() is null");
@@ -133,12 +133,14 @@ public class OrderedArraySymbolTable<Key extends Comparable<Key>, Value> {
         int leftBar = 0, rightBar = pairAmount - 1;
         while (leftBar <= rightBar) {
             int middle = leftBar + (rightBar - leftBar) / 2;
-            int result = passedKey.compareTo(keyArray[middle]);
-            if (result < 0) rightBar = middle - 1;
-            else if (result > 0) leftBar = middle + 1;
+            int compareResult = passedKey.compareTo(keyArray[middle]);
+
+            if (compareResult < 0) rightBar = middle - 1;
+            else if (compareResult > 0) leftBar = middle + 1;
             else return middle;
         }
-        return leftBar; // 二分查找最终返回的是leftBar
+
+        return leftBar; // 二分查找 最终返回的是 leftBar
     }
 
 

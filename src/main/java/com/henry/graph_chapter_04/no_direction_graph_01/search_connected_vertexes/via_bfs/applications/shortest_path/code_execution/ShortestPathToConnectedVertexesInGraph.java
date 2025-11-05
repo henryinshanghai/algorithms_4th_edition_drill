@@ -58,7 +58,7 @@ public class ShortestPathToConnectedVertexesInGraph {
         if (isNotMarked(terminalVertex)) {
             // #1 标记它 [基本步骤] 用于记录 顶点 是不是 已经被处理过了
             vertexToIsMarked[terminalVertex] = true;
-            // #2 记录 结束顶点->出发顶点的边 [核心步骤/BFS基本模板的额外步骤] 用于回溯出 从“起始顶点”到“终止顶点”的完整路径
+            // #2 记录 到达顶点->出发顶点的边 [核心步骤/BFS基本模板的额外步骤] 用于回溯出 从“起始顶点”到“终止顶点”的完整路径
             terminalVertexToDepartVertex[terminalVertex] = departVertex;
             // #3 把它 添加到 “待处理的顶点队列“中 - 算法 后继会 对它做同样的处理
             vertexesToProcess.enqueue(terminalVertex);
@@ -102,7 +102,7 @@ public class ShortestPathToConnectedVertexesInGraph {
         Graph graph = new Graph(new In(args[0]));
         int startVertex = Integer.parseInt(args[1]);
 
-        // #2 使用 BFS的方式 来 标记 图中所有“由起始顶点可达的”所有顶点，并 记录下 所有“起始顶点->可达结点(作为终止顶点)”的路径
+        // #2 使用 BFS的方式 来 标记 图中所有 “由起始顶点可达的”顶点，并 记录下 所有“起始顶点->可达结点(作为终止顶点)”的路径
         ShortestPathToConnectedVertexesInGraph markedGraph = new ShortestPathToConnectedVertexesInGraph(graph, startVertex);
 
         // #3 打印出 所有 起始顶点->可达顶点 的路径
@@ -111,7 +111,7 @@ public class ShortestPathToConnectedVertexesInGraph {
             StdOut.print("shortest path from " + startVertex + " to " + currentVertex + ": ");
             // #3-1 判断它 是不是 “由起始顶点可达的”
             if (markedGraph.doesStartVertexHasPathTo(currentVertex)) {
-                // #3-2 如果是，说明???，则 获取到 ”由起始顶点到达它“的路径
+                // #3-2 如果是，说明 存在有这样的路径，则 获取到 ”由起始顶点到达它“的路径
                 for (int currentVertexInPath : markedGraph.pathFromStartVertexTo(currentVertex)) {
                     // 然后 打印出 路径中的结点
                     if (currentVertexInPath == startVertex) StdOut.print(startVertex);

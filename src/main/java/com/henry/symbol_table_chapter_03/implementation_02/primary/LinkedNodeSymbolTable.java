@@ -80,20 +80,31 @@ public class LinkedNodeSymbolTable<Key, Value> {
     }
 
     /**
-     * 获取符号表中 与指定key相关联的value
-     * <p>
-     * 如果key不在符号表中，则：返回null
-     * 如果key是null，则：抛出异常
+     * 获取 符号表中 与指定key相关联的 value
+     * 如果key 不在 符号表 中，则：返回null
+     * 如果key 是 null，则：抛出异常
      *
-     * @param passedKey
+     * @param passedKey 指定的key
      */
     public Value getAssociatedValueOf(Key passedKey) {
-        if (passedKey == null) throw new IllegalArgumentException("argument to get() is null");
-        for (Node currentNode = firstNode; currentNode != null; currentNode = currentNode.nextNode) {
-            if (passedKey.equals(currentNode.key))
-                return currentNode.value; // 命中
+        // 如果 用户指定的key 为null，说明 这是一个无效的key（我们实现的符号表不支持null键），则：
+        if (passedKey == null) {
+            // 抛出异常
+            throw new IllegalArgumentException("argument to get() is null");
         }
-        return null; // 未命中
+
+        // 沿着链表遍历每个节点...
+        for (Node currentNode = firstNode; currentNode != null; currentNode = currentNode.nextNode) {
+            // 如果 当前节点的key 与 传入的key 相等，说明 这是一次命中的查找，则：
+            if (passedKey.equals(currentNode.key)) {
+                // 返回 该节点所关联的value
+                return currentNode.value;
+            }
+        }
+
+        // 如果遍历了所有节点 仍旧未命中，说明 当前符号表中 不存在有 对应的键值对，则：
+        // 返回 null 表示 不存在有这样的键值对
+        return null;
     }
 
     /**
@@ -107,22 +118,28 @@ public class LinkedNodeSymbolTable<Key, Value> {
      */
     public void putInPairOf(Key passedKey, Value associatedValue) {
         if (passedKey == null) throw new IllegalArgumentException("firstNode argument to put() is null");
-        // #1 删除键值对的操作
+        // #1 如果传入的value为null，说明 用户想要执行的是 删除键值对的操作，则：
         if (associatedValue == null) {
+            // 对 该键及其关联的值 进行 删除
             deletePairOf(passedKey);
             return;
         }
 
-        // #2 命中，则：更新键对应的值
+        // #2 遍历链表，在链表中查找 该指定的key...
         for (Node currentNode = firstNode; currentNode != null; currentNode = currentNode.nextNode) {
-            if (passedKey.equals(currentNode.key)) { // 命中
+            // 如果 当前节点 查找命中，说明 当前符号表中 存在有 对应的键值对，则：
+            if (passedKey.equals(currentNode.key)) {
+                // 使用 传入的value 来 更新 该key所关联的值
                 currentNode.value = associatedValue;
                 return;
             }
         }
 
-        // #3 未命中，则：为传入的键值对 创建新的节点 - 手段：创建新的节点，并将之作为链表的头节点
+        // #3 如果遍历了所有节点 仍旧未命中，说明 当前符号表中 不存在有 对应的键值对，
+        // 则：为 传入的键值对 创建 新的节点 - 手段：创建 新的节点，并 将之作为 链表的头节点
         firstNode = new Node(passedKey, associatedValue, firstNode);
+
+        // 添加新的键值对后，维护 对应的成员变量 - 符号表中的键值对数量
         pairAmount++;
     }
 

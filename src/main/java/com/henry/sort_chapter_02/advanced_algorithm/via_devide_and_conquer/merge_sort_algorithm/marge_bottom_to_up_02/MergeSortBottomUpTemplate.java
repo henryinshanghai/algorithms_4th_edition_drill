@@ -51,6 +51,8 @@ public class MergeSortBottomUpTemplate {
         for (int unitSize = 1; unitSize < itemAmount; unitSize = unitSize * 2) { // #3 更新（倍增）unitSize，重复#1、#2，直到（unitSize >= 原始数组的元素数量）得到“完全排序的数组”
             // #2 对 数组中的元素对序列 从左到右 执行两两归并；
             mergeUnitsByPairTillEnd(originalArr, unitSize);
+            System.out.println("*** unitSize为" + unitSize + "时，经过 成对归并 后 得到的序列为：" + showInStr(originalArr, 0, originalArr.length - 1) + " ***");
+            System.out.println();
         }
     }
 
@@ -72,11 +74,10 @@ public class MergeSortBottomUpTemplate {
                     = (leftBarOfCurrentPair + unitSize * 2) - 1;
             int maxRightBar = itemAmount - 1;
 
-            mergeUnitsInPair(originalArr,
+            mergeItemsInPair(originalArr,
                     leftBarOfCurrentPair,
                     leftBarOfCurrentPair + unitSize - 1,
                     Math.min(expectedRightBarOfCurrentPair, maxRightBar)); // ② 计算中间指针与右指针
-            System.out.println();
         }
     }
 
@@ -89,7 +90,7 @@ public class MergeSortBottomUpTemplate {
      * @param middleOfPair   当前对的中间位置
      * @param rightBarOfPair 当前对的右边界
      */
-    private static void mergeUnitsInPair(Comparable[] originalArr,
+    private static void mergeItemsInPair(Comparable[] originalArr,
                                          int leftBarOfPair,
                                          int middleOfPair,
                                          int rightBarOfPair) {
@@ -131,6 +132,8 @@ public class MergeSortBottomUpTemplate {
                 originalArr[currentSpotToArrange] = aux[cursorOfItemToCompareInUnit2++];
             }
         }
+
+        System.out.println("&&& 区间[" + leftBarOfPair + ", " + rightBarOfPair + "]中的元素被排定后，得到的元素序列为：" + showInStr(originalArr, leftBarOfPair, rightBarOfPair) + " &&&");
     }
 
     private static void copyItemToAux(Comparable[] originalArr,

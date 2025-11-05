@@ -133,13 +133,11 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
     }
 
     /**
-     * Does this symbol table contain the given key?
      * 符号表中是否包含有 传入的key?
      *
-     * @param passedKey the key
-     * @return {@code true} if this symbol table contains {@code key} and
-     * {@code false} otherwise
-     * @throws IllegalArgumentException if {@code key} is {@code null}
+     * @param passedKey 传入的key
+     * @return 如果符号表中 包含有 该key，返回true。否则 返回false
+     * @throws IllegalArgumentException 如果传入的key为null
      */
     public boolean doesContains(Key passedKey) {
         return getAssociatedValueOf(passedKey) != null;
@@ -150,17 +148,13 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
      ***************************************************************************/
 
     /**
-     * Inserts the specified key-value pair into the symbol table, overwriting the old
-     * value with the new value if the symbol table already contains the specified key.
-     * Deletes the specified key (and its associated value) from this symbol table
-     * if the specified value is {@code null}.
      * 向符号表中插入指定的键值对
      * 如果符号表中存在有传入的键，则：覆写其所对应的值
      * 如果传入的值是null，则：删除指定的键（及 与之关联的value）
      *
-     * @param passedKey       the key
-     * @param associatedValue the value
-     * @throws IllegalArgumentException if {@code key} is {@code null}
+     * @param passedKey       指定的key
+     * @param associatedValue 其所关联的value
+     * @throws IllegalArgumentException 如果传入的key是null
      */
     public void putInPairOf(Key passedKey, Value associatedValue) {
         if (passedKey == null)
@@ -229,19 +223,19 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
     public void deletePairOfMaxKey() {
         if (isEmpty()) throw new NoSuchElementException("BST underflow");
 
-        // 如果查询路径上的第一个链接不是红链接（根结点的左右子节点都是黑色的），说明根结点是一个2-结点。则：
-        // 把根结点改变成为一个红节点 - 后继才能把这个红链接往下推
+        // 如果 查询路径上的第一个链接 不是 红链接（根结点的左右子节点 都是黑色的），说明 根结点 是一个2-结点。则：
+        // 把 根结点 改变成为 一个红节点 - 后继才能 把这个红链接 往下推
         if (rootNodeHas2BlackChild())
             rootNode.color = RED;
 
         rootNode = deletePairOfMaxKeyFrom(rootNode);
 
-        // 删除完成后，把根结点强制设置为黑色（红黑树的定义）
+        // 删除完成后，把 根结点 强制设置为 黑色（红黑树的定义）
         if (!isEmpty()) rootNode.color = BLACK;
         // assert check();
     }
 
-    // 判断根结点是不是一个2-结点   手段：判断根结点的左子结点、右子结点是不是都是黑色结点
+    // 判断根结点 是不是 一个2-结点   手段：判断根结点的左子结点、右子结点 是不是都是 黑色结点
     private boolean rootNodeHas2BlackChild() {
         return !isRed(rootNode.leftSubNode) && !isRed(rootNode.rightSubNode);
     }
@@ -251,54 +245,55 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
     // 具体的不变性 - 在查询路径中，保证 当前节点 或者 当前节点的右子结点为红色
     private Node deletePairOfMaxKeyFrom(Node currentNode) {
         // Ⅰ 递归调用之前（沿着树从上往下）在查询路径中，引入红链接👇
-        // Ⅰ-①：如果当前结点存在有一个红色的左链接，则 把左链接右旋转 来 为maxPath中引入红链接
+        // Ⅰ-①：如果 当前结点 存在有一个红色的左链接，说明 它是3-节点的上半部分，则：
         if (isTheUpperNodeOf3Node(currentNode))
+            // 把左链接右旋转 来 为maxPath中引入红链接
             currentNode = rotateItsRedSubLinkToRight(currentNode);
 
         // Ⅱ 执行删除操作
-        // Ⅱ-① 如果调用沿着右脊 找到了最大结点 aka 递归执行到了树的底部...
+        // Ⅱ-① 如果调用沿着右脊 找到了最大结点 aka 递归 执行到了 树的底部...
         if (reachToBottomOnRightSpine(currentNode))
-            // 则：删除最大结点（红节点/叶子节点）
+            // 则：删除 最大结点（红节点/叶子节点）
             return performDeletion();
 
-        // Ⅰ-②：如果maxPath的incomingNode是一个2-结点，则 通过xxx 来 为maxPath中引入红链接
+        // Ⅰ-②：如果maxPath的incomingNode 是一个2-结点，说明 需要 为maxPath中引入红链接
         if (incomingNodeIsA2NodeInRightSpine(currentNode))
-            // 则：在查询路径中引入红链接，使之不再是一个2-结点
-            // 手段：使用 moveRedRight() 来 把红链接沿着查找路径往下推
+            // 则：在查询路径中 引入红链接，使之不再是 一个2-结点
+            // 手段：使用 moveRedRight() 来 把 红链接 沿着查找路径 往下推
             currentNode = introduceRedLinkIntoMaxPath(currentNode);
 
-        // Ⅱ-② 如果还没有达到最大结点，则 执行删除操作，并把 “删除了最大节点后的右子树” 重新绑定到“当前结点的右子树”上
-        // 🐖 经过Ⅰ的调整后，我们可以确保 删除动作发生在一个 不是2-结点的结点中
+        // Ⅱ-② 如果还没有达到最大结点，则 执行删除操作，并把 “删除了最大节点后的右子树” 重新绑定到 “当前结点的右子树” 上
+        // 🐖 经过Ⅰ的调整后，我们可以确保 删除动作 会发生在一个 不是2-结点的结点中
         currentNode.rightSubNode = deletePairOfMaxKeyFrom(currentNode.rightSubNode);
 
-        // Ⅲ 对执行了删除操作后的树恢复约束，得到符合左倾红黑树所有约束的树（aka 红黑树）
-        // 🐖 这是一个从叶子节点到根结点的过程
+        // Ⅲ 对 执行了删除操作后的树 恢复约束，得到 符合左倾红黑树所有约束的 树（aka 红黑树）
+        // 🐖 这是一个 从叶子节点到根结点 的过程
         return fixMightBreaches(currentNode);
     }
 
 
-    // 沿着查询最大结点的路径达到右脊的底部
+    // 沿着 查询最大结点的路径 达到 右脊的底部
     private boolean reachToBottomOnRightSpine(Node currentNode) {
         return currentNode.rightSubNode == null;
     }
 
 
-    // 判断红黑树的当前节点 在其对应的2-3树中是否为一个3-结点
+    // 判断 红黑树的当前节点 在其对应的2-3树中 是否为一个3-结点
     private boolean isTheUpperNodeOf3Node(Node currentNode) {
         return isRed(currentNode.leftSubNode);
     }
 
     /**
-     * 从符号表中删除最小键（及其所关联的值）
-     * 通过保持与文本中给出的转换的对应关系来实现RedBlackBST.java的deleteMin（）操作；
-     * 作用：1 以使树的左脊向下移动；
+     * 从符号表中 删除最小键（及 其所关联的值）
+     * 通过保持 与文本中给出的转换的对应关系 来 实现RedBlackBST.java的deleteMin（）操作；
+     * 作用：1 使 树的左脊 向下移动；
      * 2 同时保持树的不变性————即当前节点不是2节点。
      */
     public void deleteNodeOfMinKey() {
         if (isEmpty()) throw new NoSuchElementException("BST underflow");
 
-        // 如果查询路径上的第一个链接不是红链接（根结点的左右子节点都是黑色的），说明根结点是一个2-结点。则：
-        // 把根结点改变成为一个红节点 - 后继才能把这个红链接往下推
+        // 如果 查询路径上的第一个链接 不是 红链接（根结点的左右子节点都是黑色的），说明 根结点 是一个2-结点。则：
+        // 把 根结点 改变成为 一个红节点 - 后继才能 把这个红链接 往下推
         if (rootNodeHas2BlackChild())
             rootNode.color = RED;
 
@@ -335,16 +330,16 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
     }
 
 
-    // 判断沿着左脊的查询路径上的下一个结点 是不是2-结点
+    // 判断 沿着左脊的查询路径上 的下一个结点 是不是2-结点
     private boolean incomingNodeIsA2NodeInLeftSpine(Node currentNode) {
-        // 获取到查询路径上的下一个结点
+        // 获取到 查询路径上的下一个结点
         Node incomingNode = currentNode.leftSubNode;
         // 判断 该节点 是不是一个 2-结点
         // 手段：只要它 不属于3-结点（”由红色的左链接所连接“的 两个物理结点），就可以证明 它是2-结点
         return !isRed(incomingNode) && !isRed(incomingNode.leftSubNode);
     }
 
-    // 判断沿着右脊的查询路径上的下一个结点 是不是2-结点
+    // 判断 沿着右脊的查询路径上 的下一个结点 是不是2-结点
     private boolean incomingNodeIsA2NodeInRightSpine(Node currentNode) {
         // 获取到 查询路径上的下一个结点
         Node incomingNode = currentNode.rightSubNode;
@@ -359,7 +354,7 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
         return null;
     }
 
-    // 沿着查询最小节点的路径到达左脊的底部
+    // 沿着 查询最小节点的路径 到达 左脊的底部
     private boolean reachToBottomOnLeftSpine(Node currentNode) {
         return currentNode.leftSubNode == null;
     }
@@ -672,8 +667,8 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
     /**
      * 返回符号表中最小的键
      *
-     * @return the smallest key in the symbol table
-     * @throws NoSuchElementException if the symbol table is empty
+     * @return 符号表中最小的key
+     * @throws NoSuchElementException 如果符号表为空
      */
     public Key getMinKey() {
         if (isEmpty()) throw new NoSuchElementException("calls min() with empty symbol table");
@@ -690,8 +685,8 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
     /**
      * 返回符号表中的最大键
      *
-     * @return the largest key in the symbol table
-     * @throws NoSuchElementException if the symbol table is empty
+     * @return 符号表中最大的key
+     * @throws NoSuchElementException 如果符号表为空
      */
     public Key getMaxKey() {
         if (isEmpty()) throw new NoSuchElementException("calls max() with empty symbol table");
@@ -707,21 +702,21 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
 
 
     /**
-     * 返回符号表中小于等于 传入的key的最大的key
+     * 返回符号表中 小于等于 传入的key的最大的key
      *
-     * @param passedKey the key
-     * @return the largest key in the symbol table less than or equal to {@code key}
-     * @throws NoSuchElementException   if there is no such key
-     * @throws IllegalArgumentException if {@code key} is {@code null}
+     * @param passedKey 指定的key
+     * @return 符号表中小于或等于 指定key的最大key
+     * @throws NoSuchElementException   如果该key不存在
+     * @throws IllegalArgumentException 如果传入的key是null
      */
     public Key getFlooredKeyOf(Key passedKey) {
         if (passedKey == null) throw new IllegalArgumentException("argument to floor() is null");
         if (isEmpty()) throw new NoSuchElementException("calls floor() with empty symbol table");
 
-        // 从当前的结点树中查找满足条件的结点
+        // 从 当前的结点树 中 查找 满足条件的结点
         Node flooredNode = getNodeOfFlooredKeyFrom(rootNode, passedKey);
 
-        // 根据具体的查询结果决定返回值 或者 抛出异常
+        // 根据 具体的查询结果 决定返回值 或者 抛出异常
         if (flooredNode == null) throw new NoSuchElementException("argument to floor() is too small");
         else return flooredNode.key;
     }
@@ -748,8 +743,8 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
      *
      * @param passedKey 传入的key
      * @return 符号表中大于等于 传入的key的最小key
-     * @throws NoSuchElementException   if there is no such key
-     * @throws IllegalArgumentException if {@code key} is {@code null}
+     * @throws NoSuchElementException   如果符号表中不存在该key
+     * @throws IllegalArgumentException 如果传入的key为null
      */
     public Key getCeilingKeyOf(Key passedKey) {
         if (passedKey == null) throw new IllegalArgumentException("argument to ceiling() is null");
@@ -786,9 +781,9 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
      * 特征：符号表中有 ranking个比它更小的键。
      * 换句话说，这个key是符号表中 第 (rank+1) 小的key
      *
-     * @param passedRanking the order statistic
-     * @return the key in the symbol table of given {@code rank}
-     * @throws IllegalArgumentException unless {@code rank} is between 0 and （n-1）
+     * @param passedRanking 指定的排名次序
+     * @return the key in the symbol table of given {@code rank} 在符号表中指定排名的key
+     * @throws IllegalArgumentException 如果传入的rank 不在[0, n-1]区间内
      */
     public Key selectOutKeyOf(int passedRanking) {
         if (passedRanking < 0 || passedRanking >= pairAmount()) {
@@ -819,9 +814,9 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
     /**
      * 返回符号表中，所有严格小于 passedKey的键的总数量
      *
-     * @param passedKey the key
-     * @return the number of keys in the symbol table strictly less than {@code key}
-     * @throws IllegalArgumentException if {@code key} is {@code null}
+     * @param passedKey 传入的key
+     * @return 符号表中 严格小于 指定的key的 键的数量
+     * @throws IllegalArgumentException 如果传入的key是null
      */
     public int rankingOf(Key passedKey) {
         if (passedKey == null) throw new IllegalArgumentException("argument to rank() is null");
@@ -854,7 +849,7 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
      * 以一个Iterable的形式 来 返回符号表中所有的key
      * 如果想要遍历st符号表中的所有的键，可以使用 foreach的标记语法  for (Key key : st.keys())
      *
-     * @return all keys in the symbol table as an {@code Iterable}
+     * @return 以一个可迭代的形式返回 符号表中所有的key
      */
     public Iterable<Key> getIterableKeys() {
         if (isEmpty()) return new Queue<Key>();
@@ -862,14 +857,12 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
     }
 
     /**
-     * 以Iterable的方式 来 返回符号表中指定范围（左右闭区间）内的键
+     * 以Iterable的方式 来 返回符号表中 指定范围（左右闭区间）内的键
      *
-     * @param leftBarKey  minimum endpoint
-     * @param rightBarKey maximum endpoint
-     * @return all keys in the symbol table between {@code lo}
-     * (inclusive) and {@code hi} (inclusive) as an {@code Iterable}
-     * @throws IllegalArgumentException if either {@code lo} or {@code hi}
-     *                                  is {@code null}
+     * @param leftBarKey  最小端点
+     * @param rightBarKey 最大端点
+     * @return 以一个可迭代的形式 来 返回符号表中 [lo, hi]区间内 所有的key
+     * @throws IllegalArgumentException 如果lo或者hi中的任意一个为null
      */
     public Iterable<Key> getIterableKeysBetween(Key leftBarKey, Key rightBarKey) {
         if (leftBarKey == null) throw new IllegalArgumentException("first argument to keys() is null");
@@ -904,12 +897,10 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
     /**
      * 返回符号表中指定范围内（左右闭区间）所有键的总数量
      *
-     * @param leftBarKey  minimum endpoint
-     * @param rightBarKey maximum endpoint
-     * @return the number of keys in the symbol table between {@code lo}
-     * (inclusive) and {@code hi} (inclusive)
-     * @throws IllegalArgumentException if either {@code lo} or {@code hi}
-     *                                  is {@code null}
+     * @param leftBarKey  最小端点
+     * @param rightBarKey 最大端点
+     * @return 符号表区间[lo, hi]之间的所有键的数量
+     * @throws IllegalArgumentException 如果lo或者hi中的任一个为null
      */
     public int pairAmountBetween(Key leftBarKey, Key rightBarKey) {
         if (leftBarKey == null) throw new IllegalArgumentException("first argument to itsNodesAmount() is null");
@@ -1041,7 +1032,7 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
      * 红黑树符号表的单元测试
      *
      * @param args the command-line arguments 命令行参数
-     *             问题：对main()函数来说，函数体中并没有使用到args这个参数，为什么还要设置这个形式参数呢？
+     * 问题：对main()函数来说，函数体中 并没有使用到 args这个参数，为什么还要设置 这个形式参数呢？
      */
     public static void main(String[] args) {
         // 创建一个符号表对象（红黑树只是实现方式，符号表才是最终目的）

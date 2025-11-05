@@ -59,6 +59,7 @@ public class BinarySearchTreeSymbolTable<Key extends Comparable<Key>, Value> {
     }
 
     // ~~ 作为数据容器的核心方法：GET, PUT, DELETE ~~
+
     /**
      * 在符号表中查找传入的键，并返回 其所关联的值。
      * 如果符号表中不存在传入的键，则：返回null
@@ -71,32 +72,49 @@ public class BinarySearchTreeSymbolTable<Key extends Comparable<Key>, Value> {
     }
 
     /**
-     * 在二叉查找树中，查找传入的key
-     * 如果命中，则：返回key所对应的值。
-     * 如果未命中，则：返回null
+     * 在 二叉查找树 中，查找 传入的key
+     * 如果 命中，则：返回 key所关联的值。
+     * 如果 未命中，则：返回null
      */
     private Value getAssociatedValueFrom(Node currentNode, Key passedKey) {
-        if (passedKey == null) throw new IllegalArgumentException("calls get() with a null key");
+        // 如果传入的key是null，说明 这是一个不合法的key，则：
+        if (passedKey == null) {
+            // 抛出异常
+            throw new IllegalArgumentException("calls get() with a null key");
+        }
 
-        // 递归的终结条件 - 查找过程结束于一个空链接/空结点
-        if (currentNode == null) return null;
+        /* 递归的终结条件 - 查找过程结束于一个空链接/空结点 */
+        // 如果 当前节点为null，说明 查找过程 结束于 一个nil节点，也就是 在BST中 没有找到 传入的key，则：
+        if (currentNode == null) {
+            // 返回null，表示 这是一次未命中的查找
+            return null;
+        }
 
-        // 本级递归要做的事情：1 把树分解为根节点 + 左子树 + 右子树； 2 判断根节点是不是预期的节点； 3 如果不是，从左右子树上执行查找，并返回值
-        // 根据 传入的key 与 当前二叉树的根结点的key的比较结果 来 返回关联的value(如果key相同) 或者 在对应的子树中继续递归查找
-        int result = passedKey.compareTo(currentNode.key);
-        if (result < 0) return getAssociatedValueFrom(currentNode.leftSubTree, passedKey);
-        else if (result > 0) return getAssociatedValueFrom(currentNode.rightSubTree, passedKey);
-        else return currentNode.value;
+        // 本级递归要做的事情：① 把树分解为根节点 + 左子树 + 右子树； ② 判断根节点是不是预期的节点； 3 如果不是，从左右子树上执行查找，并返回值
+        /* 根据 传入的key 与 当前二叉树的根结点的key 的比较结果 来 返回 关联的value(如果 key相同) 或者 在 对应的子树 中 继续递归查找 */
+        int compareResult = passedKey.compareTo(currentNode.key);
+
+        // 如果 传入的key 比起 当前节点的key 更小，说明 传入的key 只可能存在于 当前节点的左子树中，则：
+        if (compareResult < 0) {
+            // 在 其左子树中 继续查找 传入的key
+            return getAssociatedValueFrom(currentNode.leftSubTree, passedKey);
+        } else if (compareResult > 0) { // 如果 更大，说明 只可能存在于 当前节点的右子树中，则：
+            // 在 其右子树中 继续查找 传入的key
+            return getAssociatedValueFrom(currentNode.rightSubTree, passedKey);
+        } else { // 如果 相等，说明 这是一次命中查找，则：
+            // 返回 当前节点的value（传入的key所关联的值）
+            return currentNode.value;
+        }
     }
 
     /**
-     * 向符号表中插入传入的键值对
-     * 如果符号表中存在有相同大的键，则：覆盖其所对应的值
-     * 如果传入的值是null，则：从符号表中删除传入的键（以及关联的值）
+     * 向 符号表 中 插入 传入的键值对
+     * 如果符号表中 存在有 相同的键，则：覆盖 其所对应的值
+     * 如果 传入的值 是 null，则：从符号表中 删除 传入的键（以及 关联的值）
      *
-     * @param passedKey       the key
-     * @param associatedValue the value
-     * @throws IllegalArgumentException if {@code key} is {@code null}
+     * @param passedKey       指定的键
+     * @param associatedValue 键所关联的值
+     * @throws IllegalArgumentException 如果传入的键是null
      */
     public void putInPairOf(Key passedKey, Value associatedValue) {
         if (passedKey == null) throw new IllegalArgumentException("calls put() with a null key");
@@ -106,93 +124,112 @@ public class BinarySearchTreeSymbolTable<Key extends Comparable<Key>, Value> {
             return;
         }
 
-        // 向二叉查找树rootNode 中插入 key-value pair
+        // 向 二叉查找树rootNode 中插入 key-value pair
         rootNode = putPairInto(rootNode, passedKey, associatedValue);
         assert checkIfUnderlyingMemberCorrect();
     }
 
-    // 🐖 插入的过程 与 查找的过程十分类似 - 插入前，需要先查找
+    // 🐖 插入的过程 与 查找的过程 十分类似 - 在插入前，需要 先查找
     private Node putPairInto(Node currentNode, Key passedKey, Value associatedValue) {
-        // 递归终结条件：查询结束于一个空结点/链接
-        // 则：为传入的键值对创建一个新结点，并返回 以 链接到父节点上（重置搜索路径上指向结点的链接）
-        if (currentNode == null)
+        // 递归终结条件：
+        // 如果 当前节点为null，说明 查询 结束于 一个空结点/链接 则：
+        if (currentNode == null) {
+            // 为 传入的键值对 创建一个新结点，并返回 以 将之 链接到 父节点上（重置 搜索路径上 指向结点的链接）
             return new Node(passedKey, associatedValue, 1);
+        }
 
-        // 重置 搜索路径上的所有的 父节点指向子节点的链接（aka 左右链接）
+        // 重置 搜索路径上的 所有的 父节点指向子节点的链接（aka 左右链接）
         // 手段：node.leftNode = xxx; node.rightNode = ooo;
-        int result = passedKey.compareTo(currentNode.key);
-        if (result < 0) // 向左子树中插入键值对，并使用插入后的子树 来 更新左子树
+        int compareResult = passedKey.compareTo(currentNode.key);
+        // 如果 传入的key 比起 当前节点的key 更小，说明 传入的key 只可能存在于 当前节点的左子树中，则：
+        if (compareResult < 0) {
+            // 向 左子树 中 插入键值对，并 使用 插入后的子树 来 更新左子树
             currentNode.leftSubTree = putPairInto(currentNode.leftSubTree, passedKey, associatedValue);
-        else if (result > 0) // 向右子树中插入键值对，并使用插入后的子树 来 更新右子树
+        } else if (compareResult > 0) { // 如果 更大，说明 只可能存在于 当前节点的右子树中，则：
+            // 向 右子树 中 插入键值对，并 使用 插入后的子树 来 更新右子树
             currentNode.rightSubTree = putPairInto(currentNode.rightSubTree, passedKey, associatedValue);
-        else currentNode.value = associatedValue; // 如果根节点的key 与 传入的key相同，则：更新结点中的value
+        } else { // 如果 相等，说明 这是一次 命中的查找，则：
+            // 更新 结点中的value
+            currentNode.value = associatedValue;
+        }
 
-        // 更新搜索路径中每个结点的 计数器 - 🐖 如果新增了结点，则：搜索路径上的每个结点的结点计数器都要+1
-        // 手段：使用一个通用的恒等式 👇
+        // 更新 搜索路径中 每个结点的 计数器 - 🐖 如果 新增了 结点，则：搜索路径上的 每个结点的结点计数器 都要+1
+        // 手段：使用一个 通用的 恒等式 👇
         currentNode.itsNodesAmount = 1 + nodeAmountOf(currentNode.leftSubTree) + nodeAmountOf(currentNode.rightSubTree);
+
+        // 返回更新后的当前节点/树
         return currentNode;
     }
 
     /**
-     * 从符号表中删除传入的key & 它所关联的value（如果key存在于符号表中的话）
-     * <p>
-     * 如果传入的key为null 则抛出 非法参数异常
+     * 从符号表中 删除 传入的key & 它所关联的value（如果key 存在于 符号表中的话）
+     * 如果 传入的key 为null 则抛出 非法参数异常
      *
-     * @param passedKey
+     * @param passedKey 指定的key
      */
     public void deletePairOf(Key passedKey) {
-        if (passedKey == null) throw new IllegalArgumentException("calls delete() with a null key");
+        if (passedKey == null) {
+            throw new IllegalArgumentException("calls delete() with a null key");
+        }
         rootNode = deletePairFrom(rootNode, passedKey);
         assert checkIfUnderlyingMemberCorrect();
     }
 
-    // 从二叉查找树中删除 传入的key
+    // 从 二叉查找树 中 删除 传入的key
     private Node deletePairFrom(Node currentNode, Key passedKey) {
-        // 递归中终结条件 - 对传入的key的查询 结束于一个空结点(也就是没有找到它)，则：返回null 表示查询未命中
-        if (currentNode == null) return null;
+        // 递归终结条件 -
+        // 如果 当前节点为null，说明 对传入的key的查询 结束于 一个空结点(也就是 没有找到它)，则：
+        if (currentNode == null) {
+            // 返回null 表示 查询未命中
+            return null;
+        }
 
         // 比较 传入的key 与 当前二叉树的根结点中的key
-        int result = passedKey.compareTo(currentNode.key);
+        int compareResult = passedKey.compareTo(currentNode.key);
 
-        // 如果传入的key 比 当前二叉树的根结点中的key更小，说明 传入的key在左子树中（假如存在的话）
-        if (result < 0)
-            // 则：从左子树中删除结点 & “使用删除结点后的子树 来 更新指向原始子树的链接”
+        // 如果 传入的key 比 当前二叉树的根结点中的key 更小，说明 传入的key 只可能存在于 左子树 中
+        if (compareResult < 0) {
+            // 则：从左子树中 删除结点 & “使用删除结点后的子树 来 更新 指向原始子树的链接”
             currentNode.leftSubTree = deletePairFrom(currentNode.leftSubTree, passedKey);
-        // 如果更大，说明 传入的key在右子树中（假如存在的话）
-        else if (result > 0)
-            // 则：从右子树中删除节点 & 使用“删除节点后的子树” 来 更新指向原始子树的连接
+        } else if (compareResult > 0) { // 如果 更大，说明 传入的key 只可能存在于 右子树中
+            // 则：从右子树中 删除节点 & 使用“删除节点后的子树” 来 更新 指向原始子树的链接
             currentNode.rightSubTree = deletePairFrom(currentNode.rightSubTree, passedKey);
-        // 如果相等，说明 传入的key 就是根结点中的key
-        else {
-            // 则：删除根结点(当前结点)
-            /* 当根结点(当前结点)有两个子节点时，删除结点后，会有两个链接无处attach。但是其父结点上只会有一个空链接可用 该怎么办？
+        } else { // 如果 相等，说明 在当前节点 查询命中
+            // 则：删除 根结点(当前结点)
+            /* 当 根结点(当前结点)有两个子节点 时，删除结点后，会有两个链接 无处attach。但是 其父结点上 只会有一个空链接可用 该怎么办？
                 高层手段（Hibbard）：使用 被删除结点的后继结点(successor) 来 填补/替换 被删除结点的位置
-                原理：在二叉树中的任何一个结点，都会有一个指向它的链接 & 两个从它指出的链接 - 比喻：挖东墙，补西墙。
-                难点：选择的后继结点 替换 被删除的结点后，整棵二叉搜索树仍旧 需要遵守 BST的数值约束。
-                具体手段：这里选择的后继结点 是 “待删除结点的右子树中的最小结点”。
-                    因为从BST数值约束的角度来说，它可以作为 待删除的原始结点的平替(replacement)
+                原理：在二叉树中的任何一个结点，都会有 一个指向它的链接 & 两个从它指出的链接 - 比喻：挖东墙，补西墙。
+                难点：选择的后继结点 替换 被删除的结点 后，整棵二叉搜索树 仍旧 需要遵守 BST的数值约束。
+                具体手段：这里 选择的后继结点 是 “待删除结点的右子树中的 最小结点”。
+                    因为从 BST数值约束 的角度 来说，它 可以作为 待删除的原始结点 的平替(replacement)
                 具体做法：
                     #1 把 successor结点 作为 当前结点；
                     #2 更新 当前结点的左右链接；
                     #3 返回 当前结点 来 更新“指向当前结点的链接”
             * */
-            // #case01 右子树为空
-            if (currentNode.rightSubTree == null) return currentNode.leftSubTree;
-            // #case02 左子树为空
-            if (currentNode.leftSubTree == null) return currentNode.rightSubTree;
+            // 如果 当前节点的右子节点 为null，说明 删除当前节点后，其左子节点 会被直接attach到其父节点上，则：
+            if (currentNode.rightSubTree == null) {
+                // 直接返回 其左子节点 来 实现attach
+                return currentNode.leftSubTree;
+            }
+            // 如果 当前节点的左子节点 为null，说明 删除当前节点后，其右子节点 会被直接attach到其父节点上，则：
+            if (currentNode.leftSubTree == null) {
+                // 直接返回 其右子节点 来 实现attach
+                return currentNode.rightSubTree;
+            }
 
-            // 为当前结点添加一个引用originalNode - 用于记录原始结点，从而在需要的时候 用它来获取到原始结点的左右结点
+            // 为 当前结点 添加一个引用originalNode - 用于 记录原始结点，从而 在需要的时候 用它来获取到 原始结点的左右结点
             Node originalNode = currentNode;
-            // #1 获取原始结点 右子树中的最小结点 & 并 把当前节点的指针currentNode指向它
+            // #1 获取 原始结点 右子树中的最小结点 & 并 把 当前节点的指针currentNode 指向它
             currentNode = nodeOfMinKeyFrom(originalNode.rightSubTree);
-            // #2 设置当前结点的左右子树
-            // 手段：对于右子树，使用“删除最小结点后的右子树” 来 更新指向右子树的链接
+            // #2 设置 当前结点的左右子树
+            // 手段：对于 右子树，使用“删除最小结点后的右子树” 来 更新 指向右子树的链接
             currentNode.rightSubTree = deletePairOfMinKeyFrom(originalNode.rightSubTree);
-            // 对于左子树，使用“原始节点的左子树” 来 更新指向“当前结点左子树”的链接
+            // 对于 左子树，使用“原始节点的左子树” 来 更新 指向“当前结点左子树”的链接
             currentNode.leftSubTree = originalNode.leftSubTree;
         }
 
-        // 更新当前二叉树根结点中的 结点计数器
+        // 更新 当前二叉树根结点中的 结点计数器
         currentNode.itsNodesAmount = nodeAmountOf(currentNode.leftSubTree) + nodeAmountOf(currentNode.rightSubTree) + 1;
 
         // 返回“当前结点” 来 链接到 父结点上
@@ -207,13 +244,12 @@ public class BinarySearchTreeSymbolTable<Key extends Comparable<Key>, Value> {
     }
 
     /**
-     * 符号表中是否包含有传入的key？
-     * <p>
+     * 符号表中 是否包含有 传入的key？
      * 如果包含，则：返回true 否则返回false
      * 如果传入的key是null，则：抛出异常
      *
-     * @param passedKey
-     * @throws IllegalArgumentException if {@code key} is {@code null}
+     * @param passedKey 传入的key
+     * @throws IllegalArgumentException 如果key是null
      */
     public boolean doesContains(Key passedKey) {
         if (passedKey == null) throw new IllegalArgumentException("argument to contains() is null");
@@ -222,9 +258,9 @@ public class BinarySearchTreeSymbolTable<Key extends Comparable<Key>, Value> {
 
 
     // ~~ MAX and MIN ~~
+
     /**
-     * 从符号表中删除最小的key & 它所关联的值
-     * <p>
+     * 从符号表中删除 最小的key & 它所关联的值
      * 如果符号表为空，则：抛出 NoSuchElementException异常
      */
     public void deletePairOfMinKey() {
@@ -309,6 +345,7 @@ public class BinarySearchTreeSymbolTable<Key extends Comparable<Key>, Value> {
     }
 
     // ~~ FLOOR AND CEILING ~~
+
     /**
      * 返回符号表中 小于等于 传入key的最大的key
      * <p>
@@ -396,6 +433,7 @@ public class BinarySearchTreeSymbolTable<Key extends Comparable<Key>, Value> {
     }
 
     // ~~ SELECT & RANK ~~
+
     /**
      * 返回符号表中 传入的排名 所对应的键。
      * 这个key存在有如下性质：在符号表中存在有 rank个key都小于它。
@@ -420,7 +458,8 @@ public class BinarySearchTreeSymbolTable<Key extends Comparable<Key>, Value> {
         if (currentNode == null) return null;
         int leftTreeSize = nodeAmountOf(currentNode.leftSubTree);
         if (leftTreeSize > passedRank) return selectOutKeyFrom(currentNode.leftSubTree, passedRank);
-        else if (leftTreeSize < passedRank) return selectOutKeyFrom(currentNode.rightSubTree, passedRank - leftTreeSize - 1);
+        else if (leftTreeSize < passedRank)
+            return selectOutKeyFrom(currentNode.rightSubTree, passedRank - leftTreeSize - 1);
         else return currentNode.key;
     }
 
@@ -440,15 +479,18 @@ public class BinarySearchTreeSymbolTable<Key extends Comparable<Key>, Value> {
         if (currentNode == null) return 0;
         int result = passedKey.compareTo(currentNode.key);
         if (result < 0) return rankingIn(passedKey, currentNode.leftSubTree);
-        else if (result > 0) return 1 + nodeAmountOf(currentNode.leftSubTree) + rankingIn(passedKey, currentNode.rightSubTree);
+        else if (result > 0)
+            return 1 + nodeAmountOf(currentNode.leftSubTree) + rankingIn(passedKey, currentNode.rightSubTree);
         else return nodeAmountOf(currentNode.leftSubTree);
     }
 
     // ~~ ITERABLE ~~
+
     /**
      * 以Iterable的方式 来 返回符号表中所有的key所组成的集合
      * 为了遍历 st符号表中所有的key，可以使用foreach标记语法： for(Key key : st.keys()) {...}
      * 特征：以 “左 - 根 - 右” 的次序 来 返回BST中的key
+     *
      * @return all keys in the symbol table
      */
     public Iterable<Key> getIterableKeys() {
@@ -517,6 +559,7 @@ public class BinarySearchTreeSymbolTable<Key extends Comparable<Key>, Value> {
     }
 
     // ~~ VERIFY BST ~~
+
     /**
      * 返货 符号表所使用的二叉查找树的高度
      * 1-结点的树 的高度为0
@@ -535,8 +578,9 @@ public class BinarySearchTreeSymbolTable<Key extends Comparable<Key>, Value> {
     /**
      * 出于调试目的，返回 符号表所使用的二叉查找树的 层序遍历产生的key序列
      * 手段：
-     *  #1 利用队列的先进先出特性 来 以“当前层：自左向右 不同层：自上而下”的顺序 遍历BST中的结点
-     *  #2 把队列中的队首结点 添加到 keys简单集合中
+     * #1 利用队列的先进先出特性 来 以“当前层：自左向右 不同层：自上而下”的顺序 遍历BST中的结点
+     * #2 把队列中的队首结点 添加到 keys简单集合中
+     *
      * @return the keys in the BinarySearchTreeSymbolTable in level order traversal（层序遍历）
      */
     public Iterable<Key> getIterableKeysInLevelOrder() {
@@ -620,6 +664,7 @@ public class BinarySearchTreeSymbolTable<Key extends Comparable<Key>, Value> {
     }
 
     // ~~ SIMPLE HELPER ~~
+
     /**
      * 符号表是否为空
      */
@@ -637,6 +682,7 @@ public class BinarySearchTreeSymbolTable<Key extends Comparable<Key>, Value> {
 
     /**
      * BinarySearchTreeSymbolTable 数据类型的单元测试
+     *
      * @param args the command-line arguments
      */
     public static void main(String[] args) {
