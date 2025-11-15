@@ -60,6 +60,10 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
             this.color = color;
             this.itsNodesAmount = itsNodesAmount;
         }
+
+        public String toString() {
+            return "( key=" + key + ", value=" + value + ", color=" + color + ")";
+        }
     }
 
     /**
@@ -105,30 +109,48 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
 
 
     /***************************************************************************
-     *  Standard BST search.
+     *  标准的BST搜索
      ***************************************************************************/
 
     /**
-     * Returns the value associated with the given key.
+     * 返回 符号表中 指定的key所关联的value
      *
-     * @param passedKey the key
-     * @return the value associated with the given key if the key is in the symbol table
-     * and {@code null} if the key is not in the symbol table
-     * @throws IllegalArgumentException if {@code key} is {@code null}
+     * @param passedKey 指定的key
+     * @return 如果指定的key存在于符号表中，则 返回该key所关联的值。如果key不存在于符号表中，则 返回null
+     * @throws IllegalArgumentException 如果 传入的key 是null
      */
     public Value getAssociatedValueOf(Key passedKey) {
-        if (passedKey == null) throw new IllegalArgumentException("argument to get() is null");
+        if (passedKey == null) {
+            throw new IllegalArgumentException("argument to get() is null");
+        }
         return getAssociatedValueFrom(rootNode, passedKey);
     }
 
-    // 使用循环的方式 在树中查找传入的key
+    /**
+     * 在红黑树中 查找 传入的key
+     * 手段：使用循环的方式 来 实现；
+     */
     private Value getAssociatedValueFrom(Node currentNode, Key passedKey) {
-        while (currentNode != null) {
-            int result = passedKey.compareTo(currentNode.key);
-            if (result < 0) currentNode = currentNode.leftSubNode;
-            else if (result > 0) currentNode = currentNode.rightSubNode;
-            else return currentNode.value;
+        while (currentNode != null) { // 只要当前节点不是nil节点，就持续进行循环
+            // 比较 传入的key 与 当前节点的key
+//            System.out.println("&&& 传入的key为：" + currentNode + "，当前节点的key为：" + currentNode.key + " &&&");
+            int compareResult = passedKey.compareTo(currentNode.key);
+            if (compareResult < 0) { // 如果 传入的key 更小，说明 其只可能存在于 左子树中，则：
+//                System.out.println("*** 传入的key：" + passedKey + " 比起 当前节点的key：" + currentNode.key + "更小，因此 使用其左子节点更新当前节点 来 在左子树中继续查找。 ***");
+                // 使用 左子节点 来 更新当前节点
+                currentNode = currentNode.leftSubNode;
+            } else if (compareResult > 0) { // 如果 更大，说明 其只可能存在于 右子树中，则：
+//                System.out.println("** 传入的key：" + passedKey + " 比起 当前节点的key：" + currentNode.key + "更大，因此 使用其右子节点更新当前节点 来 在右子树中继续查找。 **");
+                // 使用 右子节点 来 更新当前节点
+                currentNode = currentNode.rightSubNode;
+            } else { // 如果 相等，说明 找到了目标节点，则：
+//                System.out.println("* 传入的key：" + passedKey + " 与 当前节点的key：" + currentNode.key + "相等，因此 直接返回当前节点的value" + currentNode.value + "。 *");
+                // 返回 该节点的value
+                return currentNode.value;
+            }
         }
+
+        // 如果 当前节点一路更新到了nil，说明 红黑树中 不存在有 目标节点，则：返回null
         return null;
     }
 
@@ -148,9 +170,9 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
      ***************************************************************************/
 
     /**
-     * 向符号表中插入指定的键值对
-     * 如果符号表中存在有传入的键，则：覆写其所对应的值
-     * 如果传入的值是null，则：删除指定的键（及 与之关联的value）
+     * 向符号表中 插入 指定的键值对
+     * 如果符号表中 存在有 传入的键，则：覆写 其所对应的值
+     * 如果 传入的值 是null，则：删除 指定的键（及 与之关联的value）
      *
      * @param passedKey       指定的key
      * @param associatedValue 其所关联的value
@@ -171,44 +193,64 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
 
         // 把根结点的颜色 设置回黑色
         rootNode.color = BLACK;
+//        System.out.println("^^^ 把当前的根节点" + rootNode + "设置为黑色！ ^^^");
         // assert check();
     }
 
-    // 向 根节点为currentNode的树中，插入键值对
+    /**
+     * 向 以指定节点为根节点的红黑树中，插入 指定的键值对
+     *
+     * @param currentNode     作为根节点的指定节点
+     * @param passedKey       键值对的键
+     * @param associatedValue 键值对的值
+     * @return 插入了指定节点的键值对
+     */
     private Node putPairInto(Node currentNode, Key passedKey, Value associatedValue) {
+//        System.out.println();
         /* 递归终结条件：对传入key的查找终止于一个null结点（说明不存在这样的结点）， */
-        if (currentNode == null)
+        if (currentNode == null) {
             // 则：需要创建一个新结点，并插入到树中
+//            System.out.println("~~~ 对 passedKey:" + passedKey + "的查询路径 终止于 一个nil节点，在此位置上添加 红节点(key=" + passedKey + ", value=" + associatedValue + ", color=RED)" + " ~~~");
             return new Node(passedKey, associatedValue, RED, 1);
+        }
 
         /* 根据传入的key 与 当前树的根结点key之间的大小关系，决定具体的行为 👇 */
         int result = passedKey.compareTo(currentNode.key);
-        if (result < 0) // 如果更小，则：递归地在左子树中执行插入操作
+        if (result < 0) { // 如果更小，说明 应该在左子树中执行插入，
+            // 则：递归地在左子树中执行插入操作，并 使用 插入节点后的左子树 更新 当前的左子树
+//            System.out.println("!!! 传入的key: " + passedKey + " 相比于 当前节点的key: " + currentNode.key + " 更小，因此 在左子树中 递归地执行插入 !!!");
             currentNode.leftSubNode = putPairInto(currentNode.leftSubNode, passedKey, associatedValue);
-        else if (result > 0) // 如果更大，则：递归地在右子树中执行插入操作
+        } else if (result > 0) { // 如果更大，说明应该在右子树中执行插入，
+            // 则：递归地在右子树中执行插入操作，并 使用 插入节点后的右子树 更新 当前的右子树
+//            System.out.println("!!! 传入的key：" + passedKey + " 相比于 当前节点的key：" + currentNode.key + "更大，因此 在右子树中 递归地执行插入 !!!");
             currentNode.rightSubNode = putPairInto(currentNode.rightSubNode, passedKey, associatedValue);
-        else // 如果相等，则：更新当前结点的value
+        } else { // 如果相等，则：更新当前结点的value
+//            System.out.println("!!! 传入的key：" + passedKey + " 与 当前节点的key：" + currentNode.key + "相等，因此 更新当前节点的value值为" + associatedValue + " !!!");
             currentNode.value = associatedValue;
+        }
 
         /* 在插入结点（红节点）后，处理树中所有可能出现的breach；   🐖：这是一个从下往上的过程，因此放在递归调用的代码之后 */
-        // #1 插入结果：红色的右链接（手段：左旋转当前结点）；
-        // 对应的插入情形：① 2-节点的右链接插入；② 3-节点的中链接插入
-        if (isRed(currentNode.rightSubNode) && !isRed(currentNode.leftSubNode))
-            currentNode = rotateItsRedSubLinkToLeft(currentNode);
-        // #2 插入结果②：连续的红色链接（右旋转当前结点 OR 翻转颜色）；
-        // 对应的插入情形：③ 3-节点的左链接插入
-        if (isRed(currentNode.leftSubNode) && isRed(currentNode.leftSubNode.leftSubNode))
-            currentNode = rotateItsRedSubLinkToRight(currentNode);
-        // #3 插入结果③：红色的左链接 && 红色的右链接
-        // 对应的插入情形：④ 3-节点的右链接插入 🐖 这是一个基础情形，可以通过翻转颜色 来 把红链接沿着路径向上传递
-        if (isRed(currentNode.leftSubNode) && isRed(currentNode.rightSubNode))
-            flipColors(currentNode);
+//        System.out.println("@@@ 对 当前红黑树中 可能出现的breach 进行修复，修复前的红黑树为：" + printRedBlackTree(currentNode, new StringBuilder()) + " @@@");
+        currentNode = fixMightBreaches(currentNode);
+//        System.out.println("@@@ 对 当前红黑树中 可能出现的breach 修复完成，修复后的红黑树为：" + printRedBlackTree(currentNode, new StringBuilder()) + " @@@");
 
         // 维护节点中的 树节点数量属性
         currentNode.itsNodesAmount =
                 pairAmountOf(currentNode.leftSubNode) + pairAmountOf(currentNode.rightSubNode) + 1;
-
+//        System.out.println();
         return currentNode;
+    }
+
+
+    // 按照中序遍历的规则 来 打印红黑树中的所有节点
+    private String printRedBlackTree(Node currentNode, StringBuilder stringBuilder) {
+        if (currentNode == null) return "";
+
+        printRedBlackTree(currentNode.leftSubNode, stringBuilder);
+        stringBuilder.append(currentNode.key + (currentNode.color ? "（红）, " : "（黑）, "));
+        printRedBlackTree(currentNode.rightSubNode, stringBuilder);
+
+        return stringBuilder.toString();
     }
 
     /***************************************************************************
@@ -216,9 +258,9 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
      ***************************************************************************/
 
     /**
-     * 移除符号表中的最大key 及其所关联的value
-     * 请注意，涉及的转换与上一个练习中的转换略有不同，因为红色链接向左倾斜。
-     * 不变性：向下查询的过程中，当前结点总是红色的
+     * 移除 符号表中的 最大key 及 其所关联的value
+     * 请注意，涉及的转换 与 上一个练习中的转换 略有不同，因为 红色链接 向左倾斜。
+     * 不变性：向下查询的过程中，当前结点总是红色的?
      */
     public void deletePairOfMaxKey() {
         if (isEmpty()) throw new NoSuchElementException("BST underflow");
@@ -240,7 +282,7 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
         return !isRed(rootNode.leftSubNode) && !isRed(rootNode.rightSubNode);
     }
 
-    // 删除符号表中的最大键 及 其所关联的value
+    // 删除 符号表中的最大键 及 其所关联的value
     // 整体的不变性 - 当前结点不是2-结点  手段：在左倾红黑树中，可以通过结点&左子结点是否为红色 来 判断结点是不是2-结点
     // 具体的不变性 - 在查询路径中，保证 当前节点 或者 当前节点的右子结点为红色
     private Node deletePairOfMaxKeyFrom(Node currentNode) {
@@ -286,8 +328,7 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
     /**
      * 从符号表中 删除最小键（及 其所关联的值）
      * 通过保持 与文本中给出的转换的对应关系 来 实现RedBlackBST.java的deleteMin（）操作；
-     * 作用：1 使 树的左脊 向下移动；
-     * 2 同时保持树的不变性————即当前节点不是2节点。
+     * 作用：1 使 树的左脊 向下移动；2 同时保持 树的不变性————即 当前节点 不是2节点。
      */
     public void deleteNodeOfMinKey() {
         if (isEmpty()) throw new NoSuchElementException("BST underflow");
@@ -365,17 +406,23 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
 
         // 需要被修复的三种情况：#1 红色右链接（左旋转）; #2 连续的红色左链接(右旋转); #3 红色的左右子结点（反转颜色）
         // 如果出现了 红色右链接...
-        if (redRightSublinkExist(currentNode))
+        if (redRightSublinkExist(currentNode)) {
             // 则：把 红链接 移动到左边
+            System.out.println("### 出现的breach：红色的右链接，向左旋转它，使其变成左链接 ###");
             currentNode = rotateItsRedSubLinkToLeft(currentNode);
+        }
         // 如果出现了 连续的红色左链接...
-        if (consecutiveRedLeftSublinksExist(currentNode))
+        if (consecutiveRedLeftSublinksExist(currentNode)) {
+            System.out.println("$$$ 出现的breach：连续的红色左链接，向右旋转它，得到双侧的红链接 $$$");
             // 则：把 红链接 移动到右边
             currentNode = rotateItsRedSubLinkToRight(currentNode);
+        }
         // 如果出现了 红色的左链接 与 红色的右链接
-        if (twoRedSubLinkExist(currentNode))
+        if (twoRedSubLinkExist(currentNode)) {
+            System.out.println("%%% 出现的breach：双侧的红链接，翻转颜色，把红链接向上传递 %%%");
             // 则：翻转 结点的颜色
             flipColors(currentNode);
+        }
 
         // 维护“根结点中所记录的 ‘以此结点作为根结点’的 树 中的结点数量”
         currentNode.itsNodesAmount = pairAmountOf(currentNode.leftSubNode) + pairAmountOf(currentNode.rightSubNode) + 1;
@@ -401,15 +448,19 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
     private Node introduceRedLinkIntoMinPath(Node currentNode) { // moveRedLeft
         // 手段#1（默认操作）：翻转 当前节点 及 其子节点的颜色 来 为minPath中引入红链接
         // 🐖 由于所维护的不变性，因此 当前节点h 必然是 红节点。
+        System.out.println("—— 1 向路径中引入红链接的手段1：翻转当前节点" + currentNode + "的颜色。翻转颜色前的红黑树为：" + printRedBlackTree(currentNode, new StringBuilder()) + " ——");
         defaultApproach(currentNode);
+        System.out.println("—— 1’ 节点" + currentNode + "翻转颜色后的红黑树为：" + printRedBlackTree(currentNode, new StringBuilder()) + "——");
 
         // 手段#2：如果可能，从 incoming结点 的兄弟结点中，借一个结点，得到一个 3-结点
         // ① 获取 minPath路径上的 incoming结点的兄弟结点 aka “当前节点的右子结点”;
         Node siblingNodeOfIncomingNode = currentNode.rightSubNode;
         if (isNot2Node(siblingNodeOfIncomingNode)) {
-            // 如果 后继节点的兄弟节点 是一个 非2-结点, 说明 兄弟节点处存在有一个 红色的左链接，
+            // 如果 后继节点的兄弟节点 是一个 非2-结点, 说明 兄弟节点处 存在有一个 红色的左链接，
             // 则：把 该3-节点的红色左链接 给借到 minPath中 来 维护 路径中当前节点不会是2-节点 的不变性
+            System.out.println("—— 2 路径的下一个节点的兄弟节点的左链接是红色的，因此我们要把这个红链接借到当前路径中。借之前的红黑树：" + printRedBlackTree(currentNode, new StringBuilder()) + " ——");
             currentNode = borrowRedFromSiblingToMinPath(currentNode);
+            System.out.println("—— 2‘ 路径中借到红链接之后的红黑树：" + printRedBlackTree(currentNode, new StringBuilder()) + " ——");
         }
 
         // 返回 “按需移动红链接”后的当前节点
@@ -447,7 +498,9 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
         // 手段#1（默认操作）：翻转 当前节点的颜色
         // 作用：强行 为maxPath路径中 引入红链接
         // 副作用：导致了 红色的右链接
+        System.out.println("++ 1 向查询路径中引入红链接的手段1：翻转颜色。翻转颜色前的红黑树为：" + printRedBlackTree(currentNode, new StringBuilder()) + " ++");
         defaultApproach(currentNode);
+        System.out.println("++ 1' 翻转颜色后的红黑树为：" + printRedBlackTree(currentNode, new StringBuilder()) + " ++");
 
         // 手段#2：根据需要，从 incoming结点的兄弟结点中，借一个结点，得到一个3-结点
         // ① 获取 maxPath路径上的 incoming结点的兄弟结点 aka “当前节点的左子结点”;
@@ -456,7 +509,9 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
         if (isTheUpperNodeOf3Node(siblingNodeOfIncomingNode)) {
             // 则：把该左链接 借用到 maxPath中
             // 从2-3树的角度来说，相当于 从sibling node中借一个键值，得到一个3-结点 - 从而维护了 “路径中的当前结点不是2-结点”的不变性
+            System.out.println("++ 2 从路径中下一个节点的兄弟节点的子节点借一个红链接，借之前的红黑树为：" + printRedBlackTree(currentNode, new StringBuilder()) + " ++");
             currentNode = borrowRedFromSiblingToMaxPath(currentNode);
+            System.out.println("++ 2' 借了红链接之后的红黑树为：" + printRedBlackTree(currentNode, new StringBuilder()) + " ++");
         }
 
         // 返回 “按需移动红链接”后 的当前节点
@@ -487,76 +542,120 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
     }
 
     /**
-     * 从符号表中删除传入的key 及 其所关联的value
+     * 从符号表中删除 传入的key 及 其所关联的value
      *
-     * @param passedKey the key
-     * @throws IllegalArgumentException if {@code key} is {@code null}
+     * @param passedKey 传入的key
+     * @throws IllegalArgumentException 如果传入的是一个 null key
      */
     public void deletePairOf(Key passedKey) {
-        if (passedKey == null) throw new IllegalArgumentException("argument to delete() is null");
-        if (!doesContains(passedKey)) return;
+        // 如果 传入的是 一个null key，说明 传入了 非法的key，则：
+        if (passedKey == null) {
+            // 抛出异常
+            throw new IllegalArgumentException("argument to delete() is null");
+        }
+
+        // 对 传入的key 进行 预判断 - 如果 传入的key 在符号表中不存在的话，说明 无从删除，则：直接return
+        if (!doesContains(passedKey)) {
+            System.out.println("- 符号表中不存在键为：" + passedKey + "的键值对，无从删除 直接return -");
+            return;
+        }
 
         // 根据需要（下一级结点没有红节点），在查询路径中，手动引入一个红节点
         // 手段：把根结点设置为红色
-        if (rootNodeHas2BlackChild())
+        if (rootNodeHas2BlackChild()) {
+            System.out.println("-- 1 当前红黑树的根节点" + rootNode + "的左右子节点都是黑色的，说明根节点是一个2-节点，则：强制把根节点变成红色 --");
             rootNode.color = RED;
+        }
 
         // 从 当前树中 删除 传入的key, 并把 删除后的结果 绑定回到 当前结点上
         rootNode = deleteNodeFrom(rootNode, passedKey);
+        System.out.println("-- 2 删除了包含键" + passedKey + "的节点后的红黑树为：" + printRedBlackTree(rootNode, new StringBuilder()) + " --");
 
-        // 强制 把 根结点的颜色 设置为黑色
-        if (!isEmpty()) rootNode.color = BLACK;
+        // 最后，强制地 把 根结点的颜色 设置为黑色
+        if (!isEmpty()) {
+            System.out.println("-- 3 强制把红黑树的根节点 变成黑色 --");
+            rootNode.color = BLACK;
+        }
         // assert check();
     }
 
     // 如果是删除 随机的节点，如何能确定 查找路径呢？
     // 不变性 - 在查找路径中，不会出现2-结点
+
+    /**
+     * 从 指定的左倾红黑树 中 删除 包含有指定key的节点
+     *
+     * @param currentNode 指定的左倾红黑树
+     * @param passedKey   指定的key
+     * @return 返回 删除了指定节点的红黑树
+     */
     private Node deleteNodeFrom(Node currentNode, Key passedKey) {
 
         // 如果 预期删除的节点 在左子树中，说明 删除操作会发生在左子树中, 则：执行 左子树中的递归删除 aka 删除最小结点的算法
         if (wantedNodeInLeftSpine(currentNode, passedKey)) {
+            System.out.println("———— 1 指定的键" + passedKey + "只可能存在于左子树中，因此 向左子树中查找并删除 ————");
             /* Ⅰ 为 minPath 引入 红链接 */
             // 如果 minPath上 出现了 2-结点，说明 我们需要 想办法为路径中 引入红链接，
-            if (incomingNodeIsA2NodeInLeftSpine(currentNode))
+            if (incomingNodeIsA2NodeInLeftSpine(currentNode)) {
                 // 则：为 当前查询路径minPath 引入红链接
+                System.out.println("———— 2 当前路径中的下一个节点是一个2-节点，因此为路径中引入一个红链接。路径引入红链接之前的红黑树：" + printRedBlackTree(currentNode, new StringBuilder()) + " ————");
                 currentNode = introduceRedLinkIntoMinPath(currentNode);
+                System.out.println("———— 2’ 路径引入红链接之后的红黑树：" + printRedBlackTree(currentNode, new StringBuilder()) + " ————");
+            }
 
             /* Ⅱ 在minPath路径上 引入了红链接之后，声明式地删除（递归）“待删除结点” */
             // 手段：从 当前子树(左子树) 中 删除预期节点，并 把 删除结点后的左子树 重新绑定回到 左子树上
+            System.out.println("———— 3 执行删除前的红黑树：" + printRedBlackTree(currentNode, new StringBuilder()) + " ————");
             currentNode.leftSubNode = deleteNodeFrom(currentNode.leftSubNode, passedKey);
+            System.out.println("———— 3‘ 执行删除后的红黑树：" + printRedBlackTree(currentNode, new StringBuilder()) + " ————");
         } else { // 如果 预期删除的结点 在右子树中 或者 与当前结点相等，说明 删除操作 发生在 当前节点 或 右子树中，
             // 则：执行 右子树中的递归删除 或者 对当前节点的删除
+            System.out.println("+++ 1 指定的键" + passedKey + " 可能存在于 当前节点" + currentNode.key + "，或者 右子树中" + " +++");
 
             /* Ⅰ 保证不变性：向下查找过程中，路径的当前节点不会是 2-结点；*/
             // Ⅰ-①： 如果 当前节点 是 红黑树中标准的3-结点，说明 存在有红色的左链接 可以引入到 当前路径中，
-            if (isTheUpperNodeOf3Node(currentNode))
+            if (isTheUpperNodeOf3Node(currentNode)) {
                 // 则：把 红色的左链接 推到右边 - 具体做法：右旋转 当前节点
                 // 原因👆：避免删除了一个黑节点 这会导致黑高的失衡
+                System.out.println("+++ 2 当前节点的左子节点是红色的，在删除前需要把这个红色左链接向右旋转。旋转前的红黑树：" + printRedBlackTree(currentNode, new StringBuilder()) + " +++");
                 currentNode = rotateItsRedSubLinkToRight(currentNode);
+                System.out.println("+++ 2' 红链接右旋之后所得到的红黑树为：" + printRedBlackTree(currentNode, new StringBuilder()) + "+++");
+            }
 
             /* Ⅱ 删除结点 */
             // Ⅱ-①：在 继续 “在查询路径中引入红链接” 之前，先判断 查询是不是已经到了 树的底部
             // 如果 在此找到了 预期删除的结点，并且 目标节点的右子树为null（特殊的节点位置），说明 可以直接删除（而不用 借助后继节点进行删除），
-            if (findTheTargetWithoutRightChild(currentNode, passedKey))
+            if (findTheTargetWithoutRightChild(currentNode, passedKey)) {
                 // 则：返回null 来 直接“物理删除”结点
                 // 🐖 这里的删除 不同于BST中同情形下的删除(返回左子树)，因此 它会留下一个断链，等待 fixBreaches()对其进行修复
+                System.out.println("+++ 3 在当前节点" + currentNode + "中找到了 passedKey：" + passedKey + "，并且当前节点没有右子树，说明可以直接执行删除?? +++");
                 return performDeletion();
+            }
 
             // Ⅰ-②： 如果 在查询路径上 出现了2-节点，说明 我们需要想办法 为路径中引入红链接，
-            if (incomingNodeIsA2NodeInRightSpine(currentNode))
+            if (incomingNodeIsA2NodeInRightSpine(currentNode)) {
                 // 则：为 当前查询路径maxPath 引入红链接
+                System.out.println("+++ 4 查询路径中的下一个节点是2-节点，因此为当前路径引入红链接。引入红链接前的红黑树为:" + printRedBlackTree(currentNode, new StringBuilder()) + " +++");
                 currentNode = introduceRedLinkIntoMaxPath(currentNode);
+                System.out.println("+++ 4' 引入红链接之后的红黑树为：" + printRedBlackTree(currentNode, new StringBuilder()) + " +++");
+            }
 
             // Ⅱ-②（相对于deleteFromMax()是新增的步骤）：在继续 “递归地在当前子树（右子树）中查找” 之前，先判断 当前结点的key 与 传入的key 是否相等
             // 如果 当前节点 就是 待删除的结点（一般性的位置），说明 需要借助后继节点进行删除
             if (findTheTarget(currentNode, passedKey)) {
                 // 则：借助“后继结点的方式” 来 实现物理删除; - 类似于BST中的删除
+                System.out.println("+++ 5 查询找到了 包含有传入的键：" + passedKey + " 的目标节点：" + currentNode + "，使用替换节点的方式 来 对目标节点进行删除。删除前的红黑树：" + printRedBlackTree(currentNode, new StringBuilder()) + " +++");
                 deleteViaReplaceWithSuccessor(currentNode);
+                System.out.println("+++ 5' 删除节点后的红黑树：" + printRedBlackTree(currentNode, new StringBuilder()) + " +++");
             }
 
             // Ⅱ-③：如果 当前节点 并不是 待删除的结点，说明 待删除节点 存在于右子树中，
             // 则：在 当前子树（右子树）中 来 继续查询 并 “声明式删除”预期的结点
-            else currentNode.rightSubNode = deleteNodeFrom(currentNode.rightSubNode, passedKey);
+            else {
+                System.out.println("+++ 6 当前节点不是待删除的节点，因此 继续递归地 尝试从右子树中删除目标节点，删除节点前的红黑树：" + printRedBlackTree(currentNode, new StringBuilder()) + " +++");
+                currentNode.rightSubNode = deleteNodeFrom(currentNode.rightSubNode, passedKey);
+                System.out.println("+++ 6' 删除节点后的红黑树：" + printRedBlackTree(currentNode, new StringBuilder()) + " +++");
+            }
         }
 
         // Ⅲ 删除结点后，修复 所有可能引入的 ① 红色右链接 + ② 4-结点
@@ -1032,7 +1131,7 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
      * 红黑树符号表的单元测试
      *
      * @param args the command-line arguments 命令行参数
-     * 问题：对main()函数来说，函数体中 并没有使用到 args这个参数，为什么还要设置 这个形式参数呢？
+     *             问题：对main()函数来说，函数体中 并没有使用到 args这个参数，为什么还要设置 这个形式参数呢？
      */
     public static void main(String[] args) {
         // 创建一个符号表对象（红黑树只是实现方式，符号表才是最终目的）
@@ -1052,5 +1151,14 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
             StdOut.println(currentKey + " " + symbolTable.getAssociatedValueOf(currentKey));
 
         StdOut.println();
+
+        // 删除操作
+        // #1 删除L
+        symbolTable.deletePairOf("L");
+        System.out.println("删除L之后的红黑树为：" + symbolTable.printRedBlackTree(symbolTable.rootNode, new StringBuilder()));
+
+        // #2 删除R
+        symbolTable.deletePairOf("R");
+        System.out.println("删除R之后的红黑树为：" + symbolTable.printRedBlackTree(symbolTable.rootNode, new StringBuilder()));
     }
 }

@@ -158,25 +158,25 @@ public class LinkedNodeSymbolTable<Key, Value> {
      * 在以节点x 为起点的链表中，删除key
      * 警告：如果符号表很大的话，函数调用栈也会太大
      *
-     * @param passedNode
+     * @param currentNode
      * @param passedKey
      * @return
      */
-    private Node deletePairFrom(Node passedNode, Key passedKey) {
+    private Node deletePairFrom(Node currentNode, Key passedKey) {
         // delete操作的终止条件：1 链表已经空了（aka x == null） 2 找到指定key对应的节点
-        if (passedNode == null) return null;
+        if (currentNode == null) return null;
 
         // 如果要删除的key 是链表的头节点，则：直接返回 当前头节点的下一个节点
-        if (passedKey.equals(passedNode.key)) {
+        if (passedKey.equals(currentNode.key)) {
             pairAmount--;
-            return passedNode.nextNode; // 新链表的首节点
+            return currentNode.nextNode; // 新链表的首节点
         }
 
         // 在剩下的链表中，继续 “查找&删除”指定key的节点（递归操作）
-        passedNode.nextNode = deletePairFrom(passedNode.nextNode, passedKey);
+        currentNode.nextNode = deletePairFrom(currentNode.nextNode, passedKey);
 
         // 递归调用结束后（表示任务完成），返回 “删除了指定节点的链表”
-        return passedNode;
+        return currentNode;
     }
 
     /**
