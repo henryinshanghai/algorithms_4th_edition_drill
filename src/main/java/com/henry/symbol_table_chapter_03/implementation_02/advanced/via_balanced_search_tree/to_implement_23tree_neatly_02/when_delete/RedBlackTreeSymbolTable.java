@@ -455,7 +455,7 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
         // 手段#2：如果可能，从 incoming结点 的兄弟结点中，借一个结点，得到一个 3-结点
         // ① 获取 minPath路径上的 incoming结点的兄弟结点 aka “当前节点的右子结点”;
         Node siblingNodeOfIncomingNode = currentNode.rightSubNode;
-        if (isNot2Node(siblingNodeOfIncomingNode)) {
+        if (isTheUpperNodeOf3Node(siblingNodeOfIncomingNode)) {
             // 如果 后继节点的兄弟节点 是一个 非2-结点, 说明 兄弟节点处 存在有一个 红色的左链接，
             // 则：把 该3-节点的红色左链接 给借到 minPath中 来 维护 路径中当前节点不会是2-节点 的不变性
             System.out.println("—— 2 路径的下一个节点的兄弟节点的左链接是红色的，因此我们要把这个红链接借到当前路径中。借之前的红黑树：" + printRedBlackTree(currentNode, new StringBuilder()) + " ——");
@@ -533,12 +533,6 @@ public class RedBlackTreeSymbolTable<Key extends Comparable<Key>, Value> {
         // 🐖 从结果上看（在查询路径上产生了一个右链接 在2-3-4树中，等同于一个3-结点）
         // 相当于把 左孙子的红链接 移动到 右孙子上（从sibling借红链接）
         return currentNode;
-    }
-
-    // 判断 “查询路径中下一个结点的sibling结点” 是不是一个非2-结点
-    private boolean isNot2Node(Node currentNode) {
-        // 判断其左链接(左子结点)是不是红色 - 如果是，则为非2-结点。如果不是，则为2-结点
-        return isRed(currentNode.leftSubNode);
     }
 
     /**
