@@ -1,0 +1,24 @@
+为了说明 问题本身，我们 设计了一份API 来 封装 所有需要的基本操作：
+#1 初始化；- UnionFind()
+#2 对 两个触点 进行连接； unionToOneGroup(p, q)
+#3 获取 包含了某个触点的分量； findGroupIdOf(p) p所在的分量的标识符
+#4 判断 两个触点 是否存在于 同一个分量之中；isConnectedBetween(p, q)
+#5 返回 所有分量的数量。 groupAmount()
+
+把 为解决“动态连通性问题“ 来 设计算法的任务 转换为 实现这份API；
+所有的实现 都应该：
+#1 定义 一个数据结构 表示 已知的连接；
+#2 然后 在这个数据结构，实现高效的 unionToOneGroup, findGroupIdOf(), isConnectedBetween(),  groupAmount()方法。
+
+众所周知，数据结构的性质 会直接影响到 算法的效率，因此 数据结构和算法的设计 是紧密相关的。
+API 已经说明了 触点和分量 都会使用int值来表示，
+所以我们 可以使用 一个以触点为索引的数组 nodeToItsGroupArray[] 作为 基础数据结构 来 表示 所有的分量。
+我们 会使用 分量中的某个触点的名称 来 作为 分量的标识符。 aka，每个分量都是 由它的一个触点 来表示的。
+最开始 时，存在有 N个分量 - 每个触点 都构成了 一个仅包含它自己的分量。
+
+最开始，我们 把 nodeToItsGroupArray[node] 的值 初始化为 node本身，
+对于 每一个触点node，我们 会使用 findGroupIdOf()方法 来 判断 它所在的分量。
+然后 把 分量的Id 保存到 nodeToItsGroupArray[node]中。
+
+isConnected()方法的实现 只用一条语句 就可以实现 - findGroupIdOf(p) == findGroupIdOf(q)
+它 返回 一个布尔值，在 所有方法的实现 中，都会使用到 isConnected()方法

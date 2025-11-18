@@ -15,6 +15,7 @@ public class QuickUnionDrill {
         }
     }
 
+    // 把 两个节点 快速合并到 同一个分量中
     public void unionToSameComponent(int nodeP, int nodeQ) {
         int treeIdOfNodeP = findTreeIdOf(nodeP);
         int treeIdOfNodeQ = findTreeIdOf(nodeQ);
@@ -27,6 +28,7 @@ public class QuickUnionDrill {
         treeAmount--;
     }
 
+    // 获取到 指定节点所属分量的根节点id
     private int findTreeIdOf(int currentNode) {
         while (isNotRootNode(currentNode)) {
             currentNode = parentNodeOf(currentNode);
@@ -53,9 +55,9 @@ public class QuickUnionDrill {
     }
 
     public static void main(String[] args) {
-        int maxNumber = StdIn.readInt();
+        int vertexAmount = StdIn.readInt();
 
-        QuickUnionDrill forest = new QuickUnionDrill(maxNumber);
+        QuickUnionDrill forest = new QuickUnionDrill(vertexAmount);
 
         while (!StdIn.isEmpty()) {
             int nodeP = StdIn.readInt();
