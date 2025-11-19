@@ -74,20 +74,24 @@ public class ConnectedComponentsLite {
     }
 
 
+    /***************************************************
+     * 使用 类的构造器 + 上述的APIs 来 得到关于图的一些复杂性质，
+     * 比如包含有多少个连通分量、每个连通分量中的所有顶点等...
+     ****************************************************/
     public static void main(String[] args) {
         // #1 创建图 与 连通分量的对象
         Graph graph = new Graph(new In(args[0]));
         // 通过 类的构造方法 来 完成此任务(统计 图中的连通分量数量)
-        ConnectedComponentsLite graphComponentsInfo = new ConnectedComponentsLite(graph);
+        ConnectedComponentsLite markedGraph = new ConnectedComponentsLite(graph);
 
         /* #2 使用APIs 获取图的如下性质👇 */
         // ① 图中有几个子图
-        int componentAmount = graphComponentsInfo.componentAmount();
+        int componentAmount = markedGraph.componentAmount();
         StdOut.println(componentAmount + " components.");
 
         // ② 打印 图中所有的连通分量 - 这需要 准备 邻接表数组
         // 获取到 图中存在的 所有连通分量的数组
-        Bag<Integer>[] componentIdToComponent = getComponentsIn(graph, graphComponentsInfo);
+        Bag<Integer>[] componentIdToComponent = getComponentsIn(graph, markedGraph);
 
         // 打印 每一个连通分量中的顶点
         printVertexesInEachComponent(componentIdToComponent);
