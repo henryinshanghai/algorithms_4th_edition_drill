@@ -13,9 +13,9 @@ public class QuickFind {
     private int groupAmount;
 
     // 类的构造器 用于创建对象
-    public QuickFind(int maxNumber) {
-        groupAmount = maxNumber;
-        numToItsGroupIdArray = new int[maxNumber];
+    public QuickFind(int itemAmount) {
+        groupAmount = itemAmount;
+        numToItsGroupIdArray = new int[itemAmount];
 
         // 为每个元素 初始化 其所属的组别ID 为 其本身大小
         for (int currentNum = 0; currentNum < numToItsGroupIdArray.length; currentNum++) {

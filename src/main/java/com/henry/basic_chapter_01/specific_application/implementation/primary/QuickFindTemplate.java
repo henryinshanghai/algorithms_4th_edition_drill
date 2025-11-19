@@ -18,13 +18,13 @@ public class QuickFindTemplate {
     private int[] numToItsGroupIdArray; // 存储节点 -> 节点所属子组的信息
     private int groupAmount; // 集合分组后，子集合的数量
 
-    public QuickFindTemplate(int maxNumber) {
-        groupAmount = maxNumber; // 初始化分量数量 = 数字对中所存在的最大数字
+    public QuickFindTemplate(int itemAmount) {
+        groupAmount = itemAmount; // 初始化分量数量 = 数字对中所存在的最大数字
 
         // 数组容量初始化
-        numToItsGroupIdArray = new int[maxNumber];
+        numToItsGroupIdArray = new int[itemAmount];
         // 数组元素初始化
-        for (int currentNumber = 0; currentNumber < maxNumber; currentNumber++) {
+        for (int currentNumber = 0; currentNumber < itemAmount; currentNumber++) {
             // 初始状态：groupId = 数字本身 - 后继连接数字对后，会把数字对中的两个数字的 groupId设置为一样的值
             numToItsGroupIdArray[currentNumber] = currentNumber;
         }

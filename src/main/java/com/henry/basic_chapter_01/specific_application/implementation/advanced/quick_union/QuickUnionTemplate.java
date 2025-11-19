@@ -20,11 +20,11 @@ public class QuickUnionTemplate {
     private int[] currentNodeToParentNodeArray; // currentNodeToParentNodeArray
     private int treeAmount;
 
-    public QuickUnionTemplate(int maxNumber) {
-        treeAmount = maxNumber;
+    public QuickUnionTemplate(int nodeAmount) {
+        treeAmount = nodeAmount;
 
         /* 初始化时，为每个节点 初始化一个指向自己的链接 */
-        currentNodeToParentNodeArray = new int[maxNumber];
+        currentNodeToParentNodeArray = new int[nodeAmount];
         for (int currentNode = 0; currentNode < currentNodeToParentNodeArray.length; currentNode++) {
             // 初始化时，当前节点 指向它自己（形成了自链接）
             currentNodeToParentNodeArray[currentNode] = currentNode;

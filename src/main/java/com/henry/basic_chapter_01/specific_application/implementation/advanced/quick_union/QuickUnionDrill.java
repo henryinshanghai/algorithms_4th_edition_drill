@@ -6,9 +6,9 @@ public class QuickUnionDrill {
     private int[] currentNodeToParentNodeArray;
     private int treeAmount;
 
-    public QuickUnionDrill(int maxNumber) {
-        treeAmount = maxNumber;
-        currentNodeToParentNodeArray = new int[maxNumber];
+    public QuickUnionDrill(int nodeAmount) {
+        treeAmount = nodeAmount;
+        currentNodeToParentNodeArray = new int[nodeAmount];
 
         for (int currentNode = 0; currentNode < currentNodeToParentNodeArray.length; currentNode++) {
             currentNodeToParentNodeArray[currentNode] = currentNode;
