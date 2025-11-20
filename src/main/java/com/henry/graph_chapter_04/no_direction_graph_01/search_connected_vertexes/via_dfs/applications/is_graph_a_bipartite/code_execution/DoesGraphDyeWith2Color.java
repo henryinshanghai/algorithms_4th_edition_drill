@@ -3,7 +3,8 @@ package com.henry.graph_chapter_04.no_direction_graph_01.search_connected_vertex
 import com.henry.graph_chapter_04.no_direction_graph_01.represent_graph.Graph;
 
 // 验证：可以使用 在图中 从指定起点开始 进行DFS（递归地标记结点）的方式 来 判断 给定的一幅图 是不是二分图(bipartite)
-// aka 是否能够 仅使用两种颜色 对图中的结点 进行着色，使得 图中任意一条边的 两个端点的颜色 都不相同？
+// 二分图：仅使用两种颜色 对图中的所有结点 进行着色，使得 图中任意一条边的 两个端点的颜色 都不相同。
+// 原理：在图中进行DFS的过程中，如果一个“已经被标记了的邻居节点”的颜色 与 当前节点的颜色 相同，说明 违反了二分图的约束，则 此图不是二分图。
 public class DoesGraphDyeWith2Color {
     private boolean[] vertexToIsMarked;
     private boolean[] vertexToItsColor;
@@ -13,6 +14,7 @@ public class DoesGraphDyeWith2Color {
         // 初始化 成员变量
         vertexToIsMarked = new boolean[passedGraph.vertexAmount()];
         vertexToItsColor = new boolean[passedGraph.vertexAmount()];
+
         // 对于 图中的每一个节点...
         for (int currentVertex = 0; currentVertex < passedGraph.vertexAmount(); currentVertex++) {
             // 如果节点 还没有 被标记过
@@ -39,23 +41,23 @@ public class DoesGraphDyeWith2Color {
 
         // 对于 节点 currentVertex 的 每一个相邻节点
         for (int currentAdjacentVertex : graph.adjacentVertexesOf(currentVertex)) {
-            // 如果 “该邻居节点” 还没有被标记过，说明???，
+            // 如果 “该邻居节点” 还没有被标记过，说明 DFS还没有访问过它，
             if (isNotMarked(currentAdjacentVertex)) {
-                // 则：① 为邻居节点 涂上 ”与当前节点不同的颜色“
+                // 则：① 为 该邻居节点 涂上 ”与当前节点不同的颜色“
                 vertexToItsColor[currentAdjacentVertex] = !vertexToItsColor[currentVertex];
-                // ② 继续标记 currentAdjacentVertex 的 所有邻居结点 - 直到 图中的所有连通的节点 都被标记完成
+                // ② 继续递归地 对 currentAdjacentVertex 的 所有邻居结点 进行 标记
                 markVertexAndDyeItsAdjacentToSeeIfBipartiteViaDFS(graph, currentAdjacentVertex);
             } else if (vertexToItsColor[currentAdjacentVertex] == vertexToItsColor[currentVertex]) {
-                // 如果 “邻居节点” 已经被标记过...
-                // 并且 “邻居结点” 与 其“当前结点”的颜色 相同，说明 上述“DFS染色算法” 会导致 二分图的breach，
-                // 则：图本身不是二分图
+                // 如果 某个“邻居节点” 已经被标记过...
+                // 并且 该“邻居结点” 与 “当前结点”的颜色 相同，说明 上述“DFS染色算法” 会导致 二分图的breach，
+                // 则：图本身 不是二分图
                 isTwoColorable = false;
             }
         }
     }
 
     // API
-    // 判断图是不是二分图
+    // 判断图 是不是 二分图
     public boolean isBipartite() {
         // 直接返回成员变量 isTwoColorable
         return isTwoColorable;
