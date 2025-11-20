@@ -2,26 +2,32 @@
 
 // BFS
 bfs(graph, start_vertex) { // mark_accessible_vertexes_from(current_vertex)
-    // mark it
+    // 对 起始顶点s 进行标记
     vertexToIsMarked[start_vertex] = true;
-    // enlist it to queue
+    // 把 起始顶点s 添加到 队列中
     vertexes_queue.enqueue(start_vertex);
 
     while(!vertexes_queue.isEmpty()) {
+        // 从队列中出队顶点，并 处理之
         int vertex_to_process = vertexes_queue.dequeue();
         process(vertex_to_process);
     }
 }
 
+// 处理 待处理的顶点
 process(vertex_to_process) {
+    // 对于 其所有的邻居顶点...
     for(current_neighbor_vertex : graph.adjacentVertexes(vertex_to_process)) {
+        // 如果 该邻居顶点 没有被标记
         if(!vertexToIsMarked[current_neighbor_vertex]) {
-            // mark it as 'process it'
+            // ① 标记 该邻居节点
             vertexToIsMarked[current_neighbor_vertex] = true;
-            // enlist it to queue
+            // ② 把该邻居节点入队 why？
             vertexes_queue.enqueue(current_neighbor_vertex);
         }
     }
 }
+
+问题：为什么把节点入队? 入队的时机是什么? 出队的时机又是什么?
 
 
