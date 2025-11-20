@@ -24,7 +24,7 @@ package com.henry.graph_chapter_04.direction_graph_02.search_accessible_vertexes
  ******************************************************************************/
 
 import com.henry.graph_chapter_04.direction_graph_02.represent_digraph.Digraph;
-import com.henry.graph_chapter_04.direction_graph_02.search_accessible_vertexes.via_dfs.applications.if_vertex_accessible_from_startVertex_01.extend.if_2vertex_reach_each_other.TransitiveClosure;
+import com.henry.graph_chapter_04.direction_graph_02.search_accessible_vertexes.via_dfs.applications.if_vertex_accessible_from_startVertex_01.extend.if_2vertex_reach_each_other.execution.TransitiveClosure;
 import com.henry.graph_chapter_04.direction_graph_02.search_accessible_vertexes.via_dfs.applications.strong_connected_components_in_digraph_05.kosaraju.KosarajuSCCLite;
 import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.Queue;

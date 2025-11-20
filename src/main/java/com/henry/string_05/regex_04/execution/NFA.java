@@ -28,7 +28,7 @@ package com.henry.string_05.regex_04.execution;
 
 import com.henry.basic_chapter_01.collection_types.stack.implementation.via_linked_node.Stack;
 import com.henry.graph_chapter_04.direction_graph_02.represent_digraph.Digraph;
-import com.henry.graph_chapter_04.direction_graph_02.search_accessible_vertexes.via_dfs.applications.if_vertex_accessible_from_startVertex_01.AccessibleVertexesInDigraph;
+import com.henry.graph_chapter_04.direction_graph_02.search_accessible_vertexes.via_dfs.applications.if_vertex_accessible_from_startVertex_01.execution.AccessibleVertexesInDigraph;
 import edu.princeton.cs.algs4.Bag;
 import edu.princeton.cs.algs4.StdOut;
 

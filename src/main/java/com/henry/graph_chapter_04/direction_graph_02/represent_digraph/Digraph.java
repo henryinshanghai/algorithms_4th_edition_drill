@@ -45,6 +45,7 @@ public class Digraph {
         return edgeAmount;
     }
 
+    // 🐖 不同于无向图，由于边是有方向的，所以 这里只需要把边添加一次
     public void addEdge(int vertexV, int vertexW) {
         vertexToAdjacentVertexes[vertexV].add(vertexW);
         edgeAmount++;
@@ -54,7 +55,12 @@ public class Digraph {
         return vertexToAdjacentVertexes[vertexV];
     }
 
-    // 反转 有向图中 边的方向，得到 其反向图 作用：???
+    /**
+     * 用于 反转 有向图中 边的方向，得到 其反向图
+     * 应用：Kosaraju算法（用于获取 有向图中的 强连通分量）的一个步骤
+     *
+     * @return 返回反转后的反向图
+     */
     public Digraph reverseEdgeDirection() {
         Digraph edgeReversedGraph = new Digraph(vertexAmount);
         // 🐖 DFS中 标准的 结点遍历方式 - 按照 自然数的顺序 来 遍历 有向图中的结点
