@@ -1,4 +1,6 @@
-package com.henry.graph_chapter_04.direction_graph_02.search_accessible_vertexes.via_dfs.applications.find_path_to_vertex_in_digraph_02; /******************************************************************************
+package com.henry.graph_chapter_04.direction_graph_02.search_accessible_vertexes.via_dfs.applications.find_path_to_vertex_in_digraph_02;
+
+/******************************************************************************
  *  Compilation:  javac DepthFirstDirectedPaths.java
  *  Execution:    java DepthFirstDirectedPaths digraph.txt s
  *  Dependencies: Digraph.java Stack.java
@@ -58,23 +60,26 @@ import edu.princeton.cs.algs4.StdOut;
 public class PathToAccessibleVertexesInDigraph {
     // 顶点 -> 顶点是否被标记(由起点可达) 的映射关系   用于表示顶点 是否已经被访问
     private boolean[] vertexToIsMarked;
-    // 边的终点 -> 边的出发点 的映射关系 用于还原出路径
+    // 边的到达点 -> 边的出发点 的映射关系 用于还原出路径
     private int[] terminalVertexToDepartVertex;
     // 起始顶点 作为成员变量，方便在多个方法中直接访问
     private final int startVertex;
 
     /**
-     * Computes a directed path from {@code s} to every other vertex in digraph {@code G}.
-     * 计算 在有向图中 从起始顶点到 其可达的所有其他顶点的 有向路径
-     * @param digraph     the digraph
-     * @param startVertex the source vertex
+     * 计算 在 指定的有向图 中 从 指定的起始顶点 到 其可达的各个其他顶点的 有向路径
+     *
+     * @param digraph     指定的有向图
+     * @param startVertex 指定的起始顶点
      * @throws IllegalArgumentException unless {@code 0 <= s < V}
      */
     public PathToAccessibleVertexesInDigraph(Digraph digraph, int startVertex) {
+        // 初始化成员变量
         vertexToIsMarked = new boolean[digraph.getVertexAmount()];
         terminalVertexToDepartVertex = new int[digraph.getVertexAmount()];
         this.startVertex = startVertex;
+
         validateVertex(startVertex);
+        // 在有向图中，以 指定的起始顶点 执行DFS
         markAdjacentVertexesViaDFS(digraph, startVertex);
     }
 
@@ -84,42 +89,56 @@ public class PathToAccessibleVertexesInDigraph {
 
         for (int currentAdjacentVertex : digraph.adjacentVertexesOf(currentVertex)) {
             if (!vertexToIsMarked[currentAdjacentVertex]) {
-                // 记录 当前边 从 终止顶点 -> 起始顶点 的映射关系
+                // 记录 当前边 从 终止顶点 -> 起始顶点 的映射关系，用于 回溯出 完整的路径
                 terminalVertexToDepartVertex[currentAdjacentVertex] = currentVertex;
                 markAdjacentVertexesViaDFS(digraph, currentAdjacentVertex);
             }
         }
     }
 
-    // key API*1: 在图中，是否存在有 由起始顶点到指定顶点的路径?
+    /**
+     * 指定的顶点 是否 由起始顶点s可达?
+     * 手段：在执行完成DFS之后，查看 目标节点 是否被标记为“由起点可达的节点”
+     *
+     * @param passedVertex 指定的顶点
+     * @return 如果 可达，则 返回true；否则 返回false
+     */
     public boolean doesStartVertexHasPathTo(int passedVertex) {
         validateVertex(passedVertex);
-        // 手段：查看 目标节点 是否被标记为“由起点可达的节点”
         return vertexToIsMarked[passedVertex];
     }
 
 
-    // key API*2：返回图中 由起始顶点到指定顶点的有向路径（如果存在的话）。如果路径不存在，则返回null
+    /**
+     * 获取到 图中 由 起始顶点s 到 指定的顶点 的有向路径（如果存在的话）
+     *
+     * @param passedVertex 指定的顶点
+     * @return 如果 该顶点 由起始顶点可达，则 以可迭代集合的方式 来 返回路径；否则 返回null
+     */
     public Iterable<Integer> pathFromStartVertexTo(int passedVertex) {
         validateVertex(passedVertex);
-        // 如果 传入的节点 是 不可达的，说明 不存在这样的路径，则：直接返回null
-        if (!doesStartVertexHasPathTo(passedVertex)) return null;
+        // 如果 传入的节点 是 不可达的，说明 不存在这样的路径，
+        if (!doesStartVertexHasPathTo(passedVertex)) {
+            // 则：直接返回null
+            return null;
+        }
 
-        // 准备一个容器，用于存储 路径中所有顶点
+        /* 从 DFS之后的数组 中，回溯出 路径中的所有顶点 */
+        // ① 准备一个容器，用于存储 路径中所有顶点
         Stack<Integer> vertexPath = new Stack<Integer>();
-        // 在 terminalVertexToDepartVertex数组中，按照 边的终止顶点 -> 出发顶点的映射关系。逆向逐一拾取路径中的顶点
+        // 在 terminalVertexToDepartVertex数组中，按照 边的到达顶点 -> 出发顶点的映射关系。逆向 逐一拾取 路径中的顶点
         for (int backwardsVertexCursor = passedVertex; backwardsVertexCursor != startVertex; backwardsVertexCursor = terminalVertexToDepartVertex[backwardsVertexCursor])
-            // 由于存储容器是一个栈，因此 路径中靠后的顶点 会先入栈（在栈底），靠前的顶点 后入栈（在栈顶）
+            // ② 由于 是从后往前遍历，因此 路径中靠后的顶点 会先入栈（在栈底），靠前的顶点 后入栈（在栈顶）
             vertexPath.push(backwardsVertexCursor);
 
-        // 上面的for循环 不会把 起始顶点入栈，在这里 手动入栈 起始顶点
+        // ③ 手动入栈 起始顶点（因为 上面的for循环 不会把 起始顶点入栈）
         vertexPath.push(startVertex);
 
         // 返回 收集了所有路径顶点的栈容器
         return vertexPath;
     }
 
-    // throw an IllegalArgumentException unless {@code 0 <= v < V}
+    // 对指定的顶点 作 合法性校验
     private void validateVertex(int passedVertex) {
         int vertexAmount = vertexToIsMarked.length;
         if (passedVertex < 0 || passedVertex >= vertexAmount)
@@ -127,40 +146,39 @@ public class PathToAccessibleVertexesInDigraph {
     }
 
     /**
-     * Unit tests the {@code DepthFirstDirectedPaths} data type.
      * 对数据类型的单元测试 - 对数据类型的功能进行测试，看它是否按照预期工作
-     * @param args the command-line arguments
+     *
+     * @param args 命令行参数
      */
     public static void main(String[] args) {
-        // 使用命令行参数 得到文件流
+        // 使用 命令行参数 得到文件流
         In in = new In(args[0]);
-        // 使用文件流 得到有向图
+        // 使用 文件流 得到有向图
         Digraph digraph = new Digraph(in);
         // StdOut.println(digraph);
 
         // 读取 起始顶点
         int startVertex = Integer.parseInt(args[1]);
-        // 得到 起始顶点 到 其可达顶点的路径   手段：调用构造器方法
+        // 获取到 由 起始顶点 到 其可达顶点的路径   手段：调用构造器方法
         PathToAccessibleVertexesInDigraph markedDigraph = new PathToAccessibleVertexesInDigraph(digraph, startVertex);
 
         // 遍历图中的每一个顶点...
         for (int currentVertex = 0; currentVertex < digraph.getVertexAmount(); currentVertex++) {
-            // 如果 从起始顶点存在有 到该顶点的路径，则：
+            // 如果 从起始顶点 存在有 到达该顶点的路径，则：
             if (markedDigraph.doesStartVertexHasPathTo(currentVertex)) {
                 StdOut.printf("%d to %d:  ", startVertex, currentVertex);
-                // 获取到路径所对应的栈，然后 迭代地 从栈中读取结点 - 栈中结点的顺序 就是 ·路径中结点的顺序
+                // 获取到 路径所对应的栈，然后 迭代地 从栈中读取结点 - 🐖 栈中结点的顺序 就是·路径中结点的顺序
                 for (int currentVertexInPath : markedDigraph.pathFromStartVertexTo(currentVertex)) {
-                    // 如果 当前顶点 就是 起始顶点，说明 它是路径中的第一个顶点，则：直接打印它
+                    // 如果 当前顶点 就是 起始顶点，说明 它是 路径中的第一个顶点，则：直接打印它
                     if (currentVertexInPath == startVertex) StdOut.print(currentVertexInPath);
-                    // 如果 不是，说明 需要使用 - vertex的格式 把它打印出来，则：👇
+                        // 如果 不是，说明 需要使用 - vertex的格式 把它打印出来，则：👇
                     else StdOut.print("-" + currentVertexInPath);
                 }
                 StdOut.println();
-            } else { // 如果 两个顶点之间 不存在路径，说明 两个顶点之间不相互连通，则：
+            } else { // 如果 两个顶点之间 不存在路径，说明 从 起始顶点 到 指定顶点 不可达，则：
                 // 打印如下语句：xxx 与 ooo之间不相互连通
                 StdOut.printf("%d to %d:  not connected\n", startVertex, currentVertex);
             }
         }
     }
-
 }
