@@ -13,9 +13,6 @@ public class AccessibleVertexesInDigraph {
     // 记录 顶点 -> 顶点是否被标记 的映射关系
     private boolean[] vertexToIsMarked;
 
-    // 在构造方法中：① 初始化成员变量； ② 完成任务；
-    // 接受 单个顶点 作为 起始顶点
-
     /**
      * 构造器方法
      * 一般作用：用于 创建 当前类的实例对象
@@ -27,7 +24,7 @@ public class AccessibleVertexesInDigraph {
      */
     public AccessibleVertexesInDigraph(Digraph digraph, int startVertex) {
         vertexToIsMarked = new boolean[digraph.getVertexAmount()];
-        // 任务：对图中 由传入顶点可达的 所有其他顶点 进行标记
+        // 在图中，以 指定的顶点 作为 起始顶点 进行DFS
         markAllAccessibleVertexesStartFrom(digraph, startVertex);
     }
 
@@ -88,7 +85,7 @@ public class AccessibleVertexesInDigraph {
             startVertexes.add(Integer.parseInt(args[currentArgSpot]));
         }
 
-        // 在图中，以指定顶点作为起点 进行BFS
+        // 在图中，以指定顶点作为起点 进行DFS
         AccessibleVertexesInDigraph markedDigraph = new AccessibleVertexesInDigraph(digraph, startVertexes);
 
         /* 打印出 所有 “由起始顶点集合可达”的顶点 */
