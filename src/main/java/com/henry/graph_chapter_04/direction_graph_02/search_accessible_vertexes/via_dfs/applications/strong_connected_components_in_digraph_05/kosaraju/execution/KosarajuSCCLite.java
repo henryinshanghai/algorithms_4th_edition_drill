@@ -1,7 +1,7 @@
-package com.henry.graph_chapter_04.direction_graph_02.search_accessible_vertexes.via_dfs.applications.strong_connected_components_in_digraph_05.kosaraju;
+package com.henry.graph_chapter_04.direction_graph_02.search_accessible_vertexes.via_dfs.applications.strong_connected_components_in_digraph_05.kosaraju.execution;
 
-import com.henry.graph_chapter_04.direction_graph_02.represent_digraph.Digraph;
-import com.henry.graph_chapter_04.direction_graph_02.search_accessible_vertexes.via_dfs.applications.construct_vertex_traverse_results_in_different_order_04.DigraphPreAndPostTraverseOrderViaDFS;
+import edu.princeton.cs.algs4.DepthFirstOrder;
+import edu.princeton.cs.algs4.Digraph;
 import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.Queue;
 import edu.princeton.cs.algs4.StdOut;
@@ -17,17 +17,23 @@ public class KosarajuSCCLite {
     private int componentAmount; // 强连通分量的数量 - 用于 作为强连通分量的id
 
     public KosarajuSCCLite(Digraph digraph) {
-        vertexToIsMarked = new boolean[digraph.getVertexAmount()];
-        vertexToItsComponentId = new int[digraph.getVertexAmount()];
+        vertexToIsMarked = new boolean[digraph.V()];
+        vertexToItsComponentId = new int[digraph.V()];
 
         // #1 获取到 有向图的反向图 G'
-        Digraph reversedDigraph = digraph.reverseEdgeDirection();
-        // #2 获取到 该反向图的 结点遍历所得到的结点序列 - PreOrder, PostOrder, ReversedPostOrder
-        DigraphPreAndPostTraverseOrderViaDFS reversedDigraphVertexesSequence = new DigraphPreAndPostTraverseOrderViaDFS(reversedDigraph);
+        Digraph reversedDigraph = digraph.reverse();
+        System.out.println("~~~ 获取到 原始图" + "的 反向图" + reversedDigraph.toString() + " ~~~");
 
-        // #3 ① 获取到 反向图的“逆后序遍历序列(ReversedPostOrder)”，然后 ② 在“原始有向图”中，顺序遍历“序列中的结点” 来 对结点进行标记和收集
+        // #2 获取到 该反向图的 结点遍历所得到的结点序列 - PreOrder, PostOrder, ReversedPostOrder
+        DepthFirstOrder vertexesSequences = new DepthFirstOrder(reversedDigraph);
+        System.out.println("!!! 获取到 反向图中 节点的各种遍历方式的结果序列。我们需要的序列是 逆后序序列:" + printVertexSeq(vertexesSequences.post()) + " !!!");
+
+        /* #3 按照特定的顶点序列 来 在图中执行DFS */
+        // ① 获取到 反向图的“逆后序遍历序列(ReversedPostOrder)”
+        // ② 然后 在“原始有向图”中，顺序遍历 “序列中的结点” 来 执行DFS
         // 🐖 “逆后序遍历序列”的作用 - 用于确定 遍历“有向图中结点”的顺序 VS. DFS中标准的结点遍历方式（自然数顺序）
-        for (Integer currentVertex : reversedDigraphVertexesSequence.vertexesInReversePostOrder()) {
+        System.out.println("@@@ 对 逆后序序列中的节点，顺序执行DFS @@@");
+        for (Integer currentVertex : vertexesSequences.post()) {
             if (isNotMarked(currentVertex)) {
                 // 标记当前结点 & 为其指定其所属的componentId
                 markVertexesAndCollectToComponentViaDFS(digraph, currentVertex);
@@ -36,25 +42,39 @@ public class KosarajuSCCLite {
         }
     }
 
+    private String printVertexSeq(Iterable<Integer> vertexSequence) {
+        StringBuilder sb = new StringBuilder();
+        for (Integer currentVertex : vertexSequence) {
+            sb.append(currentVertex + ", ");
+        }
+
+        return sb.substring(0, sb.length());
+    }
+
     private boolean isNotMarked(Integer currentVertex) {
         return !vertexToIsMarked[currentVertex];
     }
 
     // 标准的DFS流程
     private void markVertexesAndCollectToComponentViaDFS(Digraph digraph, Integer currentVertex) {
-        // 标记当前节点
+        System.out.println("### 1 在图中，以 当前顶点" + currentVertex + "作为 起始顶点的DFS过程 开始 ###");
+
+        // 标记 当前节点
         vertexToIsMarked[currentVertex] = true;
-        // 为当前节点指定正确的分组ID
+        // 为 当前节点 指定 正确的分组ID
         vertexToItsComponentId[currentVertex] = componentAmount;
 
-        // 对于其所有的可达节点...
-        for (Integer currentAdjacentVertex : digraph.adjacentVertexesOf(currentVertex)) {
-            // 如果尚未被标记，则：
+        // 对于 其所有的可达节点...
+        for (Integer currentAdjacentVertex : digraph.adj(currentVertex)) {
+            // 如果 该节点 尚未被标记，则：
             if (isNotMarked(currentAdjacentVertex)) {
-                // 继续递归地 标记结点 & 收集结点到component（组）中
+                // 继续递归地 以该节点作为起始顶点 在图中执行DFS
+                System.out.println("$$$ 1 以 该节点" + currentVertex + "的邻居节点" + currentAdjacentVertex + " 作为起始顶点，继续执行DFS $$$");
                 markVertexesAndCollectToComponentViaDFS(digraph, currentAdjacentVertex);
+                System.out.println("$$$ 2 以 该节点" + currentVertex + "的邻居节点" + currentAdjacentVertex + " 作为起始顶点的DFS 结束并返回 $$$");
             }
         }
+        System.out.println("### 2 在图中，以 当前顶点" + currentVertex + "作为 起始顶点的DFS过程 结束 ###");
     }
 
     public boolean stronglyConnected(int vertexV, int vertexW) {
@@ -70,32 +90,37 @@ public class KosarajuSCCLite {
     }
 
     /**
-     * Unit tests the {@code KosarajuSharirSCC} data type.
+     * 当前数据类型的 单元测试
+     * 使用 构造器方法 + APIs 来 得到 有向图的一些复杂性质
      *
-     * @param args the command-line arguments
+     * @param args 命令行参数
      */
     public static void main(String[] args) {
         In in = new In(args[0]);
         Digraph digraph = new Digraph(in);
+        // 对 有向图 执行 Kosaraju算法
         KosarajuSCCLite vertexAssignedComponentId = new KosarajuSCCLite(digraph);
 
-        // 获取图中 强连通分量的个数
+        /* 获取 图的一些性质 */
+        // #1 获取图中 强连通分量的个数
         int componentAmount = vertexAssignedComponentId.getComponentAmount();
         StdOut.println(componentAmount + " strong components");
 
-        // 使用集合 来 收集每个强连通分量中的结点
+        /* #2 打印 每一个强连通分量 中的所有节点 */
+        // ① 使用集合 来 收集每个强连通分量中的结点
         Queue<Integer>[] components = (Queue<Integer>[]) new Queue[componentAmount];
         for (int currentComponentId = 0; currentComponentId < componentAmount; currentComponentId++) {
             components[currentComponentId] = new Queue<Integer>();
         }
-        for (int currentVertex = 0; currentVertex < digraph.getVertexAmount(); currentVertex++) {
+        for (int currentVertex = 0; currentVertex < digraph.V(); currentVertex++) {
             int componentIdOfVertex = vertexAssignedComponentId.componentIdOf(currentVertex);
             components[componentIdOfVertex].enqueue(currentVertex);
         }
 
-        // 打印每一个强连通分量中的结点
+        // ② 打印 每一个强连通分量中的结点
         for (int currentComponentId = 0; currentComponentId < componentAmount; currentComponentId++) {
             Queue<Integer> currentComponent = components[currentComponentId];
+            // 打印 当前强连通分量中的 所有顶点
             for (int currentVertex : currentComponent) {
                 StdOut.print(currentVertex + " ");
             }

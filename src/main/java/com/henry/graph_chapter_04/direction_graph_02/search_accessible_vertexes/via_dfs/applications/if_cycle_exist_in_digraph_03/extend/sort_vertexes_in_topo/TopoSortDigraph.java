@@ -28,10 +28,10 @@ package com.henry.graph_chapter_04.direction_graph_02.search_accessible_vertexes
  *
  ******************************************************************************/
 
-import com.henry.graph_chapter_04.direction_graph_02.represent_digraph.Digraph;
-import com.henry.graph_chapter_04.direction_graph_02.search_accessible_vertexes.via_dfs.applications.construct_vertex_traverse_results_in_different_order_04.DigraphPreAndPostTraverseOrderViaDFS;
-import com.henry.graph_chapter_04.direction_graph_02.search_accessible_vertexes.via_dfs.applications.if_cycle_exist_in_digraph_03.CycleExistInDiGraph;
 import com.henry.graph_chapter_04.direction_graph_02.represent_a_symbol_graph.SymbolDigraph;
+import com.henry.graph_chapter_04.direction_graph_02.represent_digraph.Digraph;
+import com.henry.graph_chapter_04.direction_graph_02.search_accessible_vertexes.via_dfs.applications.construct_vertex_traverse_results_in_different_order_04.execution.DigraphPreAndPostTraverseOrderViaDFS;
+import com.henry.graph_chapter_04.direction_graph_02.search_accessible_vertexes.via_dfs.applications.if_cycle_exist_in_digraph_03.execution.CycleExistInDiGraph;
 import edu.princeton.cs.algs4.StdOut;
 
 /**
@@ -67,27 +67,29 @@ import edu.princeton.cs.algs4.StdOut;
 // 证明：见 introduce
 // 🐖 记录 “结点在序列中的位置” 是一个好主意 - 这样能够 从另一个方面 提供图的信息 给用例使用
 public class TopoSortDigraph {
-    private Iterable<Integer> vertexesInTopoOrder;  // topological order
-    private int[] vertexToItsSpotInTopoSequence;               // rank[v] = rank of vertex v in order
+    private Iterable<Integer> vertexesInTopoOrder;  // 图中所有节点的拓扑排序结果序列
+    private int[] vertexToItsSpotInTopoSequence;    // 节点 -> 节点在拓扑排序结果序列中的位置 的映射关系
 
     /**
-     * Determines whether the digraph {@code G} has a topological order and, if so,
-     * finds such a topological order.
+     * 确定 指定的有向图 是否 存在有 拓扑排序的结果，如果有，找到 一个拓扑排序的结果序列
      *
-     * @param digraph the digraph
+     * @param digraph 指定的有向图
      */
     public TopoSortDigraph(Digraph digraph) {
-        // 先判断 有向图中 是否存在有环 - 如果有环的话，则：其 不存在拓扑排序结果
+        // 先判断 有向图中 是否存在有环 - 如果有环的话，则：其 不存在 拓扑排序结果
+        System.out.println("~~~ 先判断该有向图中 是否存在有环 - 只有无环图，才存在有 拓扑排序结果 ~~~");
         CycleExistInDiGraph cycleFoundDigraph = new CycleExistInDiGraph(digraph);
 
         // 如果 有向图中没有 环，说明 其存在有 拓扑排序，则：
         if (!cycleFoundDigraph.findACycle()) {
-            // 获取到 有向图 多种遍历方式 所得到的顶点序列结果
+            System.out.println("!!! 当前有向图中 不存在有 环，因此 存在有 拓扑排序 !!!");
+            // 获取到 有向图 经多种遍历方式 所得到的 顶点序列结果
             DigraphPreAndPostTraverseOrderViaDFS vertexesTraversedDigraph = new DigraphPreAndPostTraverseOrderViaDFS(digraph);
-            // 而 图中结点的拓扑排序结果 就是 图中结点的逆后序遍历的结果
+            // 而 图中结点的拓扑排序结果 <=> 图中所有结点的 逆后序遍历的结果
             vertexesInTopoOrder = vertexesTraversedDigraph.vertexesInReversePostOrder();
+            System.out.println("@@@ 获取到了 该有向图的拓扑排序结果序列（顶点的逆后序结果序列） @@@");
 
-            // 初始化 vertex在拓扑排序结果中的位置/排名
+            // 获取到 vertex 在 拓扑排序结果序列 中的位置/排名
             vertexToItsSpotInTopoSequence = new int[digraph.getVertexAmount()];
             int spotInTopoSequence = 0;
             for (int currentVertex : vertexesInTopoOrder)
@@ -96,9 +98,8 @@ public class TopoSortDigraph {
     }
 
     /**
-     * Determines whether the edge-weighted digraph {@code G} has a topological
-     * order and, if so, finds such an order.
-     * @param G the edge-weighted digraph
+     * 确定 指定的 加权有向图 是否 有一个拓扑排序，如果有，找到具体的拓扑排序结果。
+     * @param G 指定的加权有向图
      */
 //    public Topological(EdgeWeightedDigraph G) {
 //        EdgeWeightedDirectedCycle finder = new EdgeWeightedDirectedCycle(G);
@@ -109,33 +110,27 @@ public class TopoSortDigraph {
 //    }
 
     /**
-     * Returns a topological order if the digraph has a topological order,
-     * and {@code null} otherwise.
-     *
-     * @return a topological order of the vertices (as an iterable) if the
-     * digraph has a topological order (or equivalently, if the digraph is a DAG),
-     * and {@code null} otherwise
+     * 如果 指定的有向图 存在有 拓扑排序，则 返回 其拓扑排序结果序列。否则 返回null
+     * 如果有向图 存在有 拓扑顺序（或者等效地说 有向图是一个 有向无环图），则 以可迭代形式 来 返回节点的拓扑排序结果
+     * 否则的话 返回null
      */
     public Iterable<Integer> getVertexesInTopoOrder() {
         return vertexesInTopoOrder;
     }
 
     /**
-     * Does the digraph have a topological order?
-     *
-     * @return {@code true} if the digraph has a topological order (or equivalently,
-     * if the digraph is a DAG), and {@code false} otherwise
+     * 指定的有向图 是否存在有 拓扑排序？
+     * 如果 有拓扑排序（或者 等效地讲，有向图是一个 有向无环图），则 返回true。否则 返回false
      */
     public boolean hasTopoOrder() {
         return vertexesInTopoOrder != null;
     }
 
     /**
-     * Does the digraph have a topological order?
+     * 指定的有向图 是否存在有 拓扑排序？
+     * 如果 有拓扑排序（或者 等效地讲，有向图是一个 有向无环图），则 返回true。否则 返回false
      *
-     * @return {@code true} if the digraph has a topological order (or equivalently,
-     * if the digraph is a DAG), and {@code false} otherwise
-     * @deprecated Replaced by {@link #hasTopoOrder()}.
+     * @deprecated 被 hasTopoOrder()方法 所取代.
      */
     @Deprecated
     public boolean isDAG() {
@@ -143,13 +138,12 @@ public class TopoSortDigraph {
     }
 
     /**
-     * The rank of vertex {@code v} in the topological order;
-     * -1 if the digraph is not a DAG
+     * 获取到 指定的顶点v 在所有顶点的拓扑排序结果中的 排名/位置。
+     * 如果 有向图 不是一个 有向无环图的话，则 返回-1
      *
-     * @param vertex the vertex
-     * @return the position of vertex {@code v} in a topological order
-     * of the digraph; -1 if the digraph is not a DAG
-     * @throws IllegalArgumentException unless {@code 0 <= v < V}
+     * @param vertex 指定的节点
+     *               该指定的顶点v 在 有向图的拓扑排序结果序列 中的位置；如果 有向图 不是一个 有向无环图的话，返回-1
+     * @throws IllegalArgumentException 如果 顶点v 不在有效范围 [0, V]内
      */
     public int rankingInTopoSequence(int vertex) {
         validateVertex(vertex);
@@ -165,20 +159,20 @@ public class TopoSortDigraph {
     }
 
     /**
-     * Unit tests the {@code Topological} data type.
+     * 当前数据类型的 单元测试
      *
-     * @param args the command-line arguments
+     * @param args 命令行参数
      */
     public static void main(String[] args) {
-        String filename = args[0];
-        String delimiter = args[1];
-        // 构造出符号图
+        String filename = args[0]; // 文件名
+        String delimiter = args[1]; // 分隔符
+        // 构造出 有向符号图
         SymbolDigraph symbolDigraph = new SymbolDigraph(filename, delimiter);
 
-        // 获取到 符号图底层的有向图的 拓扑排序结果
+        // 调用当前类的构造器 来 求出 该有向符号图的 拓扑排序结果序列
         TopoSortDigraph topoOrderedGraph = new TopoSortDigraph(symbolDigraph.underlyingDigraph());
 
-        // 打印拓扑排序结果（结点序列）中的每个结点
+        // 获取到 拓扑排序结果序列，并 打印 序列中的每个结点
         for (int currentVertex : topoOrderedGraph.getVertexesInTopoOrder()) {
             StdOut.println(symbolDigraph.nameOfVertexWith(currentVertex));
         }
