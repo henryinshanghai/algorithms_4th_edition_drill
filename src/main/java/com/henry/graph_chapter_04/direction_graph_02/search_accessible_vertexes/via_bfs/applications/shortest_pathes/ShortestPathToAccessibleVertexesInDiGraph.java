@@ -65,10 +65,10 @@ public class ShortestPathToAccessibleVertexesInDiGraph {
     private int[] vertexToItsMinPathLength;      // 节点 -> 从起始节点到该节点的最短路径的长度
 
     /**
-     * Computes the shortest path from {@code s} and every other vertex in graph {@code G}.
      * 计算图中 从s到 其每一个可达节点的最短路径
-     * @param digraph     the digraph
-     * @param startVertex the source vertex
+     *
+     * @param digraph     指定的有向图
+     * @param startVertex 指定的起始顶点
      * @throws IllegalArgumentException unless {@code 0 <= v < V}
      */
     public ShortestPathToAccessibleVertexesInDiGraph(Digraph digraph, int startVertex) {
@@ -85,12 +85,10 @@ public class ShortestPathToAccessibleVertexesInDiGraph {
     }
 
     /**
-     * Computes the shortest path from any one of the source vertices in {@code sources}
-     * to every other vertex in graph {@code G}.
      * 计算图中 给定的起始节点集合 到其可达节点的最短路径
      *
-     * @param digraph       the digraph
-     * @param startVertexes the source vertices
+     * @param digraph       指定的有向图
+     * @param startVertexes 起始顶点的集合
      * @throws IllegalArgumentException if {@code sources} is {@code null}
      * @throws IllegalArgumentException if {@code sources} contains no vertices
      * @throws IllegalArgumentException unless each vertex {@code v} in
@@ -115,7 +113,7 @@ public class ShortestPathToAccessibleVertexesInDiGraph {
         Queue<Integer> vertexQueue = new Queue<Integer>();
         // 标记节点
         vertexToHasMarked[startVertex] = true;
-        // 初始化 起始节点 到 当前节点的 距离为0
+        // 初始化 起始节点 到 当前节点的 路径长度为0
         vertexToItsMinPathLength[startVertex] = 0;
 
         // 入队起始节点
@@ -127,7 +125,7 @@ public class ShortestPathToAccessibleVertexesInDiGraph {
 
             // 对于节点的所有邻居节点...
             for (int currentAdjacentVertex : digraph.adjacentVertexesOf(currentVertex)) {
-                // 如果 该邻居节点 还没有被标记，说明还没有搜索到此节点，则：
+                // 如果 该邻居节点 还没有被标记，说明 BFS还没有搜索到 此节点，则：
                 if (!vertexToHasMarked[currentAdjacentVertex]) {
                     // #1 标记 该邻居结点
                     vertexToHasMarked[currentAdjacentVertex] = true;
@@ -176,10 +174,10 @@ public class ShortestPathToAccessibleVertexesInDiGraph {
     }
 
     /**
-     * Is there a directed path from the source {@code s} (or sources) to vertex {@code v}?
+     * 从 指定的起始节点(集合) 到 指定的结束顶点 是否存在有 有向路径?
      *
-     * @param passedVertex the vertex
-     * @return {@code true} if there is a directed path, {@code false} otherwise
+     * @param passedVertex 指定的结束顶点
+     * @return 如果存在有 有向路径，则 返回true；否则，返回false
      * @throws IllegalArgumentException unless {@code 0 <= v < V}
      */
     public boolean doesStartVertexHasPathTo(int passedVertex) {
@@ -188,12 +186,10 @@ public class ShortestPathToAccessibleVertexesInDiGraph {
     }
 
     /**
-     * Returns the number of edges in a shortest path from the source {@code s}
-     * (or sources) to vertex {@code v}?
+     * 获取到 从起始顶点s（集合） 到 指定的结束顶点 的最短路径中 边的数量
      *
-     * @param passedVertex the vertex
-     * @return the number of edges in such a shortest path
-     * (or {@code Integer.MAX_VALUE} if there is no such path)
+     * @param passedVertex 指定的结束顶点
+     * @return 如果存在有 最短路径，则 返回路径中 边的数量；如果不存在这样的路径，则 返回 整数的最大值
      * @throws IllegalArgumentException unless {@code 0 <= v < V}
      */
     public int pathLengthTo(int passedVertex) {
@@ -202,11 +198,10 @@ public class ShortestPathToAccessibleVertexesInDiGraph {
     }
 
     /**
-     * Returns a shortest path from {@code s} (or sources) to {@code v}, or
-     * {@code null} if no such path.
+     * 以 可迭代集合的形式 获取到 从起始顶点s(或集合) 到 指定结束顶点的 最短路径；如果 不存在该路径，则 返回null
      *
-     * @param passedVertex the vertex
-     * @return the sequence of vertices on a shortest path, as an Iterable
+     * @param passedVertex 指定的结束顶点
+     * @return 以可迭代集合的方式，返回 最短路径中节点的序列
      * @throws IllegalArgumentException unless {@code 0 <= v < V}
      */
     public Iterable<Integer> pathFromStartVertexTo(int passedVertex) {
@@ -217,8 +212,11 @@ public class ShortestPathToAccessibleVertexesInDiGraph {
         Stack<Integer> vertexPath = new Stack<Integer>();
         int currentVertexInPath;
 
-        for (currentVertexInPath = passedVertex; vertexToItsMinPathLength[currentVertexInPath] != 0; currentVertexInPath = terminalVertexToDepartVertex[currentVertexInPath])
+        for (currentVertexInPath = passedVertex; vertexToItsMinPathLength[currentVertexInPath] != 0;
+             currentVertexInPath = terminalVertexToDepartVertex[currentVertexInPath]) {
             vertexPath.push(currentVertexInPath);
+        }
+
         vertexPath.push(currentVertexInPath);
 
         return vertexPath;
@@ -251,9 +249,10 @@ public class ShortestPathToAccessibleVertexesInDiGraph {
     }
 
     /**
-     * Unit tests the {@code BreadthFirstDirectedPaths} data type.
+     * 当前数据类型的 单元测试
+     * 作用：使用 构造器 + APIs 来 得到 图的一些个复杂性质
      *
-     * @param args the command-line arguments
+     * @param args 命令行参数
      */
     public static void main(String[] args) {
         // 文件名 -> 文件流 -> 有向图
