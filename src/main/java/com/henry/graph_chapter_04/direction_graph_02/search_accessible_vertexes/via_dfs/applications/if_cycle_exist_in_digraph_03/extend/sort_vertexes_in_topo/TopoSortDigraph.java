@@ -30,7 +30,7 @@ package com.henry.graph_chapter_04.direction_graph_02.search_accessible_vertexes
 
 import com.henry.graph_chapter_04.direction_graph_02.represent_a_symbol_graph.SymbolDigraph;
 import com.henry.graph_chapter_04.direction_graph_02.represent_digraph.Digraph;
-import com.henry.graph_chapter_04.direction_graph_02.search_accessible_vertexes.via_dfs.applications.construct_vertex_traverse_results_in_different_order_04.execution.DigraphPreAndPostTraverseOrderViaDFS;
+import com.henry.graph_chapter_04.direction_graph_02.search_accessible_vertexes.via_dfs.applications.construct_vertex_traverse_seq_in_different_order_04.execution.DigraphDiffTraverseOrderViaDFS;
 import com.henry.graph_chapter_04.direction_graph_02.search_accessible_vertexes.via_dfs.applications.if_cycle_exist_in_digraph_03.execution.CycleExistInDiGraph;
 import edu.princeton.cs.algs4.StdOut;
 
@@ -84,7 +84,7 @@ public class TopoSortDigraph {
         if (!cycleFoundDigraph.findACycle()) {
             System.out.println("!!! 当前有向图中 不存在有 环，因此 存在有 拓扑排序 !!!");
             // 获取到 有向图 经多种遍历方式 所得到的 顶点序列结果
-            DigraphPreAndPostTraverseOrderViaDFS vertexesTraversedDigraph = new DigraphPreAndPostTraverseOrderViaDFS(digraph);
+            DigraphDiffTraverseOrderViaDFS vertexesTraversedDigraph = new DigraphDiffTraverseOrderViaDFS(digraph);
             // 而 图中结点的拓扑排序结果 <=> 图中所有结点的 逆后序遍历的结果
             vertexesInTopoOrder = vertexesTraversedDigraph.vertexesInReversePostOrder();
             System.out.println("@@@ 获取到了 该有向图的拓扑排序结果序列（顶点的逆后序结果序列） @@@");
