@@ -1,7 +1,7 @@
-package com.henry.graph_chapter_04.graphs_min_spanning_tree_03.Prim.eager_implementation;
+package com.henry.graph_chapter_04.graphs_min_spanning_tree_03.Prim.eager_implementation.exe;
 
-import com.henry.graph_chapter_04.graphs_min_spanning_tree_03.Edge;
-import com.henry.graph_chapter_04.graphs_min_spanning_tree_03.EdgeWeightedGraph;
+import com.henry.graph_chapter_04.graphs_min_spanning_tree_03.represent_weighted_grpah.Edge;
+import com.henry.graph_chapter_04.graphs_min_spanning_tree_03.represent_weighted_grpah.EdgeWeightedGraph;
 import edu.princeton.cs.algs4.IndexMinPQ;
 
 // Prim算法“即时实现”步骤：

@@ -1,8 +1,8 @@
-package com.henry.graph_chapter_04.graphs_min_spanning_tree_03.Kruskal;
+package com.henry.graph_chapter_04.graphs_min_spanning_tree_03.Kruskal.execution;
 
 import com.henry.basic_chapter_01.specific_application.implementation.primary.QuickFind;
-import com.henry.graph_chapter_04.graphs_min_spanning_tree_03.Edge;
-import com.henry.graph_chapter_04.graphs_min_spanning_tree_03.EdgeWeightedGraph;
+import com.henry.graph_chapter_04.graphs_min_spanning_tree_03.represent_weighted_grpah.Edge;
+import com.henry.graph_chapter_04.graphs_min_spanning_tree_03.represent_weighted_grpah.EdgeWeightedGraph;
 import edu.princeton.cs.algs4.MinPQ;
 import edu.princeton.cs.algs4.Queue;
 
@@ -23,7 +23,7 @@ public class KruskalMSTSimple {
             // #1 获取到 优先队列中 当前权重最小的边，并得到 其两个端点
             Edge currentMinEdge = edgeMinPQ.delMin();
             int oneVertex = currentMinEdge.eitherVertex(),
-                theOtherVertex = currentMinEdge.theOtherVertexAgainst(oneVertex);
+                    theOtherVertex = currentMinEdge.theOtherVertexAgainst(oneVertex);
 
             // #2 如果 边的两个端点 在同一个分量中，说明 添加这个边会为MST引入环。则：
             if (forest.isConnectedBetween(oneVertex, theOtherVertex)) {

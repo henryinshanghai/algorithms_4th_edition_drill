@@ -1,4 +1,4 @@
-package com.henry.graph_chapter_04.graphs_min_spanning_tree_03.Prim.lazy_implementation;
+package com.henry.graph_chapter_04.graphs_min_spanning_tree_03.Prim.lazy_implementation.exe;
 
 /******************************************************************************
  *  Compilation:  javac LazyPrimMST.java

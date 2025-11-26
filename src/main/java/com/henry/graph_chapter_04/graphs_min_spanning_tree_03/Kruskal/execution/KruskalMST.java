@@ -1,4 +1,4 @@
-package com.henry.graph_chapter_04.graphs_min_spanning_tree_03.Kruskal;
+package com.henry.graph_chapter_04.graphs_min_spanning_tree_03.Kruskal.execution;
 
 /******************************************************************************
  *  Compilation:  javac KruskalMST.java

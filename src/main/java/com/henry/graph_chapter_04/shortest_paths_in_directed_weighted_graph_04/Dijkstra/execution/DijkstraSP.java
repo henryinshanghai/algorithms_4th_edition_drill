@@ -1,4 +1,4 @@
-package com.henry.graph_chapter_04.shortest_paths_in_directed_weighted_graph_04.Dijkstra.code_execution;
+package com.henry.graph_chapter_04.shortest_paths_in_directed_weighted_graph_04.Dijkstra.execution;
 /******************************************************************************
  *  Compilation:  javac DijkstraSP.java
  *  Execution:    java DijkstraSP input.txt s
