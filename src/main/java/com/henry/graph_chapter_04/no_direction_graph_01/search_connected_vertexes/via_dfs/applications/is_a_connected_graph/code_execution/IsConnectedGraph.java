@@ -20,16 +20,20 @@ public class IsConnectedGraph {
      * 构造器方法
      * 一般作用：用于创建 当前类的实例对象
      * 此处的具体作用：使用DFS 来 完成 对 图中所有 与起始顶点相连通的节点 的标记
-     *
+     * <p>
      * 特征：#1 一般会 在构造器中 完成 成员变量的初始化；
-     * @param graph 指定的图
-     * @param startVertex   指定的起始顶点
+     *
+     * @param graph       指定的图
+     * @param startVertex 指定的起始顶点
      */
     public IsConnectedGraph(Graph graph, int startVertex) {
         // 初始化 boolean数组    🐖 其元素的初始值默认都为false
         vertexToIsMarkedArr = new boolean[graph.vertexAmount()];
         // 执行DFS 来 完成 对 所有 与起始顶点相连通的所有顶点 的标记
+        System.out.println("~~~ 1 选择 以节点" + startVertex + "作为起始节点 来 在图中进行DFS ~~~");
         markVertexAndCountsViaDFS(graph, startVertex);
+        System.out.println("~~~ 2 以 节点" + startVertex + "作为起始节点的DFS 结束并返回 ~~~");
+        System.out.println();
     }
 
     /**
@@ -38,7 +42,8 @@ public class IsConnectedGraph {
      * 原理：深度优先搜索 只能够找到 图G中所有 “与顶点s相连通”的顶点集合
      * 算法步骤：一边 遍历图中的节点，一边 对 与起始顶点相连通的所有顶点 进行标记
      * 疑问：如何验证 通过这种方式 能够遍历 图中所有的顶点与边？
-     * @param graph 指定的图
+     *
+     * @param graph         指定的图
      * @param currentVertex 指定的顶点
      */
     private void markVertexAndCountsViaDFS(Graph graph, int currentVertex) {
@@ -46,13 +51,16 @@ public class IsConnectedGraph {
         vertexToIsMarkedArr[currentVertex] = true;
         // #2 标记 当前顶点后，更新 “被标记的节点”的数量
         markedVertexAmount++;
+        System.out.println("!!! 与节点" + currentVertex + "对应的成员变量都已经被更新了 !!!");
 
         // #3 对于 当前顶点v 的每一个相邻顶点w
         for (int currentAdjacentVertex : graph.adjacentVertexesOf(currentVertex)) {
             // 如果 该邻居顶点 还 没有被标记过，则：
-            if(isNotMarked(currentAdjacentVertex)) {
+            if (isNotMarked(currentAdjacentVertex)) {
                 // 在图中，以它作为起始顶点 继续递归地进行DFS
+                System.out.println("@@@ 以当前邻居节点" + currentAdjacentVertex + "作为起始节点，开始执行DFS @@@");
                 markVertexAndCountsViaDFS(graph, currentAdjacentVertex);
+                System.out.println("@@@ 以当前邻居节点" + currentAdjacentVertex + "作为起始节点的DFS 结束并返回 @@@");
             }
         }
     }
@@ -67,8 +75,9 @@ public class IsConnectedGraph {
      * 判断 指定的顶点w 是否 与起点s相连通
      * 手段：在执行完成DFS之后，查看 顶点w 在 数组vertexToIsMarkedArr[]数组中的值
      * 原理：DFS会对图中 所有 与起点s相连通的顶点 进行标记
+     *
      * @param currentVertex 指定的顶点
-     * @return  如果 与起点相连通，返回true；否则 返回false
+     * @return 如果 与起点相连通，返回true；否则 返回false
      */
     public boolean doesConnectedWithStartVertex(int currentVertex) {
         return vertexToIsMarkedArr[currentVertex];

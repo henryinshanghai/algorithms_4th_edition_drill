@@ -1,6 +1,7 @@
 package com.henry.graph_chapter_04.no_direction_graph_01.search_connected_vertexes.via_dfs.applications.is_graph_a_bipartite.code_execution;
 
 import com.henry.graph_chapter_04.no_direction_graph_01.represent_graph.Graph;
+import edu.princeton.cs.algs4.In;
 
 // 验证：可以使用 在图中 从指定起点开始 进行DFS（递归地标记结点）的方式 来 判断 给定的一幅图 是不是二分图(bipartite)
 // 二分图：仅使用两种颜色 对图中的所有结点 进行着色，使得 图中任意一条边的 两个端点的颜色 都不相同。
@@ -17,10 +18,15 @@ public class DoesGraphDyeWith2Color {
 
         // 对于 图中的每一个节点...
         for (int currentVertex = 0; currentVertex < passedGraph.vertexAmount(); currentVertex++) {
-            // 如果节点 还没有 被标记过
-            if (isNotMarked(currentVertex)) {
+            if (!isTwoColorable) {
+                return;
+            }
+
+            if (isNotMarked(currentVertex)) { // 如果节点 还没有 被标记过
                 // 执行dfs 以/来 判断 G是不是一个二分图？
+                System.out.println("~~~ 1 以节点" + currentVertex + "作为起始节点，在图中 开始执行DFS ~~~");
                 markVertexAndDyeItsAdjacentToSeeIfBipartiteViaDFS(passedGraph, currentVertex);
+                System.out.println("~~~ 2 以节点" + currentVertex + "作为起始节点的DFS 完成 ~~~");
             }
         }
     }
@@ -38,22 +44,33 @@ public class DoesGraphDyeWith2Color {
     private void markVertexAndDyeItsAdjacentToSeeIfBipartiteViaDFS(Graph graph, int currentVertex) {
         // 标记节点 currentVertex
         vertexToIsMarked[currentVertex] = true;
+        System.out.println("!!! 1 对当前节点" + currentVertex + " 标记完成 !!!");
 
         // 对于 节点 currentVertex 的 每一个相邻节点
         for (int currentAdjacentVertex : graph.adjacentVertexesOf(currentVertex)) {
-            // 如果 “该邻居节点” 还没有被标记过，说明 DFS还没有访问过它，
-            if (isNotMarked(currentAdjacentVertex)) {
+            if (!isTwoColorable) {
+                return;
+            }
+
+            if (isNotMarked(currentAdjacentVertex)) { // 如果 “该邻居节点” 还没有被标记过，说明 DFS还没有访问过它，
                 // 则：① 为 该邻居节点 涂上 ”与当前节点不同的颜色“
                 vertexToItsColor[currentAdjacentVertex] = !vertexToItsColor[currentVertex];
+                System.out.println("@@@ 1 为节点" + currentAdjacentVertex + "涂上 与节点" + currentVertex + " 相反的颜色(" + (!vertexToItsColor[currentVertex] ? "白色" : "黑色") + ") @@@");
+
                 // ② 继续递归地 对 currentAdjacentVertex 的 所有邻居结点 进行 标记
+                System.out.println("@@@ 2 以节点" + currentAdjacentVertex + "作为起始节点，开始执行DFS @@@");
                 markVertexAndDyeItsAdjacentToSeeIfBipartiteViaDFS(graph, currentAdjacentVertex);
+                System.out.println("@@@ 3 以节点" + currentAdjacentVertex + "作为起始节点的DFS 结束并返回 @@@");
             } else if (vertexToItsColor[currentAdjacentVertex] == vertexToItsColor[currentVertex]) {
                 // 如果 某个“邻居节点” 已经被标记过...
                 // 并且 该“邻居结点” 与 “当前结点”的颜色 相同，说明 上述“DFS染色算法” 会导致 二分图的breach，
                 // 则：图本身 不是二分图
+                System.out.println("### 被标记的邻居节点" + currentAdjacentVertex + "的颜色 与 当前节点" + currentVertex + "的颜色(" + (vertexToItsColor[currentVertex] ? "白色" : "黑色") + ") 相同，说明 图不是一个二分图。则：设置对应的flag成员变量 ###");
                 isTwoColorable = false;
             }
         }
+
+        System.out.println("!!! 2 以节点" + currentVertex + " 作为起始节点的DFS 结束 !!!");
     }
 
     // API
@@ -61,5 +78,19 @@ public class DoesGraphDyeWith2Color {
     public boolean isBipartite() {
         // 直接返回成员变量 isTwoColorable
         return isTwoColorable;
+    }
+
+    public static void main(String[] args) {
+        // 读取 图
+        Graph graph = new Graph(new In(args[0]));
+
+        DoesGraphDyeWith2Color markedGraph = new DoesGraphDyeWith2Color(graph);
+
+        boolean result = markedGraph.isBipartite();
+        if (result) {
+            System.out.println("给定的图 是一个二分图");
+        } else {
+            System.out.println("给定的图 不是 一个二分图");
+        }
     }
 }

@@ -28,12 +28,15 @@ public class CycleExistInGraph {
 
         // 对于 图中的每一个顶点
         for (int currentVertex = 0; currentVertex < graph.vertexAmount(); currentVertex++) {
-            // 如果 该顶点 没有被标记，说明 它还没有被遍历到，则：
-            if (isNotMarked(currentVertex)) {
-                // 以 一个dummyVertex作为出发顶点、该顶点作为终点顶点 来 在图中进行DFS
+            if (hasCycle) {
+                return;
+            } else if (isNotMarked(currentVertex)) { // 如果 该顶点 没有被标记，说明 它还没有被遍历到，则：
+                // 以 一个dummyVertex作为出发顶点、该顶点作为到达顶点 来 在图中进行DFS
                 // 🐖 之所以用一个dummyVertex，是由于 当前顶点 是“起始顶点”，因此 不存在 其自己的“departVertex”
                 int dummyDepartVertex = -1; // currentVertex
+                System.out.println("!!! 1 以边(" + dummyDepartVertex + " -> " + currentVertex + ") 作为 起始边，在图中开始执行DFS !!!");
                 markVertexAndDecideExistCycleViaDFS(graph, currentVertex, dummyDepartVertex);
+                System.out.println("!!! 1 以边(" + dummyDepartVertex + " -> " + currentVertex + ") 作为 起始边的DFS 完成 !!!");
             }
         }
     }
@@ -60,18 +63,29 @@ public class CycleExistInGraph {
                                                      int departVertex) {
         // 标记 当前"结束顶点"
         vertexToIsMarked[terminalVertex] = true;
+        System.out.println("@@@ 1 标记 当前边的到达节点" + terminalVertex + " @@@");
 
         // 对于 当前“结束顶点”的每一个邻居顶点
         for (int currentAdjacentVertex : graph.adjacentVertexesOf(terminalVertex)) {
-            // 如果 该邻居顶点 还没有被标记，说明 它是路径中 尚未被访问到的顶点...
-            if (isNotMarked(currentAdjacentVertex)) {
+            if (hasCycle) {
+                return;
+            } else if (isNotMarked(currentAdjacentVertex)) { // 如果 该邻居顶点 还没有被标记，说明 它是路径中 尚未被访问到的顶点...
                 // 则 继续递归地对 当前邻居顶点 进行标记
+                System.out.println("### 1 到达节点的当前邻居节点" + currentAdjacentVertex + "没有被标记，继续以(" + terminalVertex +
+                        " -> " + currentAdjacentVertex + ")作为起始边，在图中执行DFS ###");
                 markVertexAndDecideExistCycleViaDFS(graph, currentAdjacentVertex, terminalVertex);
-            } else if (currentAdjacentVertex != departVertex) // 如果 “该邻居结点” 已经被标记
+                System.out.println("### 2 以(" + terminalVertex + "->" + currentAdjacentVertex + ")作为起始边的DFS 结束并返回 ###");
+            } else if (currentAdjacentVertex != departVertex) { // 如果 “该邻居结点” 已经被标记
                 // 并且 它 不是 DFS路径中”当前边“的“出发节点”，说明 当前连通分量中 必然存在环，则👇
                 // 把 ”用于表示是否存在环“的 布尔变量 标记为true
+                System.out.println("$$$ 当前边的到达节点" + terminalVertex + "的 被标记的邻居节点" + currentAdjacentVertex
+                        + " 不是 当前边的出发节点" + departVertex + "，说明 图中存在有环，则：设置对应的flag成员变量 $$$");
                 hasCycle = true;
+            }
         }
+
+        System.out.println("@@@ 2 以 当前边(" + departVertex + " -> " + terminalVertex + ") 作为起始边的DFS 结束并返回 @@@");
+        System.out.println();
     }
 
     // APIs

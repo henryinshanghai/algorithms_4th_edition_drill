@@ -24,8 +24,10 @@ public class ConnectedComponentsLite {
         for (int currentVertex = 0; currentVertex < graph.vertexAmount(); currentVertex++) {
             // 如果 当前顶点 还 没有标记过...
             if (isNotMarked(currentVertex)) {
+                System.out.println("~~~ 1 当前节点" + currentVertex + "还没有被标记，以其为起始节点 进行DFS ~~~");
                 // 找到 当前节点所连通的所有顶点，然后成组
                 markVertexAndAssignItsComponentIdViaDFS(graph, currentVertex);
+                System.out.println("~~~ 2 以 当前节点" + currentVertex + "作为起始顶点的DFS过程 结束并返回 ~~~");
                 // 得到一个组 之后，把groupNum+1
                 componentAmount++;
             }
@@ -39,21 +41,29 @@ public class ConnectedComponentsLite {
     /**
      * 把 图G中 当前顶点v 所连通的所有顶点 标记&成组
      * 手段：使用递归 对可达节点做DFS
-     * @param graph 指定的图
+     *
+     * @param graph         指定的图
      * @param currentVertex 指定的顶点
      */
     private void markVertexAndAssignItsComponentIdViaDFS(Graph graph, int currentVertex) {
+        System.out.println("!!! 1 以" + currentVertex + "作为起始节点的DFS过程 开始!!!");
+
         // 标记 当前节点
         vertexToIsMarked[currentVertex] = true;
         // 为 当前节点 添加组名  当前节点所属的分组/子图/连通分量的ID为count - 第0组、第1组...
         vertexToItsComponentId[currentVertex] = componentAmount;
+        System.out.println("@@@ 节点" + currentVertex + "相关的成员变量 都按需更新了，其所属连通分量的ID为:" + componentAmount + " @@@");
 
         // 对 图中”当前节点“的所有 未被标记的相邻节点 递归地执行：标记 + 添加组名
         for (int currentAdjacentVertex : graph.adjacentVertexesOf(currentVertex)) {
             if (isNotMarked(currentAdjacentVertex)) {
+                System.out.println("### 1 以 当前邻居节点" + currentAdjacentVertex + "作为起始节点，进行DFS ###");
                 markVertexAndAssignItsComponentIdViaDFS(graph, currentAdjacentVertex);
+                System.out.println("### 2 以 当前邻居节点" + currentAdjacentVertex + "作为起始节点的DFS过程 结束并返回 ###");
             }
         }
+        System.out.println("!!! 2 以" + currentVertex + "作为起始节点的DFS过程 结束!!!");
+        System.out.println();
     }
 
     // APIs

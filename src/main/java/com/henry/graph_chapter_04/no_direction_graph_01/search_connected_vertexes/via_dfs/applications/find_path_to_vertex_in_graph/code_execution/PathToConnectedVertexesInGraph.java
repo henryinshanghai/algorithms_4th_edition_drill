@@ -23,6 +23,7 @@ public class PathToConnectedVertexesInGraph {
      * 一般性作用：用于创建 当前类的对象实例
      * 此处具体作用：
      * 特征：一般 在构造方法中，完成 对成员变量的初始化
+     *
      * @param graph
      * @param startVertex
      */
@@ -36,13 +37,16 @@ public class PathToConnectedVertexesInGraph {
         this.startVertex = startVertex;
 
         /* #2 调用DFS()方法 来 处理“单点路径”的任务 */
+        System.out.println("~~~ 1 以 节点" + startVertex + "作为起始节点，开始执行DFS ~~~");
         markVertexesAndRecordVertexInPathViaDFS(graph, startVertex);
+        System.out.println("~~~ 2 以 节点" + startVertex + "作为起始节点的DFS完成 ~~~");
     }
 
     // 作用：标记节点 + 记录路径中的 顶点间的指向关系
     private void markVertexesAndRecordVertexInPathViaDFS(Graph graph, int currentVertex) {
         // #1 标记当前顶点
         vertexToIsMarked[currentVertex] = true;
+        System.out.println("!!! 1 把当前节点" + currentVertex + " 标记为 已访问 !!!");
 
         // 对于 当前顶点的 所有相邻顶点
         for (int currentAdjacentVertex : graph.adjacentVertexesOf(currentVertex)) {
@@ -50,11 +54,17 @@ public class PathToConnectedVertexesInGraph {
             if (isNotMarked(currentAdjacentVertex)) {
                 // ① 记录下 "当前邻居节点"(terminalVertex) 与 “当前结点”(departVertex)的连接/指向关系
                 terminalVertexToDepartVertex[currentAdjacentVertex] = currentVertex;
+                System.out.println("@@@ 记录下 搜索路径中的 当前边edge(" + currentVertex + " -> " + currentAdjacentVertex + ") @@@");
 
                 // ② 以 该邻居节点 作为新的起始顶点，在图中 继续递归地执行 DFS
+                System.out.println("### 1 以节点" + currentAdjacentVertex + "作为起始节点，在图中继续执行DFS ###");
                 markVertexesAndRecordVertexInPathViaDFS(graph, currentAdjacentVertex);
+                System.out.println("### 2 以节点" + currentAdjacentVertex + "作为起始节点的DFS 结束并返回 ###");
             }
         }
+
+        System.out.println("!!! 2 以节点" + currentVertex + "作为起始节点的DFS 完成 !!!");
+        System.out.println();
     }
 
     private boolean isNotMarked(int currentAdjacentVertex) {
@@ -64,8 +74,9 @@ public class PathToConnectedVertexesInGraph {
     /****** APIs ******/
     /**
      * 判断 指定的顶点v 与起点s 是不是相连通的
+     *
      * @param passedVertex 指定的顶点v
-     * @return  如果 指定的顶点 与起点s相连通，则 返回true。否则 返回false
+     * @return 如果 指定的顶点 与起点s相连通，则 返回true。否则 返回false
      */
     public boolean doesStartVertexHasPathTo(int passedVertex) {
         return vertexToIsMarked[passedVertex];
@@ -74,6 +85,7 @@ public class PathToConnectedVertexesInGraph {
     /**
      * 获取到 从 起始顶点s 到 指定顶点v的路径
      * 手段：在DFS执行完成后，从  terminalVertexToDepartVertex数组中 得到 一个可迭代的节点集合 来 表示路径
+     *
      * @param endVertex 指定的路径终点
      * @return 以 可迭代方式 返回 从起始顶点s开始 到 该指定的终点 的路径
      */
