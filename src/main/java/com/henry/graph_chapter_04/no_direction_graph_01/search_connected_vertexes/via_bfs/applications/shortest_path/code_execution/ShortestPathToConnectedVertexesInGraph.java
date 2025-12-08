@@ -47,6 +47,7 @@ public class ShortestPathToConnectedVertexesInGraph {
     private void markVertexesAndRecordEdgesInSPViaBFS(Graph graph, int startVertex) {
         // #1 把 “起始顶点” 设置为 “已标记”
         vertexToIsMarked[startVertex] = true;
+        System.out.println("~~~ 标记起始节点" + startVertex + " ~~~");
 
         // 准备一个队列 - 用于 支持BFS中按序动态处理元素的需求
         // 为什么这里要使用队列呢? 因为 借助队列的特性(FIFO) + 控制元素的出入队时机，我们可以 按照预期的顺序 来 动态地逐个处理元素
@@ -54,14 +55,17 @@ public class ShortestPathToConnectedVertexesInGraph {
 
         // #2 把 “起始顶点” 入队到 队列中 - BFS算法会 从它开始 进行”对图中顶点进行标记“的过程
         vertexesToProcess.enqueue(startVertex);
+        System.out.println("!!! 把 起始节点" + startVertex + " 添加到 待处理节点的队列中 !!!");
 
         /* #3 进行 BFS的循环，直到 队列为空（说明 图中所有“能够被标记的顶点” 都已经 被标记了）*/
         // 当 队列中 存在有 任何元素 时，说明 还有未处理的连通顶点，则：
         while (!vertexesToProcess.isEmpty()) {
             // ① 出队“待处理的顶点”
             int currentVertex = vertexesToProcess.dequeue();
+            System.out.println("@@@ 1 从 待处理节点队列中，出队节点" + currentVertex + " @@@");
             // ② 处理它
             process(currentVertex, graph, vertexesToProcess);
+            System.out.println("@@@ 2 当前节点" + currentVertex + "处理完成 @@@");
         }
     }
 
@@ -72,6 +76,7 @@ public class ShortestPathToConnectedVertexesInGraph {
         // 对于 当前顶点的 所有邻居顶点...
         for (int currentAdjacentVertex : graph.adjacentVertexesOf(currentVertex)) {
             // 执行 固定的SOP三个步骤
+            System.out.println("### 对于 当前节点" + currentVertex + "的邻居节点" + currentAdjacentVertex + "，如果 它还没有被标记，则： ###");
             recordPathWhileMarkIt(currentAdjacentVertex, currentVertex, vertexesToProcess);
         }
     }
@@ -90,11 +95,14 @@ public class ShortestPathToConnectedVertexesInGraph {
         if (isNotMarked(terminalVertex)) {
             // #1 标记它
             vertexToIsMarked[terminalVertex] = true;
+            System.out.println("$$$ 1 标记 到达节点" + terminalVertex + " $$$");
             // #2 记录 这条边 [核心步骤/BFS基本模板的额外步骤] 用于回溯出 从“起始顶点”到“到达顶点”的完整路径
             // 手段：把 数组index->item的映射关系 具体化为 到达顶点->出发顶点的映射关系
             terminalVertexToDepartVertex[terminalVertex] = departVertex;
+            System.out.println("$$$ 2 记录下 搜索路径中的当前边(" + departVertex + " -> " + terminalVertex + ") $$$");
             // #3 把它 添加到 “待处理的顶点队列“中 - 算法 后继会 对它做同样的处理
             vertexesToProcess.enqueue(terminalVertex);
+            System.out.println("$$$ 3 把 该到达节点" + terminalVertex + "添加到 待处理节点队列中，用于后继处理 $$$");
         }
     }
 
@@ -132,7 +140,8 @@ public class ShortestPathToConnectedVertexesInGraph {
         // 准备一个栈容器
         Stack<Integer> vertexSequence = new Stack<>();
         // 从 数组的最后一个元素 从后往前地 获取到 路径中的顶点
-        for (int backwardsVertexCursor = endVertex; backwardsVertexCursor != startVertex;
+        for (int backwardsVertexCursor = endVertex;
+             backwardsVertexCursor != startVertex;
              backwardsVertexCursor = terminalVertexToDepartVertex[backwardsVertexCursor]) {
             // 把 获取到的 路径中的顶点 添加到 栈中
             vertexSequence.push(backwardsVertexCursor);
@@ -161,15 +170,16 @@ public class ShortestPathToConnectedVertexesInGraph {
         // 对于 图中的当前顶点...
         for (int currentVertex = 0; currentVertex < graph.vertexAmount(); currentVertex++) {
             StdOut.print("shortest path from " + startVertex + " to " + currentVertex + ": ");
-            // ① 判断它 是不是 “由起始顶点可达的”
+            // 判断 该顶点 是不是 “由起始顶点可达的”
             if (markedGraph.doesStartVertexHasPathTo(currentVertex)) {
-                // ② 如果是，说明 存在有 这样的路径，则 获取到 ”由起始顶点到达它“的路径
+                // 如果是，说明 存在有 这样的路径，则：
+                // ① 获取到 ”由起始顶点到达它“的最短路径 - 手段：pathFromStartVertexTo()方法
+                // ② 然后 打印出 路径中的结点（起始顶点s单独打印）- 手段：for-each语法
                 // 🐖 这里之所以可以使用 for-each的语法，是因为 pathFromStartVertexTo()方法 返回了 一个栈
                 for (int currentVertexInPath : markedGraph.pathFromStartVertexTo(currentVertex)) {
-                    // 然后 打印出 路径中的结点（起始顶点s单独打印）
                     if (currentVertexInPath == startVertex) StdOut.print(startVertex);
                     else StdOut.print("-" + currentVertexInPath);
-                } // 最终的打印结果是 从头到尾打印路径中的各个节点
+                } // 最终的打印结果 是 从头到尾打印出 路径中的各个节点
             }
 
             StdOut.println();
