@@ -37,8 +37,8 @@ package com.henry.graph_chapter_04.graphs_min_spanning_tree_03.Kruskal.execution
  ******************************************************************************/
 
 import com.henry.basic_chapter_01.specific_application.implementation.primary.QuickFind;
-import com.henry.graph_chapter_04.graphs_min_spanning_tree_03.Edge;
-import com.henry.graph_chapter_04.graphs_min_spanning_tree_03.EdgeWeightedGraph;
+import com.henry.graph_chapter_04.graphs_min_spanning_tree_03.represent_weighted_grpah.Edge;
+import com.henry.graph_chapter_04.graphs_min_spanning_tree_03.represent_weighted_grpah.EdgeWeightedGraph;
 import edu.princeton.cs.algs4.BoruvkaMST;
 import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.LazyPrimMST;
@@ -83,12 +83,12 @@ import java.util.Arrays;
 
 // 目标：获取到 加权无向图的最小生成树MST
 // 原理：最小横切边 一定属于MST
-// 思想：向MST中 逐个地、分散地 添加 当前权重最小的边，直到 MST被完全构建
-// 步骤：#1 把边 按照权重排序； #2 创建一个forest对象（N个节点，每个结点都是一棵树）；
-// #3 判断 引入当前边是否会导致环 。如果不会，则：添加到MST（队列）中，并 合并边的两个顶点
-// 一句话描述：对于 排序后的图中的边序列，如果 当前边添加到MST中不会引入环，则
-// #1 合并 由该边连接的两个分量； #2 把 该最小边 添加到MST中 - 直到MST中的结点数量 = 图中的结点数量，此时的分量就是我们想要的MST
-// 特征：算法其实依赖于一个forest对象，以及它的 unionToSameComponent()的操作
+// 思想：向MST中 逐个地、分散地 添加 当前权重最小的边，直到 MST 被完全构建
+// 步骤：① 把边 按照权重排序； ② 创建一个forest对象（包含有N个节点，每个结点 都是一棵树）；
+// ③ 判断 向MST中 添加当前边 是否会 导致环 。如果不会，则：添加到MST（队列）中，并 合并 边的两个顶点
+// 一句话描述：对于 排序后的 图中的边 所组成的序列，如果 当前边 添加到MST中 不会导致环，则：
+// ① 合并 由该边所连接的 两个分量； #2 把 该最小边 添加到MST中 - 直到MST中的结点数量 == 图中的结点数量，此时的分量 就是我们 想要的MST
+// 特征：算法 其实依赖于 一个forest对象，以及 它的 unionToSameComponent()的操作
 public class KruskalMST {
     private static final double FLOATING_POINT_EPSILON = 1.0E-12;
 
@@ -96,23 +96,23 @@ public class KruskalMST {
     private Queue<Edge> edgesInMSTQueue = new Queue<Edge>();  // 由 MST中的边 所构成的队列
 
     /**
-     * Compute a minimum spanning tree (or forest) of an edge-weighted graph.
-     * 计算一个加权图的 最小展开树
-     * @param weightedGraph the edge-weighted graph
+     * 计算 指定加权图的 最小展开树
+     * @param weightedGraph 指定的加权图
      */
     public KruskalMST(EdgeWeightedGraph weightedGraph) {
-        // #1 获取 加权图的所有边（以可迭代集合的形式），然后 转换为数组形式
+        // #1 获取 加权图的所有边（以可迭代集合的形式），然后 转换为 数组形式（是为了能方便排序）
         Edge[] edges = getEdgesIn(weightedGraph);
 
-        // #2 根据 Edge对象compareTo()方法所定义的规则，来 对数组中的Edge对象 进行排序
+        // #2 根据 Edge对象中 compareTo()方法 所定义的规则 来 对 数组中的Edge对象 进行排序
         Arrays.sort(edges);
 
-        /* #3 执行 贪心算法，遍历边集合中的每一条边 */
+        /* #3 执行 贪心算法，遍历 有序边序列中的 每一条边 */
+        // 先 创建一个森林，森林中包含有 V个树(单节点树)
         QuickFind forest = new QuickFind(weightedGraph.getVertexAmount());
         for (int currentEdgeCursor = 0; withinLegitRange(weightedGraph, currentEdgeCursor); currentEdgeCursor++) {
-            // 对于 当前权重最小的边
+            // 获取到 当前权重最小的边(也就是 当前边)
             Edge currentEdge = edges[currentEdgeCursor];
-            // 尝试使用它 来 构建出MST
+            // 尝试 使用它 来 构建出MST
             constructMST(forest, currentEdge);
         }
 
@@ -120,25 +120,30 @@ public class KruskalMST {
         assert check(weightedGraph);
     }
 
-    private void constructMST(QuickFind forest, Edge currentMinEdge) {
-        // #1 获取到 最小边的两个端点
-        int oneVertex = currentMinEdge.eitherVertex();
-        int theOtherVertex = currentMinEdge.theOtherVertexAgainst(oneVertex);
+    /**
+     * 使用 指定的边 来 在指定的森林中 构建MST
+     * @param forest    指定的森林
+     * @param givenEdge  指定的边
+     */
+    private void constructMST(QuickFind forest, Edge givenEdge) {
+        // #1 获取到 当前边的两个端点
+        int oneVertex = givenEdge.eitherVertex();
+        int theOtherVertex = givenEdge.theOtherVertexAgainst(oneVertex);
 
-        // #2 如果 边的两个端点 不在同一个连通分量中，说明 添加此边到MST中不会形成环，则：
+        // #2 如果 边的两个端点 不属于 同一个连通分量，说明 添加此边到MST中 不会形成环，则：
         // 原理：连接同一个连通分量中的两个顶点 会形成一个环
         if (notInSameComponent(forest, oneVertex, theOtherVertex)) {
-            // ① 把两个顶点 合并到 同一个连通分量中（这个连通分量最终会扩展得到MST）
+            // ① 把 两个顶点 合并到 同一个连通分量 中   作用：1.这个连通分量 最终会 扩展得到 MST；2.保证 对 后继边 是否是 横切边 判断的有效性
             forest.unionToSameComponent(oneVertex, theOtherVertex);     // merge oneVertex and theOtherVertex components
-            // ② 使用 当前边 来 更新MST中的边 与 总权重
-            updateMSTVia(currentMinEdge);
+            // ② 把 当前边 添加到 MST中
+            addToMST(givenEdge);
         }
     }
 
-    private void updateMSTVia(Edge currentEdge) {
+    private void addToMST(Edge currentEdge) {
         // ① 把 这条边 添加到“MST边队列”中(最小横切边一定属于MST)
         edgesInMSTQueue.enqueue(currentEdge);     // add edge currentEdge to mst
-        // ② 更新MST的权重值
+        // ② 更新 MST的权重值
         weightOfMST += currentEdge.weight();
     }
 
@@ -161,30 +166,25 @@ public class KruskalMST {
         return withinLegitAmount(weightedGraph, currentEdgeCursor) && withinLegitSize(weightedGraph);
     }
 
-    // MST中 边的数量的有效性
+    // MST中 边的数量 的有效性
     private boolean withinLegitSize(EdgeWeightedGraph weightedGraph) {
         return edgesInMSTQueue.size() < weightedGraph.getVertexAmount() - 1;
     }
 
-    // 原始图中 边的指针大小(数量)的有效性
+    // 原始图中 边的指针大小(数量) 的有效性
     private boolean withinLegitAmount(EdgeWeightedGraph weightedGraph, int currentEdgeCursor) {
         return currentEdgeCursor < weightedGraph.getEdgeAmount();
     }
 
     /**
-     * Returns the edges in a minimum spanning tree (or forest).
      * 以可迭代集合的方式 来 返回最小展开树中的边
-     * @return the edges in a minimum spanning tree (or forest) as
-     * an iterable of edges
      */
     public Iterable<Edge> edges() {
         return edgesInMSTQueue;
     }
 
     /**
-     * Returns the sum of the edge weights in a minimum spanning tree (or forest).
      * 返回最小展开树中所有边的权重之和
-     * @return the sum of the edge weights in a minimum spanning tree (or forest)
      */
     public double weight() {
         return weightOfMST;
@@ -304,12 +304,12 @@ public class KruskalMST {
     public static void main(String[] args) {
         // 从 命令行参数中，读取 图的文件
         In in = new In(args[0]);
-        // 创建加权图对象
+        // 创建 加权图对象
         EdgeWeightedGraph weightedGraph = new EdgeWeightedGraph(in);
         // 使用Kruskal算法，得到 加权图的MST
         KruskalMST graphsMST = new KruskalMST(weightedGraph);
 
-        // 顺序打印MST中的边
+        // 顺序打印 MST中的所有边
         for (Edge currentMSTEdge : graphsMST.edges()) {
             StdOut.println(currentMSTEdge);
         }
