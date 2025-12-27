@@ -80,20 +80,30 @@ public class PathToAccessibleVertexesInDigraph {
 
         validateVertex(startVertex);
         // 在有向图中，以 指定的起始顶点 执行DFS
+        System.out.println("~~~ 1 在有向图中，以节点" + startVertex + "作为起始节点，开始执行DFS ~~~");
         markAdjacentVertexesViaDFS(digraph, startVertex);
+        System.out.println("~~~ 2 在有向图中，以节点" + startVertex + "作为起始节点的DFS 完成 ~~~");
     }
 
     private void markAdjacentVertexesViaDFS(Digraph digraph, int currentVertex) {
         // 标记 当前顶点 为 已访问
         vertexToIsMarked[currentVertex] = true;
+        System.out.println("!!! 标记顶点" + currentVertex + " !!!");
 
         for (int currentAdjacentVertex : digraph.adjacentVertexesOf(currentVertex)) {
             if (!vertexToIsMarked[currentAdjacentVertex]) {
                 // 记录 当前边 从 终止顶点 -> 起始顶点 的映射关系，用于 回溯出 完整的路径
                 terminalVertexToDepartVertex[currentAdjacentVertex] = currentVertex;
+                System.out.println("@@@ 记录下 搜索路径中的当前边(" + currentVertex + "->" + currentAdjacentVertex + ") @@@");
+
+                System.out.println("### 1 以当前邻居节点" + currentAdjacentVertex + "作为起始节点，开始执行DFS ###");
                 markAdjacentVertexesViaDFS(digraph, currentAdjacentVertex);
+                System.out.println("### 2 以当前邻居节点" + currentAdjacentVertex + "作为起始节点的DFS 结束并返回 ###");
             }
         }
+
+        System.out.println("以节点" + currentVertex + "作为起始节点的DFS 结束");
+        System.out.println();
     }
 
     /**
