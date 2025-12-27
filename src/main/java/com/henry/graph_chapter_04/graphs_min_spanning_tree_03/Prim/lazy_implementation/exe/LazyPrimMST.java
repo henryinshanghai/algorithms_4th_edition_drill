@@ -42,8 +42,8 @@ package com.henry.graph_chapter_04.graphs_min_spanning_tree_03.Prim.lazy_impleme
  ******************************************************************************/
 
 import com.henry.basic_chapter_01.specific_application.implementation.primary.QuickFind;
-import com.henry.graph_chapter_04.graphs_min_spanning_tree_03.Edge;
-import com.henry.graph_chapter_04.graphs_min_spanning_tree_03.EdgeWeightedGraph;
+import com.henry.graph_chapter_04.graphs_min_spanning_tree_03.represent_weighted_grpah.Edge;
+import com.henry.graph_chapter_04.graphs_min_spanning_tree_03.represent_weighted_grpah.EdgeWeightedGraph;
 import edu.princeton.cs.algs4.BoruvkaMST;
 import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.KruskalMST;
@@ -80,15 +80,16 @@ import edu.princeton.cs.algs4.StdOut;
  * @author Robert Sedgewick
  * @author Kevin Wayne
  */
-// 延迟实现：在获取“最小横切边”时，才去判断 队列中的边 是否是 有效横切边；
-// 特征：会在队列中保存 已经失效的边。在处理稠密图时，队列中无效边的数量会很大
+// 延迟实现：在 获取“最小横切边” 时，才去判断 队列中的边 是否是 有效横切边；
+// 特征：随着 算法过程的推进，队列中的横切边 可能会 变成“无效边”。在 处理 稠密图 时，队列中 无效边的数量 会很大
 public class LazyPrimMST {
     private static final double FLOATING_POINT_EPSILON = 1.0E-12;
 
-    private double weightOfMST;       // 最小展开树的权重
-    private Queue<Edge> edgesInMSTQueue;     // MST中的边所构成的队列    用于表示MST
-    private boolean[] vertexToIsMSTVertex;    // 顶点 -> 顶点是否属于MST的映射 用于记录 顶点是否已经被添加到MST中
-    private MinPQ<Edge> crossEdgesPQ;      // 由横切边(边的一个端点在MST中)组成的优先队列  用于记录BFS中出现的横切边
+    private boolean[] vertexToIsMSTVertex;    // 顶点 -> 顶点是否属于MST 的映射； 用于 记录 顶点 是否已经 被添加到MST中
+    private MinPQ<Edge> crossEdgesPQ;      // 由 横切边(边的一个端点在MST中)组成的 优先队列；  用于记录 MST生成过程中 出现的横切边
+
+    private double weightOfMST;       // 最小展开树的权重   用于支持 对应的公开方法
+    private Queue<Edge> edgesInMSTQueue;     // MST中的边 所构成的队列    用于 表示MST
 
     /**
      * Compute a minimum spanning tree (or forest) of an edge-weighted graph.
@@ -100,7 +101,7 @@ public class LazyPrimMST {
         crossEdgesPQ = new MinPQ<Edge>();
         vertexToIsMSTVertex = new boolean[weightedGraph.getVertexAmount()];
 
-        // option01 - 直接从结点0开始在加权图中进行BFS（因为BFS的方式能够遍历 连通图中的每一个结点）
+        // option01 - 直接 从结点0开始 在加权图中进行BFS（因为BFS的方式能够遍历 连通图中的每一个结点）
         prim(weightedGraph, 0);
 
         // option02 - 对于每一个结点，对其执行Prim算法 来 得到 各个无向加权图的MST 所组成的森林
@@ -118,13 +119,19 @@ public class LazyPrimMST {
 
     // run Prim's algorithm
     private void prim(EdgeWeightedGraph weightedGraph, int startVertex) {
+        // ① 把 节点 添加为 MST节点； ② 把 该MST节点 相关联的所有横切边 添加到 PQ中
         markVertexAsMSTAndAddItsCrossEdgesIntoPQ(weightedGraph, startVertex);
 
-        while (!crossEdgesPQ.isEmpty()) {
+        while (!crossEdgesPQ.isEmpty() && constructingMST(weightedGraph)) {
+            /* 把 最小横切边 添加进 MST中 */
+            // 取出 PQ中的 最小横切边
+            // 🐖 由于 每次添加MST节点 时，都会 把 它所关联的所有横切边 添加到PQ集合中(累积的过程)，因此 这里 取最小横切边时，PQ中的可选范围 是 图中当前所有的横切边
             Edge minWeightEdge = crossEdgesPQ.delMin();
-            // 🐖 随着MST节点的添加，原本的横切边可能变得无效（连接了两个MST顶点）。需要跳过这样无效的边
+            // 判断 取到的横切边的有效性
+            // 🐖 随着MST节点的添加，原本的横切边 可能 变得无效（连接了两个MST顶点）。需要 跳过 这样无效的边
             if (bothEndsAreMSTVertex(minWeightEdge)) continue;
 
+            // 把 该有效横切边 添加到 MST中
             addEdgeInMST(minWeightEdge);
 
             // #3 把 最小横切边中所有的“非MST结点/图结点” 都添加到树中，成为”MST结点“
@@ -132,10 +139,21 @@ public class LazyPrimMST {
         }
     }
 
-    private void repeatOnNonMSTVertex(EdgeWeightedGraph weightedGraph, Edge minWeightEdge) {
+    private boolean constructingMST(EdgeWeightedGraph weightedGraph) {
+        return edgesInMSTQueue.size() < weightedGraph.getVertexAmount();
+    }
+
+    /**
+     * 把 指定加权图中 指定边的 非MST节点 所关联的所有横切边 添加到 PQ中
+     * @param weightedGraph 指定的加权图
+     * @param minWeightEdge 指定的边
+     */
+    private void repeatOnNonMSTVertex(EdgeWeightedGraph weightedGraph,
+                                      Edge minWeightEdge) {
         int oneVertex = minWeightEdge.eitherVertex(),
             theOtherVertex = minWeightEdge.theOtherVertexAgainst(oneVertex);
 
+        /* 找到该边的非MST节点，然后 把该节点关联的横切边 都添加到PQ中 */
         if (isNotMSTVertex(oneVertex)) {
             markVertexAsMSTAndAddItsCrossEdgesIntoPQ(weightedGraph, oneVertex);
         }
@@ -146,29 +164,43 @@ public class LazyPrimMST {
     }
 
     private void addEdgeInMST(Edge minWeightEdge) {
+        // 记录 边
         edgesInMSTQueue.enqueue(minWeightEdge);
+        // 更新 MST的权重和
         weightOfMST += minWeightEdge.weight();
     }
 
     private boolean bothEndsAreMSTVertex(Edge minWeightEdge) {
         int oneVertex = minWeightEdge.eitherVertex(),
-            theOtherVertex = minWeightEdge.theOtherVertexAgainst(oneVertex);        // two endpoints
+                theOtherVertex = minWeightEdge.theOtherVertexAgainst(oneVertex);        // two endpoints
 
         assert vertexToIsMSTVertex[oneVertex] || vertexToIsMSTVertex[theOtherVertex];
         return vertexToIsMSTVertex[oneVertex] && vertexToIsMSTVertex[theOtherVertex];
     }
 
-    // 把 当前节点所关联的所有横切边 都添加到 横切边优先队列 中
-    private void markVertexAsMSTAndAddItsCrossEdgesIntoPQ(EdgeWeightedGraph weightedGraph, int currentVertex) {
-        assert !vertexToIsMSTVertex[currentVertex];
-        vertexToIsMSTVertex[currentVertex] = true;
+    //
 
-        for (Edge currentAssociatedGraphEdge : weightedGraph.getAssociatedEdgesOf(currentVertex)) {
-            int theOtherVertex = currentAssociatedGraphEdge.theOtherVertexAgainst(currentVertex);
+    /**
+     * 把 指定加权图中 指定节点 所关联的所有横切边 都添加到 横切边优先队列(成员变量) 中
+     * @param weightedGraph 指定的加权图
+     * @param givenVertex 指定的节点
+     */
+    private void markVertexAsMSTAndAddItsCrossEdgesIntoPQ(EdgeWeightedGraph weightedGraph,
+                                                          int givenVertex) {
+        assert !vertexToIsMSTVertex[givenVertex];
+        // 把 该节点 添加为 MST节点
+        vertexToIsMSTVertex[givenVertex] = true;
 
-            // 🐖 在这里添加时，currentAssociatedGraphEdge是一条 有效的横切边。但随着MST节点的添加，它可能会变成 连接MST节点的边 而失效
-            // 所以 从优先队列中 取出边后，需要额外 添加对边是否是 连接两个MST节点的边 的校验
+        // 对于 该MST节点 在图中所关联的 所有边...
+        for (Edge currentAssociatedGraphEdge : weightedGraph.getAssociatedEdgesOf(givenVertex)) {
+            // 获取到 该边的 另一个端点
+            int theOtherVertex = currentAssociatedGraphEdge.theOtherVertexAgainst(givenVertex);
+
+            // 如果 该边的另一个端点 不是 MST节点，说明 该边 是一条横切边，则：
             if (isNotMSTVertex(theOtherVertex)) {
+                // 把 该横切边 添加到 横切边优先队列(成员变量)中
+                // 🐖 在这里添加时，该横切边 一定是 有效的横切边。但随着MST节点的添加，它 可能会变成 无效边(两个端点都是 MST节点)。
+                // 因此 取出横切边使用 时，需要 校验其有效性
                 crossEdgesPQ.insert(currentAssociatedGraphEdge);
             }
         }
@@ -217,7 +249,7 @@ public class LazyPrimMST {
         for (Edge currentEdge : edgesOfMST()) {
             // 得到 边的两个端点
             int oneVertex = currentEdge.eitherVertex(),
-                theOtherVertex = currentEdge.theOtherVertexAgainst(oneVertex);
+                    theOtherVertex = currentEdge.theOtherVertexAgainst(oneVertex);
 
             /* 在把端点添加到同一组中之前，检查 它们是不是 已经在同一个组中了 */
             // 如果 边的两个端点 属于同一个组，说明 MST中存在有环，则：
@@ -236,7 +268,7 @@ public class LazyPrimMST {
         for (Edge currentEdge : weightedGraph.edges()) {
             // 获取到 当前边的两个端点
             int oneVertex = currentEdge.eitherVertex(),
-                theOtherVertexAgainst = currentEdge.theOtherVertexAgainst(oneVertex);
+                    theOtherVertexAgainst = currentEdge.theOtherVertexAgainst(oneVertex);
 
             // 如果 其两个端点 不在同一个组中，说明???
             if (notInSameGroup(forest, oneVertex, theOtherVertexAgainst)) {
@@ -257,7 +289,7 @@ public class LazyPrimMST {
             for (Edge currentEdgeInMST : edgesInMSTQueue) {
                 // 获取到MST边的两个端点
                 int oneVertex = currentEdgeInMST.eitherVertex(),
-                    theOtherVertex = currentEdgeInMST.theOtherVertexAgainst(oneVertex);
+                        theOtherVertex = currentEdgeInMST.theOtherVertexAgainst(oneVertex);
 
                 // 如果 这两条边 不相同，说明 ???，则：
                 if (currentEdgeInMST != currentMSTEdge) {
@@ -269,7 +301,7 @@ public class LazyPrimMST {
             // 检查 currentMSTEdge 是 横切边中的最小权重边
             for (Edge currentEdge : weightedGraph.edges()) {
                 int oneVertex = currentEdge.eitherVertex(),
-                    theOtherVertex = currentEdge.theOtherVertexAgainst(oneVertex);
+                        theOtherVertex = currentEdge.theOtherVertexAgainst(oneVertex);
 
                 // 如果xxx，说明 当前边 是一条横切边，则：
                 if (notInSameGroup(forest, oneVertex, theOtherVertex)) {

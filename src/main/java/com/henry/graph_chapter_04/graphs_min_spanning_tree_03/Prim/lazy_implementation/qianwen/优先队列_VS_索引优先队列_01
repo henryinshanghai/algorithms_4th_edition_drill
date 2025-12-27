@@ -1,0 +1,123 @@
+优先队列 与 索引优先队列 有什么不一样呢？
+
+===
+这是一个非常重要的数据结构问题！优先队列（Priority Queue） 和 索引优先队列（Indexed Priority Queue） 虽然名字相似，但 功能 和 适用场景 有本质区别。
+
+下面我们从定义、能力、实现和用途 四个维度 详细对比。
+
+一、核心区别一句话总结
+类型	                                | 核心能力
+普通优先队列（Priority Queue）	        | 只能 ① 插入元素 和 ② 删除最小/最大元素，无法 修改或访问 已入队的元素
+索引优先队列（Indexed Priority Queue）	| 除了基本操作，还能 通过索引更新（decreaseKey/increaseKey）或 查询 某个元素的优先级
+
+✅ 普通 PQ：你把任务扔进去，只能拿走 当前最紧急的，不能 中途 改 优先级。
+✅ 索引 PQ：你可以对“第 5 号任务”说：“把它优先级调高！”
+
+===
+二、详细功能对比
+操作	                | 普通优先队列（如 java.util.PriorityQueue）|	索引优先队列（如 IndexedMinPQ）
+insert(item)	    | ✅ 支持（但无“索引”概念）	                | ❌ 通常不直接插入 item，而是 insert(i, key)
+insert(i, key)	    | ❌ 不支持（没有“索引 i”的概念）	        | ✅ 支持：将 索引i 与 优先级key 关联
+delMin() / delMax()	| ✅ 返回并删除最小/最大元素	                | ✅ 返回最小/最大的索引（如 minIndex()）
+getMin()	        | ✅ 返回最小元素（但无法知道“是谁”）	        | ✅ minKey() 返回 最小优先级，minIndex() 返回 对应索引
+decreaseKey(i, newKey)|	❌ 完全不支持	                        | ✅ 核心能力：降低索引 i 的优先级
+contains(i)	        | ❌ 无法判断某个“逻辑实体” 是否在队列中	    | ✅ 可查索引 i 是否在队列中
+keyOf(i)	        | ❌ 无法获取某个元素的优先级	️          | 可查索引 i 当前的优先级
+元素重复性	        | 允许重复值	                            | 每个索引 i 最多出现一次（类似 map）
+
+📌 注意：普通 PQ 存的是 值（value），索引 PQ 存的是 <索引, 优先级> 映射。
+
+===
+三、举个例子说明差异
+场景：Dijkstra 最短路径算法
+我们需要 为每个顶点 v 维护：
+    ① distTo[v] = 从起点到 v 的当前最短距离
+    ② 当 发现更短路径 时，要 更新 distTo[v] 并 调整 其在优先队列中的位置
+
+❌ 用普通优先队列（错误做法）：
+
+// 错误！无法更新 已有顶点的距离
+PriorityQueue<Vertex> pq = new PriorityQueue<>(Comparator.comparing(v -> distTo[v.id]));
+
+for (Vertex v : graph) {
+    pq.offer(v); // 初始插入
+}
+
+while (!pq.isEmpty()) {
+    Vertex u = pq.poll();
+    for (Edge e : u.adj) {
+        if (distTo[e.to] > distTo[u] + e.weight) {
+            distTo[e.to] = distTo[u] + e.weight;
+            // 问题：如何更新 pq 中 e.to 的优先级？
+            // 普通 PQ 无法做到！只能 再插入一个副本
+            pq.offer(new Vertex(e.to)); // ← 导致重复！
+        }
+    }
+}
+→ 结果：同一个顶点 可能 在PQ中 出现多次，取出时 需检查 是否“过期”（类似 Lazy Prim 的无效边）。
+
+==
+✅ 用索引优先队列（正确做法）：
+IndexedMinPQ<Double> pq = new IndexedMinPQ<>(V);
+
+for (int v = 0; v < V; v++) {
+    pq.insert(v, Double.POSITIVE_INFINITY);
+}
+pq.decreaseKey(start, 0.0);
+
+while (!pq.isEmpty()) {
+    int u = pq.delMin(); // 返回索引
+    for (Edge e : adj[u]) {
+        if (distTo[e.to] > distTo[u] + e.weight) {
+            distTo[e.to] = distTo[u] + e.weight;
+            if (pq.contains(e.to)) {
+                pq.decreaseKey(e.to, distTo[e.to]); // ← 直接更新！
+            } else {
+                pq.insert(e.to, distTo[e.to]);
+            }
+        }
+    }
+}
+→ 每个顶点只在 PQ 中 出现一次，效率更高，无冗余。
+
+===
+四、内部实现差异
+数据结构	| 普通优先队列            | 索引优先队列
+底层结构	| 二叉堆（数组）           | 二叉堆 + 两个辅助数组
+辅助信息	| 无	                | - keys[]：存储 每个索引的优先级
+                                    - pq[]：堆中 存储的是 索引
+                                    - qp[]：qp[i] = 索引i 在堆中的位置（-1 表示不在堆中）
+更新操作	|无法定位元素 → 无法高效更新	| 通过 qp[i] O(1) 定位，然后上浮/下沉调整
+
+🔍 索引 PQ 的 qp 数组是关键：它 实现了 “索引 ↔ 堆中位置” 的双向映射，使得 decreaseKey(i, key) 能在 O(log n) 时间完成。
+
+===
+五、典型应用场景
+场景	                            | 推荐数据结构    |	原因
+任务调度（只关心当前最高优先级任务）	| 普通 PQ	    | 无需修改 已提交任务
+Dijkstra / Prim（即时版）	        | 索引 PQ	    | 需要 动态更新 顶点的最短距离/最小边
+Huffman 编码	                    | 普通 PQ	    | 只 合并 最小两棵树，无需更新
+A* 搜索	                        | 索引 PQ（或普通 PQ + 重复插入）| 若允许 重复节点，可用普通 PQ；否则需索引 PQ
+
+===
+六、Java 中的支持情况
+类型	        | Java 标准库                |	第三方/自实现
+普通优先队列	|✅ java.util.PriorityQueue |	—
+索引优先队列	|❌ 标准库没有	            |- Princeton 的《算法》教材提供 IndexMinPQ
+                                            - Apache Commons / Guava 也未直接提供
+                                            - 通常需要自己实现
+💡 很多算法教材（如 Sedgewick 的 Algorithms）会专门实现 IndexMinPQ，因为它对图算法至关重要。
+
+===
+七、总结
+对比项	        | 普通优先队列            |	索引优先队列
+核心抽象	        | 元素集合（按优先级排序）   | <索引, 优先级> 映射
+能否更新已有元素？	| ❌ 不能	            | ✅ 能（通过索引）
+是否允许重复？	    | ✅ 允许	            | ❌ 每个索引唯一
+实现复杂度	    | 简单	                | 较复杂（需维护反向索引）
+典型用途	        | 通用优先级任务	        |图算法（Dijkstra, Eager Prim）
+
+✅ 记住：
+① 如果你 只需要 “不断取最小”，用 普通 PQ。
+② 如果你 需要 “修改 某个特定对象的 优先级”，必须用 索引 PQ。
+理解这个区别，是掌握高级图算法（如高效 Prim、Dijkstra）的关键一步！

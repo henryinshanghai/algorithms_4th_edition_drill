@@ -2,11 +2,11 @@ We use a priority queue to hold the crossing edges and find one of minimal weigh
 我们使用一个 优先队列 来 存储 所有的横切边 并且 找到其中权重最小的边。
 
 Each time that we add an edge to the tree, we also add a vertex to the tree.
-每次我们向MST中添加一条边，我们也就向树中添加了一个节点。
+每次我们 向MST中 添加一条边，我们也就 向树中 添加了一个节点。
 
 To maintain the set of crossing edges, we need to
 add to the priority queue all edges from that vertex to any non-tree vertex.
-为了维护 横切边的集合，我们需要 向优先队列中添加 所有由该节点指向其他任何非树节点的边。
+为了维护 横切边的集合，我们需要 向 优先队列 中 添加 所有 由 该节点 指向 其他任何非树节点的边。
 
 But we must do more:
 any edge
@@ -19,4 +19,4 @@ now becomes ineligible (it is no longer a crossing edge because it connects two 
 
 The lazy implementation leaves such edges on the priority queue,
 deferring(延迟) the ineligibility test（无效性测试） to when we remove them.
-这个懒实现 把这样的边 留在了优先队列了，把这种无效性测试 给延迟到 当我们需要移除他们时。
+这个懒实现 把这样的边 留在了优先队列了，把 这种无效性测试 给 延迟到 当我们 需要移除他们 时。
