@@ -92,8 +92,9 @@ public class TopoSortDigraph {
             // 获取到 vertex 在 拓扑排序结果序列 中的位置/排名
             vertexToItsSpotInTopoSequence = new int[digraph.getVertexAmount()];
             int spotInTopoSequence = 0;
-            for (int currentVertex : vertexesInTopoOrder)
+            for (int currentVertex : vertexesInTopoOrder) {
                 vertexToItsSpotInTopoSequence[currentVertex] = spotInTopoSequence++;
+            }
         }
     }
 
