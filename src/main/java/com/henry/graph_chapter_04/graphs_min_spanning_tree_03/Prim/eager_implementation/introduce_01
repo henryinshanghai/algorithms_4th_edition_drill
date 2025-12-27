@@ -9,21 +9,25 @@ our only interest is in the minimal edge
 from each non-tree vertex to a tree vertex.
 
 When we add a vertex v to the tree,
-the only possible change with respect to each non-tree vertex w is that
+the only possible change with respect to（针对，对于） each non-tree vertex w is that
 adding v brings w closer than before
 to the tree.
+当我们 把 顶点v 加入树中 时，
+对于每个 不在树中的 顶点w 而言，唯一可能 发生的变化 是：
+加入v 使得 w 比之前 更靠近这棵树了。
 
-In short, we do not need to keep on the priority queue
-all of the edges from w to vertices tree—
 
-we just need to keep track of the minimum-weight edge
+
+In short, we do not need to keep on(在计算机领域，queue的介词使用on) the priority queue
+all of the edges from w to vertices tree ——
+we just need to keep track of(跟踪，记录) the minimum-weight edge
 and check whether
-the addition of v to the tree
-necessitates(使成为必要) that we update that minimum
+the addition of v to the tree 把节点v添加到树中
+necessitates（迫使） that we update that minimum
 (because of an edge v-w that has lower weight),
 which we can do as we process each edge in s adjacency list.
 
 In other words, we maintain on the priority queue
 just one edge for each non-tree vertex:
 the shortest edge that connects it to the tree.
-把该结点连接到树的最小边。
+换句话说，对于 每一个非树节点，我们在优先队列中，只为其保留一条边：即 把 该结点 连接到 树 的最小边。
