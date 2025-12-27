@@ -25,7 +25,9 @@ public class AccessibleVertexesInDigraph {
     public AccessibleVertexesInDigraph(Digraph digraph, int startVertex) {
         vertexToIsMarked = new boolean[digraph.getVertexAmount()];
         // 在图中，以 指定的顶点 作为 起始顶点 进行DFS
+        System.out.println("~~~ 在有向图中，以节点" + startVertex + "作为起始节点 开始执行DFS ~~~");
         markAllAccessibleVertexesStartFrom(digraph, startVertex);
+        System.out.println("~~~ 有向图中，以节点" + startVertex + "作为起始节点的DFS过程 完成 ~~~");
     }
 
     // 重载的构造器方法
@@ -47,15 +49,21 @@ public class AccessibleVertexesInDigraph {
     private void markAllAccessibleVertexesStartFrom(Digraph digraph, int currentVertex) {
         // 把 当前顶点 标记为true
         vertexToIsMarked[currentVertex] = true;
+        System.out.println("!!! 1 对 当前节点" + currentVertex + " 进行标记 !!!");
 
         // 对于  当前顶点的所有邻居顶点...
         for (Integer currentAdjacentVertex : digraph.adjacentVertexesOf(currentVertex)) {
             // 如果 该邻居顶点 还没有被标记过，说明 它还没有被访问过..
             if (isNotMarked(currentAdjacentVertex)) {
                 // 则：继续递归地 对其进行标记
+                System.out.println("@@@ 1 当前邻居节点" + currentAdjacentVertex + "没有被标记，以其作为起始节点，在图中 开始执行DFS @@@");
                 markAllAccessibleVertexesStartFrom(digraph, currentAdjacentVertex);
+                System.out.println("@@@ 2 以节点" + currentAdjacentVertex + " 作为起始节点的DFS 结束并返回 @@@");
             }
         }
+
+        System.out.println("!!! 2 以 当前节点" + currentVertex + " 作为起始节点的 DFS过程 结束 !!!");
+        System.out.println();
     }
 
 
