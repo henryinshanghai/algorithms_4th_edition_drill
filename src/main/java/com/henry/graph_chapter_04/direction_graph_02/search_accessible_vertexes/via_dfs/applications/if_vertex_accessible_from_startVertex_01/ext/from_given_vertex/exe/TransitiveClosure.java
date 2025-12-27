@@ -76,9 +76,11 @@ public class TransitiveClosure {
         vertexToItsAccessibleVertexesInDigraph = new AccessibleVertexesInDigraph[digraph.getVertexAmount()];
 
         // 对元素 进行初始化
-        for (int currentVertex = 0; currentVertex < digraph.getVertexAmount(); currentVertex++)
-            // 以 当前顶点 作为 起始顶点，得到 它在图中的 所有可达顶点
+        for (int currentVertex = 0; currentVertex < digraph.getVertexAmount(); currentVertex++) {
+            System.out.println("~~~ Ⅰ 获取图中 由当前节点" + currentVertex + "可达的所有节点的集合 ~~~");
             vertexToItsAccessibleVertexesInDigraph[currentVertex] = new AccessibleVertexesInDigraph(digraph, currentVertex);
+            System.out.println("~~~ Ⅱ 获取到的 节点" + currentVertex + "的可达节点集合为：" + vertexToItsAccessibleVertexesInDigraph[currentVertex] + "~~~");
+        }
     }
 
     /**
