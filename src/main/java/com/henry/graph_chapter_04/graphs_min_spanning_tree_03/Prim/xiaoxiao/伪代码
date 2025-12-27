@@ -1,0 +1,20 @@
+MST-PRIM(G) {
+    Edges = Ø
+    UnReachSet = G.V
+
+    set all vertices v.minEdge = Ø
+    set all vertices v.key = ∞
+    set an arbitrary vertex v.key = 0
+
+    while unReachSet ≠ Ø
+        v = EXTRACT-MIN(UnReachSet)
+        if v.minEdge ≠ Ø
+            add v.minEdge to Edges
+
+        for each neighbor u of v
+            if u ∈ UnReachSet and weight(v, u) < u.key
+                u.key = weight(v, u)
+                u.minEdge = (v, u)
+
+    return Edges
+}
