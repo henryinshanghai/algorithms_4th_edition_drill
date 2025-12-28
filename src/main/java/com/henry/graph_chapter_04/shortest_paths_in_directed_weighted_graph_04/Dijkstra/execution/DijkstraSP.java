@@ -77,30 +77,34 @@ import edu.princeton.cs.algs4.StdOut;
 // 当 PQ为空 时，每个图结点 都已经记录下了 到达自己的最短路径的最后一条边。这时 使用回溯的手段 就能够得到 完整的路径
 public class DijkstraSP {
 
-    private double[] vertexToLightestPathWeightTowardsIt; // 用于记录 当前顶点 -> 由起始顶点到达当前顶点的最短路径的 距离/路径权重
-    private DirectedEdge[] vertexToItsTowardsEdge; // 用于记录 当前顶点 -> 由起始顶点到达当前顶点的最短路径的 最后一条边
-    private IndexMinPQ<Double> vertexToItsLightestPathWeightPQ; // 用于记录 当前顶点(index)->由起始顶点到它的最短路径的路径权重(key) 的映射关系
+    // 用于记录 当前顶点 -> 由起始顶点到达它的最短路径的 距离/路径权重      应用：用于快速获取 指定vertex的“到达它的最轻路径的权重”
+    private double[] vertexToLightestPathWeightTowardsIt;
+    // 用于记录 当前顶点 -> 由起始顶点到达它的最短路径的 最后一条边        应用：用于 回溯出 具体路径??
+    private DirectedEdge[] vertexToItsTowardsEdge;
+    // 用于记录 当前顶点(index)->由起始顶点到它的最短路径的路径权重(key) 的映射关系   应用：用于 快速获取 当前权重最小的vertex
+    private IndexMinPQ<Double> vertexToItsLightestPathWeightPQ;
 
     // 计算出 在 加权有向图G 中，从 起始顶点s 到 其可达的所有其他结点的 最短路径集合，所构成的一个 最短路径树(SPT)
-    public DijkstraSP(EdgeWeightedDigraph weightedDigraph, int startVertex) {
+    public DijkstraSP(EdgeWeightedDigraph weightedDigraph,
+                      int startVertex) {
         validateEdgeWeightIn(weightedDigraph);
 
         int graphVertexAmount = weightedDigraph.getVertexAmount();
-        instantiateVertexProperties(graphVertexAmount);
+        initCapacity(graphVertexAmount);
 
         validateVertex(startVertex);
 
-        // #1 初始化 各个结点的“从起始节点到它”的“最短路径”的权重属性
+        // #1 初始化 各个结点的 “从起始节点到达它”的 “最短路径” 的权重属性
         initPathWeight(startVertex, graphVertexAmount);
 
-        // #2 根据 当前顶点距离起始顶点的远近(到起始顶点的距离) 来 由近到远地 放松结点
+        // #2 根据 当前顶点 距离 起始顶点的远近(到起始顶点的距离) 来 由近到远地 放松结点
         while (!vertexToItsLightestPathWeightPQ.isEmpty()) {
             // ① 获取到 当前“距离起始顶点的路径权重最小的”结点
-            // 🐖 这里取出 权重最小的节点 时，到达它的最短路径 也就同时被确定了
+            // 🐖 这里 取出 权重最小的节点 时，到达 它的最短路径 也就同时 被确定了
             int vertexWithMinPathWeight = vertexToItsLightestPathWeightPQ.delMin();
-            // ② 获取到 图中该结点所关联的所有边   作用：为了获取到 其所有的可达顶点
+            // ② 对于 图中 该结点 所关联的所有有向边...   作用：为了获取到 其所有的可达顶点
             for (DirectedEdge currentAssociatedGraphEdge : weightedDigraph.associatedEdgesOf(vertexWithMinPathWeight))
-                // 对 该关联边 进行放松  作用：尝试更新 其所有可达节点的路径权重
+                // 对 该关联边 进行放松  作用：尝试 最小化更新 路径当前节点vertexWithMinPathWeight的 所有可达节点的 路径权重
                 relax(currentAssociatedGraphEdge);
         }
 
@@ -109,18 +113,18 @@ public class DijkstraSP {
     }
 
     private void initPathWeight(int startVertex, int graphVertexAmount) {
-        initArrPathWeight(startVertex, graphVertexAmount);
-        initPQEntryFor(startVertex, graphVertexAmount);
+        initItemsInArr(startVertex, graphVertexAmount);
+        initEntriesInPQ(startVertex, graphVertexAmount);
     }
 
-    private void initPQEntryFor(int startVertex, int graphVertexAmount) {
+    private void initEntriesInPQ(int startVertex, int graphVertexAmount) {
         // 容量初始化
         vertexToItsLightestPathWeightPQ = new IndexMinPQ<Double>(graphVertexAmount);
         // 元素初始化
         vertexToItsLightestPathWeightPQ.insert(startVertex, vertexToLightestPathWeightTowardsIt[startVertex]);
     }
 
-    private void instantiateVertexProperties(int graphVertexAmount) {
+    private void initCapacity(int graphVertexAmount) {
         vertexToLightestPathWeightTowardsIt = new double[graphVertexAmount];
         vertexToItsTowardsEdge = new DirectedEdge[graphVertexAmount]; // startVertex所对应的 “由起始节点到它的最轻路径的最后一条边”为null
     }
@@ -132,7 +136,7 @@ public class DijkstraSP {
         }
     }
 
-    private void initArrPathWeight(int startVertex, int graphVertexAmount) {
+    private void initItemsInArr(int startVertex, int graphVertexAmount) {
         // 初始化 由起始节点到当前节点的最短路径的权重值为 无穷大
         for (int currentVertex = 0; currentVertex < graphVertexAmount; currentVertex++)
             vertexToLightestPathWeightTowardsIt[currentVertex] = Double.POSITIVE_INFINITY;
@@ -156,7 +160,7 @@ public class DijkstraSP {
     private void updateTerminalsPropertiesBy(DirectedEdge passedEdge) {
         // 〇 获取到边的 出发顶点 与 终止顶点
         int departVertex = passedEdge.departVertex(),
-            terminalVertex = passedEdge.terminalVertex();
+                terminalVertex = passedEdge.terminalVertex();
 
         // ① 更新 terminal顶点的 “路径权重”属性
         vertexToLightestPathWeightTowardsIt[terminalVertex] = vertexToLightestPathWeightTowardsIt[departVertex] + passedEdge.weight();
@@ -166,20 +170,39 @@ public class DijkstraSP {
         updatePQEntryFor(terminalVertex);
     }
 
-    private void updatePQEntryFor(int terminalVertex) {
-        // 如果存在，则更改
-        if (vertexToItsLightestPathWeightPQ.contains(terminalVertex))
-            vertexToItsLightestPathWeightPQ.changeKey(terminalVertex, vertexToLightestPathWeightTowardsIt[terminalVertex]);
-        else { // 如果不存在，则新增
-            vertexToItsLightestPathWeightPQ.insert(terminalVertex, vertexToLightestPathWeightTowardsIt[terminalVertex]);
+    /**
+     * 更新 索引优先队列中，指定的节点 所对应的entry
+     *
+     * @param givenVertex 指定的节点
+     */
+    private void updatePQEntryFor(int givenVertex) {
+
+        double currentLightestPathWeight = vertexToLightestPathWeightTowardsIt[givenVertex];
+
+        // 如果index(vertex) 已经存在，
+        if (vertexToItsLightestPathWeightPQ.contains(givenVertex)) {
+            // 则：更新 其所对应的Key(pathWeight)
+            vertexToItsLightestPathWeightPQ.changeKey(givenVertex, currentLightestPathWeight);
+        } else { // 如果index(index)不存在，
+            // 则：添加 对应的entry(index, key) index:vertex; key:pathWeight
+            vertexToItsLightestPathWeightPQ.insert(givenVertex, currentLightestPathWeight);
         }
     }
 
-    // 传入当前边，判断 经由当前边到达terminalVertex 是否能使得 到达其的路径权重更小
+    /**
+     * 判断 如果 路径 经由 指定的边 到达terminalVertex，是否 能使得 路径的权重 更小
+     * @param passedEdge   指定的边
+     * @return  如果能，则 返回true；如果不能 返回false。
+     */
     private boolean makePathWeightLighterVia(DirectedEdge passedEdge) {
         int departVertex = passedEdge.departVertex();
         int terminalVertex = passedEdge.terminalVertex();
-        return vertexToLightestPathWeightTowardsIt[terminalVertex] > vertexToLightestPathWeightTowardsIt[departVertex] + passedEdge.weight();
+
+        double pathWeightTowardTerminalVertex = vertexToLightestPathWeightTowardsIt[terminalVertex];
+        double pathWeightTowardsDepartVertex = vertexToLightestPathWeightTowardsIt[departVertex];
+        double edgesWeight = passedEdge.weight();
+
+        return pathWeightTowardTerminalVertex > pathWeightTowardsDepartVertex + edgesWeight;
     }
 
     // 返回 从起始顶点s 到指定顶点v的 一条最短路径的权重/长度
