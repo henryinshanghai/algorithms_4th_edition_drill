@@ -1,0 +1,115 @@
+既然 整个Dijkstra算法的过程 就是在 一直更新 节点的pathWeight的值，为什么不 把节点 定义成 一个单独的类呢?
+
+===
+这是一个非常有洞察力的问题！
+
+“既然 Dijkstra 算法不断更新每个节点的距离（path weight），为什么不 把节点 封装成一个类，直接 在 节点对象 里存 dist、prev 等属性？”
+
+这个问题 触及了 软件工程设计中的核心权衡：
+封装性 vs 通用性 vs 性能。
+
+下面我们从 多个角度 分析 为什么 主流实现（如 Sedgewick 的《算法》、CLRS 教材、竞赛模板）通常 不将图节点 定义为类，而是 用 外部数组/映射 来 管理状态。
+
+===
+一、主流做法：节点是“标识符”，状态外置
+在大多数图算法实现中：
+    ① 顶点 只是一个 ID（如整数 0, 1, 2, ..., V-1）；
+    ② 所有算法状态（distTo[], edgeTo[], visited[] 等）都用 独立的数组 或 映射 来 存储；
+    ③ 图结构 本身 用邻接表（List<Edge>[] adj）表示。
+
+    // 典型 Dijkstra 实现（Sedgewick 风格）
+    public class Dijkstra {
+        private double[] distTo;      // 外置距离数组
+        private DirectedEdge[] edgeTo; // 外置前驱边数组
+        private IndexMinPQ<Double> pq;
+
+        public Dijkstra(EdgeWeightedDigraph G, int s) {
+            distTo = new double[G.V()];
+            edgeTo = new DirectedEdge[G.V()];
+            // ... 初始化和主循环
+        }
+    }
+✅ 节点本身 不携带 算法状态，状态 由算法类管理。
+
+===
+二、为什么不把节点做成类？—— 四大原因
+
+==
+✅ 原因 1：一个节点 可能参与 多种不同算法
+① 同一个图，你可能先后运行：
+    1.Dijkstra（求最短路径）
+    2.BFS（求无权最短路径）
+    3.DFS（求连通分量）
+    4.Topological Sort（拓扑排序）
+② 如果把 dist, visited, preorder, postorder 等 都塞进 Node 类：
+    class Node {
+        double dijkstraDist;
+        boolean bfsVisited;
+        int dfsPreorder;
+        int topoOrder;
+        // ... 越来越臃肿！
+    }
+→ 严重违反 单一职责原则，且 浪费内存（大部分字段 在 某次算法 中 用不到）。
+💡 算法状态 属于“算法上下文”，不属于“节点本体”。
+
+==
+✅ 原因 2：支持多源或多轮计算
+① 你想从 不同源点 运行 Dijkstra（比如计算 所有点对最短路径的一部分）；
+② 如果 dist 是 节点的成员变量，第二次运行 会覆盖 第一次的结果；
+③ 而用 外置数组，你可以 轻松保存 多个结果：
+
+double[][] allDist = new double[V][V];
+for (int s = 0; s < V; s++) {
+    Dijkstra d = new Dijkstra(G, s);
+    allDist[s] = d.distTo(); // 保存本轮结果
+}
+🔑 外置状态 = 可重入、可并行、可缓存。
+
+==
+✅ 原因 3：性能 与 内存局部性（Cache Locality）
+① 数组 distTo[] 在内存中是 连续存储的；
+② CPU 缓存 能高效预取，遍历快；
+③ 如果 每个 Node对象 分散在堆上，访问 node.dist 会导致 大量 cache miss，性能下降。
+📊 实验表明：在大规模图上，结构体数组（AoS） vs 数组结构体（SoA） 中，后者（即 外置数组）通常更快。
+
+==
+✅ 原因 4：图的表示更灵活
+① 很多时候，图的顶点 根本不是 对象，而是：
+    1.字符串（如 URL、城市名）→ 用 Map<String, Double> distTo
+    2.整数 ID（如用户 ID、网页编号）→ 用 double[] distTo
+    3.自定义键（如坐标 (x,y)）→ 用 Map<Point, Double>
+② 如果 强制要求 “节点必须是类”，就限制了 图的通用性。
+🌐 图算法 应与 顶点的具体类型 解耦。
+
+===
+三、什么时候可以 把节点做成类？
+当然，在某些场景下，封装节点类 是合理的：
+
+场景	                | 说明
+小型项目 / 教学演示	| 为了直观理解，可定义 class Vertex { int id; double dist; ... }
+特定领域模型	        | 如 游戏引擎 中，每个“地图格子”本身 就是 智能对象，天然 带状态
+持久化图结构	        | 节点需要 长期保存 状态（如社交网络 用户节点 带“影响力分数”）
+
+但即便如此，算法临时状态（如 Dijkstra 的 dist）仍建议 外置，而只把 业务属性 放在 节点类 中。
+
+===
+四、现代语言中的折中方案：使用映射（Map）
+如果你 不想用 整数 ID，又想 保持灵活性，可以用：
+    # Python 示例：顶点是任意 hashable 对象
+    dist = {v: float('inf') for v in graph.vertices}
+    prev = {}
+    pq = [(0, source)]
+这本质上 仍是 外置状态，只是 用 字典 代替 数组。
+
+
+===
+五、总结：设计哲学
+方案	        | 优点            |	缺点	                | 适用场景
+节点类内嵌状态	| 直观、面向对象	 | 状态污染、难复用、性能差	| 小型 demo、教学
+外置数组/映射	| 通用、高效、可组合 | 看起来“不够 OOP”	    | 工业级算法库、竞赛、大规模图
+
+🌟 图算法的核心是 “关系”（边），而不是 “实体”（节点）。
+
+把 状态 外置，正是为了 聚焦于 图的结构 和 算法逻辑本身，而非 被 对象模型 束缚。
+
+所以，不是“不能”把节点做成类，而是在通用、高效、可复用的算法设计中，外置状态 是更优选择。
