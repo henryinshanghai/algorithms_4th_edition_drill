@@ -145,18 +145,27 @@ public class DijkstraSP {
         vertexToLightestPathWeightTowardsIt[startVertex] = 0.0;
     }
 
-    // 放松 指定的边
-    // 手段：更新 以 边的terminalVertex 作为endVertex的 路径的相关属性(结点属性)
-    // 🐖 这里的relax，可以想象节点是一个重量为pathWeight的球。当球的pathWeight变小时，边自然也就被放松了
+
+    /**
+     * 放松 指定的边; 也就是 尝试 对 边的到达节点的pathWeight 进行 更小化更新
+     * 所谓放松边：想象 到达节点 是一个 重量为pathWeight的球 - 当 球的pathWeight变小 时，边 自然也就 被放松了
+     *
+     * @param passedEdge 指定的边
+     */
     private void relax(DirectedEdge passedEdge) {
-        // #1 如果 “由起始顶点s到终止顶点terminalVertex”取用“当前边” 能够得到 更小的路径权重，说明 经由当前边来到达终止顶点 是更优的，则...
+        // #1 如果 “由起始顶点s 到 终止顶点terminalVertex 的路径” 通过 取用“当前边” 能够得到 更小的路径权重，说明 经由当前边 来 到达终止顶点 是更优的，
         if (makePathWeightLighterVia(passedEdge)) {
-            // 更新 terminal节点的各种属性
+            // 则：更新 terminal节点的各种属性
             updateTerminalsPropertiesBy(passedEdge);
         }
-        // 在边被relax之后，有 vertexToItsPathWeight[terminalVertex] = vertexToItsPathWeight[departVertex] + passedEdge.weight()
+        // 在 边 被relax 之后，有 vertexToItsPathWeight[terminalVertex] = vertexToItsPathWeight[departVertex] + passedEdge.weight()
     }
 
+    /**
+     * 更新 指定边的 到达节点的 pathWeight相关的属性
+     *
+     * @param passedEdge 指定的边
+     */
     private void updateTerminalsPropertiesBy(DirectedEdge passedEdge) {
         // 〇 获取到边的 出发顶点 与 终止顶点
         int departVertex = passedEdge.departVertex(),
